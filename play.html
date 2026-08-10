@@ -24,6 +24,20 @@
   .ep { color: #ffd43b; }
   .badge { font-size: 11px; padding: 1px 6px; border-radius: 9px; background: #2a3038; }
   .badge.bar { background: #1864ab; color: #d0ebff; }
+  .badge.mara { background: #a52a2a; color: #ffe3e3; font-weight: bold;
+                animation: maraPulse 1.6s ease-in-out infinite; }
+  @keyframes maraPulse { 0%,100% { box-shadow: 0 0 0 0 #ff6b6b00 }
+                         50% { box-shadow: 0 0 9px 2px #ff6b6b88 } }
+
+  /* 命途资源条：笑点 / 解读 / 蓄能。带进度条，让人知道离下一档还差多少 */
+  .res { display: inline-flex; flex-direction: column; align-items: stretch; gap: 2px;
+         font-size: 11px; padding: 2px 8px; border-radius: 6px; background: #2a2438;
+         border: 1px solid #46395e; min-width: 62px; }
+  .res b { color: #d0bfff; font-weight: normal; font-size: 10px; }
+  .res .resNx { color: #7c6f92; }
+  .res .resBar { display: block; height: 3px; background: #1a1520; border-radius: 2px; overflow: hidden; }
+  .res .resBar i { display: block; height: 100%; background: linear-gradient(90deg,#845ef7,#d0bfff);
+                   transition: width .35s ease-out; }
 
   /* ---- 场地 ---- */
   .field { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -565,6 +579,43 @@ function render() {
   if (s.winner != null) finish();
 }
 
+/* 命途资源（笑点/解读/蓄能）必须一眼看见，而且要看见「下一个门槛还差多少」——
+ * 只显示一个数字玩家记不住这数字有什么用。所以扫一遍手牌与牌库里所有
+ * ctr(该资源)>=N 的条件，取比当前值大的最小那个 N 当作下一档。 */
+const PATH_RES = ['笑点', '解读', '蓄能'];
+
+function nextThreshold(p, name) {
+  const cur = S.ctrOf(p, name);
+  let best = null;
+  const scan = def => {
+    for (const c of (def.clauses || [])) {
+      if (!c.cond) continue;
+      const m = new RegExp('ctr\\(' + name + '\\)\\s*>=\\s*(\\d+)').exec(c.cond);
+      if (!m) continue;
+      const n = +m[1];
+      if (n > cur && (best == null || n < best)) best = n;
+    }
+  };
+  for (const h of p.hand) scan(h.def);
+  for (const d of p.deck) scan(d);
+  return best;
+}
+
+function resourceHTML(p, isMe) {
+  let out = '';
+  for (const r of PATH_RES) {
+    const v = S.ctrOf(p, r);
+    if (!v && !(isMe && p.hand.some(h => (h.def.effect || '').includes(r)))) continue;
+    const nx = isMe ? nextThreshold(p, r) : null;
+    const pctW = nx ? Math.min(100, Math.round(v / nx * 100)) : 100;
+    out += `<span class="res" title="${esc(r)}${nx ? `：距下一档 ${nx} 还差 ${nx - v}` : ''}">`
+      + `<b>${esc(r)}</b> ${v}`
+      + (nx ? `<span class="resNx">/${nx}</span>` : '')
+      + `<span class="resBar"><i style="width:${pctW}%"></i></span></span>`;
+  }
+  return out;
+}
+
 function leaderHTML(p, cls, isMe) {
   const cap = p.ppMax + p.ppBonus;
   let pips = '';
@@ -574,7 +625,10 @@ function leaderHTML(p, cls, isMe) {
     + `<span>${pips}</span><span class="badge">PP ${p.pp}/${cap}</span>`
     + `<span class="badge ep">EP ${p.ep}</span>`
     + (p.keywords.has('barrier') ? '<span class="badge bar">屏障</span>' : '')
-    + `<span class="badge">牌库 ${p.deck.length}</span>`;
+    // 【入魔】是毁灭一整套卡的开关，血量掉到 10 以下必须让人立刻看见
+    + (S.isMara(p) ? '<span class="badge mara">入魔</span>' : '')
+    + `<span class="badge">牌库 ${p.deck.length}</span>`
+    + resourceHTML(p, isMe);
 }
 
 function fieldHTML(p, isMe) {
@@ -599,7 +653,24 @@ function unitHTML(u, isMe) {
   if (u.dots) marks.push(`侵蚀${u.dots}${u.aura ? `+奥迹${u.aura}` : ''}`);
   if (u.shocked) marks.push('触电');
   for (const f of u.flaws) marks.push(f);
-  const ctr = Object.entries(u.counters).filter(([, v]) => v > 0).map(([k, v]) => `${k}${v}`);
+  /* 计数器分两种，只显示玩家真正需要盯的那种：
+   *   进度型 —— 攒到 N 触发（火种、充能、残影…），必须看得见进度
+   *   限次型 —— 「每回合限1次」的内部记账，卡自己在 turnStart 里清掉它
+   * 后者显示出来就是「雷鸣1」「诊疗1」这种玩家完全看不懂的字，纯噪音。
+   * 判定方式是看这张卡自己有没有 turnStart 清零该计数器——按卡判定而不是按名字，
+   * 因为同一个名字在不同卡上可能是不同用法（残梦在希儿是限次、在黄泉是进度）。 */
+  const upkeep = new Set();
+  for (const c of (u.def.clauses || [])) {
+    if (c.trigger !== 'turnStart') continue;
+    for (const a of c.actions) {
+      if (a.op === 'ctr' && /^-/.test(a.args[1] || '')) upkeep.add(a.args[0]);
+    }
+  }
+  const ctr = Object.entries(u.counters)
+    .filter(([k, v]) => v > 0 && k !== '层数' && !upkeep.has(k))
+    .map(([k, v]) => `${k}${v}`);
+  // 忆质的层数是它的核心信息，单独用更醒目的写法
+  if (S.unitCtr(u, '层数') > 0) ctr.unshift(`${S.unitCtr(u, '层数')} 层`);
   const ea = E.effAtk(s, u);
   return `<div class="unit ${amulet ? 'amulet' : ''} ${u.keywords.has('ward') ? 'ward' : ''}`
     + ` ${ready ? 'ready' : ''} ${selected ? 'sel' : ''} ${tgt ? 'targetable' : ''}"`
@@ -646,6 +717,10 @@ function art(def) {
 let insp = null;        // { kind:'hand'|'unit', hand?:number, uid?:number }
 
 function openDetail(spec, anchorEl) {
+  /* 手牌下标会因为出牌而位移。如果拿着旧的下标再点一次（连点、或界面还没重绘完），
+   * 就会取到 undefined 再读它的 .def 而抛异常。这里直接判掉，不要让它冒到界面上。 */
+  if (spec.kind !== 'unit' && !s.players[ME].hand[spec.hand]) return closeDetail();
+  if (spec.kind === 'unit' && !S.findUnit(s, spec.uid)) return closeDetail();
   insp = spec;
   const d = $('detail');
   d.innerHTML = detailHTML(spec);
@@ -774,8 +849,14 @@ function detailAct(a) {
     const inst = s.players[ME].hand[spec.hand];
     if (!inst) return render();
     const need = E.needsTarget(inst.def);
-    if (need) { sel = { kind: 'target', hand: spec.hand, need }; return render(); }
-    return doPlay(spec.hand, {});
+    if (need && hasLegalTarget(need)) {
+      sel = { kind: 'target', hand: spec.hand, need };
+      return render();
+    }
+    doPlay(spec.hand, {});
+    // 没目标也照样打出，但要说清楚为什么那部分效果没发生
+    if (need) flash('场上没有可选目标，指定目标的那部分效果未发动');
+    return;
   }
   if (a === 'attack') { sel = { kind: 'attack', uid: spec.uid }; return render(); }
   if (a === 'evolve') {
@@ -798,6 +879,20 @@ function isTargetable(u) {
   }
   return false;
 }
+/**
+ * 这类目标现在场上有没有可点的？
+ *
+ * 官方【选择】裁定：法术必须能选满目标才能使用，但随从/护符的入场曲在目标不足时
+ * 依然可以打出。引擎照这个实现了（canPlay 只卡法术），可界面却无条件进入选目标状态——
+ * 敌方空场时玩家面前一个可点的目标都没有，只能按取消，看起来就是「这张牌打不出来」。
+ * 所以打出前先问一句有没有目标，没有就直接打出，缺目标的那部分效果自然不发动。
+ */
+function hasLegalTarget(need) {
+  if (need === 'enemyAny') return true;                    // 主战者永远可选
+  if (need === 'allyOne') return S.minionsOf(s.players[ME]).length > 0;
+  return S.minionsOf(s.players[1 - ME]).length > 0;        // enemyOne
+}
+
 function canHitLeader() {
   if (!sel) return false;
   if (sel.kind === 'attack') return E.attackAllowed(s, sel.uid, 'leader');

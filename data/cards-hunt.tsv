@@ -2,7 +2,7 @@ id	name	class	type	quality	cost	atk	hp	countdown	token	tag	effect	note	decks	img
 H001	玄爪狼卒	巡猎	随从	铜	1	2	2		0	狼卒	static: noCounter	此随从无法进行防御	饲饵猎杀/连锁追击/绝命对峙	img/H001.png
 H002	银鬃射手	巡猎	随从	铜	1	1	2		0	银鬃	onPlay: buffHand(1,0)	【入场曲】：使1张手牌中的随从卡获得+1/+0	连锁追击/绝命对峙	img/H002.png
 H003	蚀月狼卒	巡猎	随从	铜	1	1	2		0	狼卒	onDeath: dmg(enemyMarked,2)	【谢幕曲】：给予被【标记】的敌方随从2点伤害	连锁追击/绝命对峙	img/H003.png
-H004	天击	巡猎	法术	铜	1				0		spell: mark(enemyOne), draw(1)	【标记】1个敌方随从（被【标记】者受到的伤害+1）。抽1张卡	饲饵猎杀/绝命对峙	
+H004	天击	巡猎	法术	铜	1				0		spell: mark(enemyOne), draw(1)	【标记】1个敌方随从。抽1张卡	饲饵猎杀/绝命对峙	
 H005	银鬃巡尉	巡猎	随从	铜	1	1	2		0	银鬃	onPlay: mark(enemyOne)	【入场曲】：【标记】1个敌方随从	饲饵猎杀	
 H006	魔阴身士卒	巡猎	随从	铜	2	2	3		0	魔阴身	static: rush	【突进】	饲饵猎杀/连锁追击	img/H006.png
 H007	幽府武弁	巡猎	随从	铜	2	1	3		0		static: ward; onPlay: draw(1)	【守护】。【入场曲】：抽1张卡	饲饵猎杀/绝命对峙	img/H007.png

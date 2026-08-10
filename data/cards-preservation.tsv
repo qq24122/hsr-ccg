@@ -11,7 +11,7 @@ P010	三月七	存护丰饶	随从	金	2	1	3		0		static: ward; onPlay: summon(�
 P011	丰饶灵兽·奎木	存护丰饶	随从	铜	2	2	2		0	丰饶灵兽	onLeaderHeal[ctr(奎木)<1]: ctr(奎木,+1), buff(self,1,1); turnStart: ctr(奎木,-1)	每当自己的主战者回复生命值，此随从+1/+1（每回合限1次）	孽物增殖/不死回响	img/P011.png
 P012	太空封印站	存护丰饶	护符	银	2			4	0		onPlay: summon(星槎壁,1); turnStart: buff(allyTag(盾卫),0,1)	【倒数4】。【入场曲】：召唤1个星槎壁（0/2，【守护】）。自己的回合开始时，使自己全体盾卫+0/+1	护盾壁垒	img/P012.png
 P013	一场术后对话	存护丰饶	法术	银	2				0		spell[!mara]: heal(selfLeader,4); spell[mara]: heal(selfLeader,8)	回复自己的主战者4点生命值。若自己的生命值为10以下，改为8点	不死回响	img/P013.png
-P014	命运从未公平	存护丰饶	法术	银	2				0		spell: grant(allyOne,barrier)	使1个自己的随从获得【屏障】（下次受到的伤害变为0，发动1次后失效）	不死回响	img/P014.png
+P014	命运从未公平	存护丰饶	法术	银	2				0		spell: grant(allyOne,barrier)	使1个自己的随从获得【屏障】	不死回响	img/P014.png
 P015	入魔机巧·浓云金蟾	存护丰饶	随从	铜	2	2	2		0		onAllySummon: ctr(护盾,+1); onCtr(护盾,2): ctr(护盾,-2), buff(self,1,1)	每当2个随从进入自己的战场，此随从+1/+1	护盾壁垒/孽物增殖	img/P015.png
 P016	玲可	存护丰饶	随从	金	3	2	3		0		turnEnd: heal(selfLeader,2)	自己的回合结束时，回复自己的主战者2点生命值	不死回响/孽物增殖	img/P016.png
 P017	丰饶灵兽·娄金	存护丰饶	随从	铜	3	1	3		0	丰饶灵兽	onPlay: summon(次蛰虫,2)	【入场曲】：召唤2只次蛰虫	孽物增殖	img/P017.png
@@ -26,7 +26,7 @@ P026	藿藿	存护丰饶	随从	虹	4	2	5		0		onPlay: cleanse(allyAll), heal(all
 P027	开拓者·存护	存护丰饶	随从	虹	4	2	6		0		static: ward; onDamaged: ctr(灼热意志,+1), buff(self,1,0); onCtr(灼热意志,4): grant(self,sweep)	【守护】。每当此随从受到伤害，获得1层【灼热意志】（+1/+0）。拥有4层时：获得「攻击时同时攻击敌方全体随从」	护盾壁垒	img/P027.png
 P028	银枝	存护丰饶	随从	金	4	3	5		0		static: ward; onPlay: grant(allyAll,barrier)	【守护】。【入场曲】：使自己全体随从获得【屏障】	护盾壁垒/不死回响	img/P028.png
 P029	丰饶灵兽·长右	存护丰饶	随从	银	4	3	4		0	丰饶灵兽	onPlay: summon(次蛰虫,2), heal(selfLeader,2)	【入场曲】：召唤2只次蛰虫，并回复自己的主战者2点生命值	孽物增殖/不死回响	img/P029.png
-P030	杰帕德	存护丰饶	随从	虹	5	3	6		0		static: ward, barrier	【守护】。【屏障】（下次受到的伤害变为0，发动1次后失效）	不死回响/护盾壁垒	img/P030.png
+P030	杰帕德	存护丰饶	随从	虹	5	3	6		0		static: ward, barrier	【守护】。【屏障】	不死回响/护盾壁垒	img/P030.png
 P031	白露	存护丰饶	随从	虹	5	3	5		0		turnStart: heal(allyAll,2), grant(allyRandom,barrier)	自己的回合开始时，回复自己全体随从2点生命值，并使随机1个自己的随从获得【屏障】	不死回响/孽物增殖	img/P031.png
 P032	吞神子嗣	存护丰饶	随从	银	5	4	4		0		onPlay: buff(self,tagCount(蛰虫),tagCount(蛰虫)), destroy(allyTag(蛰虫))	【入场曲】：消灭自己全体次蛰虫，每消灭1只则此随从+1/+1	孽物增殖	img/P032.png
 P033	浮烟	存护丰饶	随从	金	5	4	4		0		onPlay: summon(星槎壁,1), summon(次蛰虫,2)	【入场曲】：召唤1个星槎壁与2只次蛰虫	护盾壁垒/孽物增殖	img/P033.png
@@ -45,6 +45,6 @@ T103	龙灵	存护丰饶	随从	衍生	0	1	3		1		turnStart: buff(allyTag(盾卫)
 T104	龙骨壁	存护丰饶	随从	衍生	0	0	2		1	盾卫	static: ward	（由龙骨盾、三月七的效果产生）【守护】。0攻的盾卫，用来消耗对手的攻击次数		
 T105	星槎壁	存护丰饶	随从	衍生	0	0	2		1	盾卫	static: ward	（由太空封印站、砂金、银枝、浮烟的效果产生）【守护】		
 T106	莲灯壁	存护丰饶	随从	衍生	0	0	2		1	盾卫	static: ward	（由她已闭上双眼、劫火莲灯铸炼宫、丹恒•腾荒的效果产生）【守护】		
-P043	步离战首·呼雷	存护丰饶	随从	虹	6	4	5		0		static: ward; onLeaderHeal[ctr(雷鸣)<1]: ctr(雷鸣,+1), dmg(enemyAll,1); turnStart: ctr(雷鸣,-1)	【守护】。每当自己的主战者回复生命值，给予敌方全体随从1点伤害（每回合限1次）（把治疗转成清场，给存护一个进攻出口）	护盾壁垒/不死回响	img/P043.png
-P044	霜晶造物	存护丰饶	随从	铜	2	1	4		0		static: ward; onDamaged: dmg(enemyLeader,1)	【守护】。此随从受到伤害后，给予敌方的主战者1点伤害（对手打你的墙就得掉血）	护盾壁垒	img/P044.png
-P045	鸣雷造物	存护丰饶	随从	金	3	2	5		0		turnEnd: dmg(enemyLeader,tagCount(盾卫))	自己的回合结束时，给予敌方的主战者与自己场上盾卫数等量的伤害（把盾卫从纯防守变成时钟）	护盾壁垒	img/P045.png
+P043	步离战首·呼雷	存护丰饶	随从	虹	6	4	5		0		static: ward; onLeaderHeal[ctr(雷鸣)<1]: ctr(雷鸣,+1), dmg(enemyAll,1); turnStart: ctr(雷鸣,-1)	【守护】。每当自己的主战者回复生命值，给予敌方全体随从1点伤害（每回合限1次）	护盾壁垒/不死回响	img/P043.png
+P044	霜晶造物	存护丰饶	随从	铜	2	1	4		0		static: ward; onDamaged: dmg(enemyLeader,1)	【守护】。此随从受到伤害后，给予敌方的主战者1点伤害	护盾壁垒	img/P044.png
+P045	鸣雷造物	存护丰饶	随从	金	3	2	5		0		turnEnd: dmg(enemyLeader,tagCount(盾卫))	自己的回合结束时，给予敌方的主战者与自己场上盾卫数等量的伤害	护盾壁垒	img/P045.png
