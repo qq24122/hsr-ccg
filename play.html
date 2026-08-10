@@ -177,7 +177,89 @@
   .pop { position: fixed; z-index: 22; pointer-events: none; font-weight: bold; font-size: 21px;
          text-shadow: 0 2px 5px #000, 0 0 9px #000; animation: floatUp .85s ease-out forwards; }
   .pop.dmg { color: #ff6b6b } .pop.heal { color: #8ce99a } .pop.gain { color: #ffd43b }
+  .pop.note { color: #8ecdf7; font-size: 15px }
   .lunge { transition: transform .16s cubic-bezier(.3,0,.7,1); z-index: 5; }
+
+  /* ---- 打出卡牌时的亮相 ----
+     对手的手牌是背面朝上的，如果只让随从「冒出来」，玩家根本看不清他打了什么。
+     所以任何一方打出卡牌都先把卡面放大亮一下再收进战场，法术也一样有画面。 */
+  @keyframes revealIn {
+    0%   { transform: translate(-50%,-50%) scale(.5) rotateY(90deg); opacity: 0 }
+    45%  { transform: translate(-50%,-50%) scale(1.06) rotateY(0deg); opacity: 1 }
+    72%  { transform: translate(-50%,-50%) scale(1) rotateY(0deg); opacity: 1 }
+    100% { transform: translate(-50%,-50%) scale(.62) translateY(var(--ry,0px)); opacity: 0 }
+  }
+  .reveal { position: fixed; left: 50%; top: 50%; z-index: 24; pointer-events: none;
+            width: 132px; height: 188px; border-radius: 10px; overflow: hidden;
+            background: #242a36; border: 3px solid #b8912f;
+            box-shadow: 0 0 34px #000c, 0 0 20px #ffd43b55;
+            animation: revealIn 1s cubic-bezier(.2,.9,.3,1) forwards;
+            display: flex; flex-direction: column; padding: 7px; }
+  .reveal.foe { border-color: #c96a6a; box-shadow: 0 0 34px #000c, 0 0 20px #ff878755; }
+  .reveal .rn { font-size: 12px; font-weight: bold; line-height: 1.25; margin-top: 10px;
+                text-shadow: 0 1px 3px #000, 0 0 7px #000; }
+  .reveal .rt { font-size: 9.5px; color: #dde; line-height: 1.35; flex: 1; overflow: hidden;
+                text-shadow: 0 1px 3px #000; }
+  .reveal .rc { position: absolute; top: -6px; left: -6px; width: 26px; height: 26px;
+                border-radius: 50%; background: #1864ab; color: #fff; font-weight: bold;
+                text-align: center; line-height: 26px; font-size: 14px; }
+  .reveal .who { position: absolute; bottom: 4px; right: 6px; font-size: 9px; color: #ffd43b;
+                 text-shadow: 0 1px 3px #000 }
+
+  /* ---- 抽卡：从牌库位置滑进手牌 ---- */
+  @keyframes drawArc {
+    0%   { transform: translate(0,0) scale(.55) rotate(-14deg); opacity: 0 }
+    25%  { opacity: 1 }
+    100% { transform: translate(var(--dx),var(--dy)) scale(1) rotate(0deg); opacity: 0 }
+  }
+  .drawfly { position: fixed; z-index: 21; pointer-events: none; width: 60px; height: 86px;
+             border-radius: 6px; background: linear-gradient(160deg,#3b2a5a,#25324a);
+             border: 1px solid #6a5a9a; box-shadow: 0 4px 14px #000a;
+             animation: drawArc .5s cubic-bezier(.3,.1,.5,1) forwards; }
+
+  /* ---- 最后一击 ---- */
+  @keyframes lethalFlash { 0% { opacity: 0 } 12% { opacity: .92 } 100% { opacity: 0 } }
+  @keyframes lethalWord {
+    0%   { transform: translate(-50%,-50%) scale(2.6); opacity: 0; letter-spacing: 26px }
+    30%  { transform: translate(-50%,-50%) scale(1); opacity: 1; letter-spacing: 6px }
+    75%  { transform: translate(-50%,-50%) scale(1); opacity: 1; letter-spacing: 6px }
+    100% { transform: translate(-50%,-50%) scale(.9); opacity: 0; letter-spacing: 2px }
+  }
+  @keyframes bigShake {
+    0%,100% { transform: translate(0,0) }
+    10% { transform: translate(-9px,4px) } 25% { transform: translate(8px,-5px) }
+    40% { transform: translate(-7px,-3px) } 55% { transform: translate(6px,4px) }
+    70% { transform: translate(-4px,2px) } 85% { transform: translate(3px,-2px) }
+  }
+  #lethal { position: fixed; inset: 0; z-index: 26; pointer-events: none; display: none; }
+  #lethal.on { display: block }
+  #lethal .fl { position: absolute; inset: 0; background: radial-gradient(circle at 50% 45%,
+                #fff 0%, #ffd43b 22%, #ff6b6b 46%, #0000 72%);
+                animation: lethalFlash .62s ease-out forwards; }
+  #lethal .wd { position: absolute; left: 50%; top: 46%; font-size: 62px; font-weight: 900;
+                white-space: nowrap; animation: lethalWord 1.15s cubic-bezier(.2,1,.3,1) forwards;
+                text-shadow: 0 0 24px #000, 0 6px 18px #000; }
+  .quake { animation: bigShake .55s ease-out; }
+
+  /* ---- 结算画面 ---- */
+  @keyframes veilFade { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes resultPop {
+    0% { transform: scale(.55) translateY(26px); opacity: 0; filter: blur(9px) }
+    60% { transform: scale(1.05) translateY(0); opacity: 1; filter: blur(0) }
+    100% { transform: scale(1) translateY(0); opacity: 1 }
+  }
+  #veil.on { animation: veilFade .34s ease-out }
+  #veil h1 { animation: resultPop .6s cubic-bezier(.2,1.4,.4,1) both }
+  .rline { animation: resultPop .5s ease-out both }
+  .rline:nth-of-type(2) { animation-delay: .12s }
+  .rline:nth-of-type(3) { animation-delay: .22s }
+
+  /* ---- 屏障吸收 ---- */
+  @keyframes barrierRing {
+    0% { box-shadow: 0 0 0 0 #4dabf7ee, inset 0 0 20px #4dabf788 }
+    100% { box-shadow: 0 0 0 22px #4dabf700, inset 0 0 0 #4dabf700 }
+  }
+  .animBarrier { animation: barrierRing .55s ease-out; }
 </style>
 </head>
 <body>
@@ -205,6 +287,9 @@
 
 <!-- 卡牌详情：点任意一张卡都会开 -->
 <div id="detail"></div>
+
+<!-- 最后一击的全屏特效 -->
+<div id="lethal"></div>
 
 <div id="veil" class="on">
   <div id="setup">
@@ -816,10 +901,103 @@ function rectsNow() {
 function snap() {
   const u = new Map();
   for (const pi of [0, 1]) for (const x of s.players[pi].board) {
-    u.set(x.uid, { hp: x.hp, atk: E.effAtk(s, x), evolved: x.evolved, side: pi });
+    u.set(x.uid, { hp: x.hp, atk: E.effAtk(s, x), evolved: x.evolved, side: pi,
+      used: x.attacksUsed });
   }
   return { u, dom: rectsNow(), hp: [s.players[0].hp, s.players[1].hp],
-    hand: s.players[ME].hand.length };
+    hand: s.players[ME].hand.length, logLen: s.log.length,
+    deck: [s.players[0].deck.length, s.players[1].deck.length] };
+}
+
+/* ---------------- 日志驱动的特效 ----------------
+ * 关键设计：不给每个操作单独挂动画，而是读「这一步新增了哪些日志行」，
+ * 从中还原出发生了什么。好处是人类和 AI 走完全同一条路——
+ * 对手打牌、对手攻击、卡效触发的连锁召唤，全都自动有画面，
+ * 不需要在 ai.js 里埋回调，也不会漏掉某个触发时机。 */
+function eventsSince(logLen) {
+  const out = [];
+  for (const ln of s.log.slice(logLen)) {
+    // 行首格式固定是 T<回合> P<行动方> <正文>
+    const h = /^T(\d+) P(\d) (.*)$/.exec(ln);
+    if (!h) continue;
+    const actor = +h[2], body = h[3];
+    const mine = actor === ME;
+    let m;
+    if ((m = /^打出 (.+?)（/.exec(body)))            out.push({ k: 'play', name: m[1], mine });
+    else if ((m = /^召唤 (.+)$/.exec(body)))          out.push({ k: 'summon', name: m[1], mine });
+    else if ((m = /^复制出 (.+)$/.exec(body)))        out.push({ k: 'summon', name: m[1], mine });
+    else if ((m = /^从墓场召还 (.+?)（/.exec(body)))   out.push({ k: 'summon', name: m[1], mine });
+    else if ((m = /^(.+) 变身为 (.+)$/.exec(body)))    out.push({ k: 'summon', name: m[2], mine });
+    else if ((m = /^(.+?) 攻击主战者 (\d+)$/.exec(body)))
+      out.push({ k: 'atkFace', name: m[1], dmg: +m[2], mine });
+    else if ((m = /^(.+?)\((\d+)\) 交换 (.+?)\((\d+)\)$/.exec(body)))
+      out.push({ k: 'trade', a: m[1], b: m[3], mine });
+    else if (/的屏障吸收了/.test(body))               out.push({ k: 'barrier', body, mine });
+    else if ((m = /^引爆 .*?，?(\d+) 点/.exec(body)))  out.push({ k: 'boom', dmg: +m[1], mine });
+  }
+  return out;
+}
+
+/** 找一个单位当前的 DOM 元素（按名字，取该侧第一个匹配的） */
+function elByName(name, mine) {
+  const sel = mine ? '#myField .unit' : '#foeField .unit';
+  for (const el of document.querySelectorAll(sel)) {
+    const n = el.querySelector('.n');
+    if (n && n.textContent.replace(/\s*★$/, '') === name) return el;
+  }
+  return null;
+}
+
+/** 打出/召唤时把卡面放大亮一下——对手的手牌是背面，不这样玩家看不到他打了什么 */
+function revealCard(name, mine, kind, idx) {
+  const def = CARDS && CARDS.byName[name];
+  if (!def) return 0;
+  const d = document.createElement('div');
+  d.className = 'reveal' + (mine ? '' : ' foe') + ' q' + (def.quality || '');
+  // 一步里可能连续打出/召唤多张，错开时间依次亮相，别糊在一起
+  d.style.animationDelay = ((idx || 0) * 620) + 'ms';
+  // 收尾时朝自己那一侧的战场缩过去
+  d.style.setProperty('--ry', (mine ? 150 : -150) + 'px');
+  d.innerHTML = art(def)
+    + `<div class="rc">${def.cost}</div>`
+    + `<div class="rn">${esc(def.name)}</div>`
+    + `<div class="rt">${esc(def.note || '')}</div>`
+    + `<div class="who">${mine ? '我方' : '对手'}${kind === 'summon' ? '召唤' : '打出'}</div>`;
+  document.body.appendChild(d);
+  setTimeout(() => d.remove(), 1080 + (idx || 0) * 620);
+  return 1;
+}
+
+/** 抽卡：从牌库徽章位置飞一张背面到手牌 */
+function drawFly(n) {
+  const from = [...$( ME === 0 ? 'myLeader' : 'myLeader').querySelectorAll('.badge')]
+    .find(b => /牌库/.test(b.textContent));
+  const hand = $('hand').getBoundingClientRect();
+  if (!from) return;
+  const r = from.getBoundingClientRect();
+  for (let i = 0; i < Math.min(n, 4); i++) {
+    const f = document.createElement('div');
+    f.className = 'drawfly';
+    f.style.left = r.left + 'px';
+    f.style.top = r.top + 'px';
+    f.style.setProperty('--dx', (hand.left + hand.width / 2 - r.left - 30) + 'px');
+    f.style.setProperty('--dy', (hand.top + 20 - r.top) + 'px');
+    f.style.animationDelay = (i * 90) + 'ms';
+    document.body.appendChild(f);
+    setTimeout(() => f.remove(), 620 + i * 90);
+  }
+}
+
+/** 最后一击：闪白 + 震屏 + 大字 */
+function lethalHit(win) {
+  const L = $('lethal');
+  L.innerHTML = `<div class="fl"></div>`
+    + `<div class="wd" style="color:${win ? '#ffe066' : '#ff8787'}">`
+    + `${win ? '致命一击' : '被击破'}</div>`;
+  L.classList.add('on');
+  $('board').classList.add('quake');
+  setTimeout(() => $('board').classList.remove('quake'), 600);
+  setTimeout(() => { L.classList.remove('on'); L.innerHTML = ''; }, 1250);
 }
 
 /** 执行一个会改变局面的动作，并把变化演出来 */
@@ -831,11 +1009,52 @@ function act(fn, opt = {}) {
   if (opt.lunge) lunge(before, opt.lunge[0], opt.lunge[1]);
   fn();
   render();
-  playAnims(before);
+  return playAnims(before);      // 返回「这一步的画面要放多久」，供 AI 回合调节奏
 }
 
 function playAnims(before) {
   const now = snap();
+  const ev = eventsSince(before.logLen);
+
+  /* 打出的卡与被召唤的随从：亮一下卡面。
+   * 一步里可能连续召唤好几个（比如浮烟同时出星槎壁和两只次蛰虫），
+   * 全都亮会糊成一片，所以只亮前两张，其余靠入场动画表现。 */
+  let shown = 0;
+  for (const e of ev) {
+    if (e.k !== 'play' && e.k !== 'summon') continue;
+    // 自己打出的牌已经有「手牌飞向战场」的动画了，不再重复亮相
+    if (e.k === 'play' && e.mine) continue;
+    if (shown >= 3) break;
+    shown += revealCard(e.name, e.mine, e.k, shown);
+  }
+  // 让调用方知道这一步的画面要放多久，AI 回合据此调整节奏
+  const busyFor = shown ? 620 * shown + 460 : 0;
+
+  // 攻击：攻击者朝目标冲一下（AI 的攻击也走这里）
+  for (const e of ev) {
+    if (e.k === 'atkFace') {
+      const a = elByName(e.name, e.mine);
+      if (a) lungeEl(a, (e.mine ? $('foeLeader') : $('myLeader')).getBoundingClientRect());
+    } else if (e.k === 'trade') {
+      const a = elByName(e.a, e.mine), b = elByName(e.b, !e.mine);
+      const bt = b ? b.getBoundingClientRect() : (before.dom.get(-1) || {}).rect;
+      if (a && bt) lungeEl(a, bt);
+    } else if (e.k === 'barrier') {
+      /* 引擎对随从记的是卡名，对主战者记的是 P0/P1 —— 两种都要认，
+       * 不然龙骨盾这类挂在主战者身上的屏障挡下伤害时一点画面都没有。 */
+      const nm = /^(.+?) 的屏障/.exec(e.body);
+      if (!nm) continue;
+      const el = /^P[01]$/.test(nm[1])
+        ? $(nm[1] === 'P' + ME ? 'myLeader' : 'foeLeader')
+        : (elByName(nm[1], true) || elByName(nm[1], false));
+      if (el) {
+        el.classList.add('animBarrier');
+        setTimeout(() => el.classList.remove('animBarrier'), 600);
+        popAt(el, '屏障', 'note');
+      }
+    }
+  }
+
   // 新进场的单位
   for (const uid of now.u.keys()) {
     if (before.u.has(uid)) continue;
@@ -875,11 +1094,16 @@ function playAnims(before) {
     setTimeout(() => el.classList.remove('animHit'), 460);
     popAt(el, (d > 0 ? '+' : '') + d, d < 0 ? 'dmg' : 'heal');
   }
-  // 新抽到的手牌
+  // 新抽到的手牌：既有卡牌本身的入场，也有一张背面从牌库飞过来
   if (now.hand > before.hand) {
     const cards = document.querySelectorAll('.card[data-hand]');
     for (let i = before.hand; i < cards.length; i++) cards[i].classList.add('animIn');
+    drawFly(now.hand - before.hand);
+  } else if (now.deck[ME] < before.deck[ME] && s.players[ME].hand.length >= S.RULES.HAND_LIMIT) {
+    // 手牌没变多但牌库少了、且手牌是满的：抽到的牌进了墓场，给个提示
+    popAt($('myLeader'), '手牌已满', 'note');
   }
+  return busyFor;
 }
 
 /** 在某个元素上方冒一个数字 */
@@ -914,26 +1138,39 @@ function flyOut(el) {
   setTimeout(() => f.remove(), 300);
 }
 
-/** 攻击者朝目标冲一下 */
-function lunge(before, fromUid, toUid) {
-  const a = before.dom.get(fromUid);
-  const el = document.querySelector(`.unit[data-uid="${fromUid}"]`);
-  if (!a || !el) return;
-  const t = toUid === 'leader' ? $('foeLeader').getBoundingClientRect()
-    : (before.dom.get(toUid) || {}).rect;
-  if (!t) return;
-  const dx = (t.left + t.width / 2 - a.rect.left - a.rect.width / 2) * 0.42;
-  const dy = (t.top + t.height / 2 - a.rect.top - a.rect.height / 2) * 0.42;
+/**
+ * 攻击者朝目标冲一下。做法是复制一份攻击者的外观当替身去冲，
+ * 原元素留在原位——因为 render() 随时会重建 DOM，直接对真元素做 transform 会被冲掉。
+ */
+function lungeFrom(r, html, targetRect) {
+  if (!r || !targetRect) return;
+  const dx = (targetRect.left + targetRect.width / 2 - r.left - r.width / 2) * 0.42;
+  const dy = (targetRect.top + targetRect.height / 2 - r.top - r.height / 2) * 0.42;
   const g = document.createElement('div');
   g.className = 'ghost';
   g.style.animation = 'none';
-  g.innerHTML = a.html;
-  g.style.cssText += `left:${a.rect.left}px;top:${a.rect.top}px;width:${a.rect.width}px;`
-    + `height:${a.rect.height}px;transition:transform .17s cubic-bezier(.3,0,.7,1)`;
+  g.innerHTML = html;
+  g.style.cssText += `left:${r.left}px;top:${r.top}px;width:${r.width}px;`
+    + `height:${r.height}px;transition:transform .17s cubic-bezier(.3,0,.7,1)`;
   document.body.appendChild(g);
   requestAnimationFrame(() => { g.style.transform = `translate(${dx}px,${dy}px)`; });
   setTimeout(() => { g.style.transform = 'none'; }, 180);
-  setTimeout(() => g.remove(), 360);
+  setTimeout(() => g.remove(), 380);
+}
+
+/** 传一个还在页面上的元素 */
+function lungeEl(el, targetRect) {
+  if (!el) return;
+  lungeFrom(el.getBoundingClientRect(), el.outerHTML, targetRect);
+}
+
+/** 玩家自己发起攻击时用：目标取动作前的位置（那时目标可能还没死） */
+function lunge(before, fromUid, toUid) {
+  const a = before.dom.get(fromUid);
+  if (!a) return;
+  const t = toUid === 'leader' ? $('foeLeader').getBoundingClientRect()
+    : (before.dom.get(toUid) || {}).rect;
+  lungeFrom(a.rect, a.html, t);
 }
 
 let flashTimer = null;
@@ -975,11 +1212,12 @@ function foeTurn() {
   (function step() {
     if (s.winner != null) { busy = false; return render(); }
     if (k < steps.length) {
-      // 每一步都走 act()，掉血飘字 / 入场 / 死亡的动画就自动有了
-      act(() => {
+      // 每一步都走 act()：亮相、掉血飘字、冲刺、入场、死亡的动画就自动都有了
+      const busyFor = act(() => {
         try { steps[k++](); } catch (e) { S.log(s, '对手回合出错: ' + e.message); k = steps.length; }
       });
-      return setTimeout(step, 700);
+      // 这一步亮了几张卡就等久一点，别让画面追尾
+      return setTimeout(step, Math.max(700, busyFor || 0));
     }
     act(() => { E.endTurn(s); });
     if (s.winner != null) { busy = false; return render(); }
@@ -990,11 +1228,14 @@ function foeTurn() {
 }
 
 /* ============================ 结束 ============================ */
+let finished = false;   // render() 结束后会被再调用几次，结算只能演一遍
+
 function finish() {
+  if (finished) return;
+  finished = true;
   const win = s.winner === ME;
 
-  /* render() 在结束后可能被再调用几次（AI 回合的分步播放里也有 render），
-   * 所以记录必须只做一次，否则同一局会被上报多条。 */
+  /* 同理，战绩也必须只记一次，否则同一局会被上报多条。 */
   if (MATCH && !MATCH.recorded) {
     MATCH.recorded = true;
     Stats.recordMatch({
@@ -1011,14 +1252,32 @@ function finish() {
     });
   }
 
+  /* 先放最后一击的全屏特效，等它演完再盖结算幕。
+   * 直接弹结算会把「怎么赢的」那一下完全吞掉——那恰恰是最该看清的一秒。 */
+  lethalHit(win);
+  setTimeout(() => showResult(win), 1150);
+}
+
+function showResult(win) {
   const sm = Stats.summary();
-  $('veil').innerHTML = `<h1 style="color:${win ? '#8ce99a' : '#ff8787'}">${win ? '胜利' : '败北'}</h1>`
-    + `<div>${esc(s.__cls[ME])}（我方 ${s.players[ME].hp} 血） vs ${esc(s.__cls[1 - ME])}（对手 ${s.players[1 - ME].hp} 血）</div>`
-    + `<div style="color:#889;font-size:12px">共 ${s.turn} 个回合`
-    + `　·　本机累计 ${sm.w} 胜 ${sm.l} 负</div>`
-    + '<div class="row" style="margin-top:6px">'
-    + '<button onclick="location.reload()" style="padding:10px 28px">再来一局</button>'
-    + '<button onclick="location.href=\'index.html\'" style="padding:10px 20px;background:#2a3038">回首页</button>'
+  const me = s.players[ME], foe = s.players[1 - ME];
+  const rate = sm.total ? Math.round(sm.w / sm.total * 100) : 0;
+  $('veil').innerHTML =
+      `<h1 style="color:${win ? '#8ce99a' : '#ff8787'};font-size:44px;letter-spacing:8px">`
+    + `${win ? '胜  利' : '败  北'}</h1>`
+    + `<div class="rline" style="font-size:14px">`
+    + `${esc(s.__cls[ME])}　<b style="color:#8ce99a">${me.hp}</b>`
+    + `<span style="color:#667"> 血</span>`
+    + `　　vs　　${esc(s.__cls[1 - ME])}　<b style="color:#ff8787">${foe.hp}</b>`
+    + `<span style="color:#667"> 血</span></div>`
+    + `<div class="rline" style="color:#8a94a6;font-size:12px">`
+    + `共 ${s.turn} 个回合　·　你还剩 ${me.hand.length} 张手牌、牌库 ${me.deck.length} 张`
+    + `${sm.queued ? `　·　<span style="color:#ffd43b">${sm.queued} 条战绩待上传</span>` : ''}</div>`
+    + `<div class="rline" style="color:#8a94a6;font-size:12px">`
+    + `本机累计 <b style="color:#dde">${sm.w} 胜 ${sm.l} 负</b>（${rate}%）</div>`
+    + '<div class="row" style="margin-top:10px">'
+    + '<button onclick="location.reload()" style="padding:11px 30px">再来一局</button>'
+    + '<button onclick="location.href=\'index.html\'" style="padding:11px 22px;background:#2a3038">回首页</button>'
     + '</div>';
   $('veil').classList.add('on');
 }
