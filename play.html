@@ -242,8 +242,11 @@ import { loadCards, CLASS_FILES, listDecks, buildDeckFor, deckPool } from './src
 import * as S from './src/state.js';
 import * as E from './src/engine.js';
 import { planTurn } from './src/ai.js';
+import * as Stats from './src/stats.js';
 
 let CARDS = null, s = null, DECKS = null;
+/* 这一局的元信息，只给战绩记录用，不参与任何规则判定 */
+let MATCH = null;   // { startAt, mull, meCls, meDeck, foeCls, foeDeck, first }
 /* 引擎里永远是 players[0] 先手，所以「人类选后手」= 人类坐 players[1]。
  * ME 必须是变量：写死成 0 的话选后手会让 AI 去打人类的手牌。 */
 let ME = 0;
@@ -384,6 +387,8 @@ $('btnStart').onclick = () => {
   s.__cardIndex = CARDS.byName;
   s.__tokenIndex = CARDS.byName;
   s.__cls = [`${P0[0]}·${P0[1]}`, `${P1[0]}·${P1[1]}`];
+  MATCH = { startAt: Date.now(), mull: 0, meCls: a, meDeck: da, foeCls: b, foeDeck: db,
+    first: humanFirst };
   $('veil').classList.remove('on');
   openMulligan();
 };
@@ -432,6 +437,7 @@ function doMulligan() {
     for (const inst of set) p.deck.push(inst.def);      // 换掉的洗回牌库
     S.shuffle(p.deck, s.rng);
     S.log(s, `开局重抽 ${set.length} 张`);
+    if (MATCH) MATCH.mull = set.length;
   }
   $('mull').style.display = 'none';
   E.startTurn(s);
@@ -986,10 +992,34 @@ function foeTurn() {
 /* ============================ 结束 ============================ */
 function finish() {
   const win = s.winner === ME;
+
+  /* render() 在结束后可能被再调用几次（AI 回合的分步播放里也有 render），
+   * 所以记录必须只做一次，否则同一局会被上报多条。 */
+  if (MATCH && !MATCH.recorded) {
+    MATCH.recorded = true;
+    Stats.recordMatch({
+      mode: 'ai',
+      meCls: MATCH.meCls, meDeck: MATCH.meDeck,
+      foeCls: MATCH.foeCls, foeDeck: MATCH.foeDeck,
+      first: MATCH.first,
+      win,
+      turns: s.turn,
+      meHp: s.players[ME].hp,
+      foeHp: s.players[1 - ME].hp,
+      durMs: Date.now() - MATCH.startAt,
+      mull: MATCH.mull,
+    });
+  }
+
+  const sm = Stats.summary();
   $('veil').innerHTML = `<h1 style="color:${win ? '#8ce99a' : '#ff8787'}">${win ? '胜利' : '败北'}</h1>`
     + `<div>${esc(s.__cls[ME])}（我方 ${s.players[ME].hp} 血） vs ${esc(s.__cls[1 - ME])}（对手 ${s.players[1 - ME].hp} 血）</div>`
-    + `<div style="color:#889;font-size:12px">共 ${s.turn} 个回合</div>`
-    + '<button onclick="location.reload()" style="padding:10px 28px">再来一局</button>';
+    + `<div style="color:#889;font-size:12px">共 ${s.turn} 个回合`
+    + `　·　本机累计 ${sm.w} 胜 ${sm.l} 负</div>`
+    + '<div class="row" style="margin-top:6px">'
+    + '<button onclick="location.reload()" style="padding:10px 28px">再来一局</button>'
+    + '<button onclick="location.href=\'index.html\'" style="padding:10px 20px;background:#2a3038">回首页</button>'
+    + '</div>';
   $('veil').classList.add('on');
 }
 </script>

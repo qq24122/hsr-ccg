@@ -75,6 +75,26 @@
     <li>需要指定目标时，黄色边框标出的就是合法目标</li>
   </ul>
 
+  <h2>我的战绩</h2>
+  <div id="myRec" class="dev">读取中…</div>
+
+  <h2>关于对局数据</h2>
+  <div class="dev" style="line-height:1.75">
+    这个项目还在调平衡，所以每局结束时会记录一条<b>对局结果</b>用来找出哪些卡组过强或过弱：
+    <br>双方职业与卡组、先后手、胜负、回合数、双方终局血量、对局时长、重抽张数，
+    外加一个本机随机生成的匿名编号（用于把同一个人的多局归到一起）。
+    <br><b>不收集任何个人信息</b>，没有账号、昵称、邮箱，也不做任何广告或分析追踪。
+    <br>你可以随时关掉上传——关掉后本地战绩照样记，只是不外发。
+    <div style="margin-top:8px">
+      <label style="cursor:pointer;user-select:none">
+        <input type="checkbox" id="optOut"> 不要上传我的对局数据
+      </label>
+      　<a href="#" id="expBtn">导出我的战绩</a>
+      　<a href="#" id="clrBtn">清空本机战绩</a>
+    </div>
+    <div id="statMsg" style="color:#ffd43b;margin-top:6px;min-height:18px"></div>
+  </div>
+
   <h2>开发页面</h2>
   <div class="dev">
     <a href="test/index.html">规则引擎单元测试</a>　·
@@ -90,5 +110,60 @@
   </footer>
 
 </div>
+
+<script type="module">
+import * as Stats from './src/stats.js';
+import { BUILD } from './src/version.js';
+
+const $ = id => document.getElementById(id);
+
+function paint() {
+  const sm = Stats.summary();
+  if (!sm.total) {
+    $('myRec').textContent = '本机还没有对局记录。打一局就会出现在这里。';
+  } else {
+    const rate = Math.round(sm.w / sm.total * 100);
+    $('myRec').innerHTML =
+      `<b style="color:#dde">累计 ${sm.total} 局，${sm.w} 胜 ${sm.l} 负（${rate}%）</b>`
+      + (sm.queued ? `　<span style="color:#ffd43b">${sm.queued} 条待上传</span>` : '')
+      + '<div style="margin-top:5px">'
+      + sm.byDeck.map(d => {
+          const n = d.w + d.l;
+          return `${esc(d.deck)}　${d.w}胜${d.l}负（${Math.round(d.w / n * 100)}%）`;
+        }).join('<br>')
+      + '</div>';
+  }
+  $('optOut').checked = Stats.isOptedOut();
+}
+const esc = t => String(t ?? '').replace(/[&<>"]/g, c =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+$('optOut').onchange = e => {
+  Stats.setOptOut(e.target.checked);
+  $('statMsg').textContent = e.target.checked
+    ? '已关闭上传，本地战绩仍会记录。' : '已开启上传。';
+  paint();
+};
+
+$('expBtn').onclick = e => {
+  e.preventDefault();
+  const blob = new Blob([Stats.exportJSON()], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `hsr-ccg-战绩-${BUILD.id}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+$('clrBtn').onclick = e => {
+  e.preventDefault();
+  if (!confirm('清空本机保存的全部战绩？此操作不可撤销。')) return;
+  Stats.clearLocal();
+  $('statMsg').textContent = '已清空。';
+  paint();
+};
+
+paint();
+</script>
 </body>
 </html>
