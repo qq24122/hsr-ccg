@@ -1,0 +1,44 @@
+id	name	class	type	quality	cost	atk	hp	countdown	token	tag	effect	note	decks	img
+A001	王下一桶	同谐	随从	铜	1	2	2		0		onPlay: buff(allyOne,1,0)	入场曲：使1个自己的其他随从+1/+0	军功爵位/额外行动/蓄能合鸣	img/A001.png
+A002	流星铁鹰	同谐	随从	铜	1	1	1		0	狮鹫	onPlay: grant(allyOne,rush)	入场曲：使1个自己的随从获得突进	额外行动	img/A002.png
+A003	次元扑满	同谐	随从	铜	1	1	1		0		onDeath: pctr(蓄能,+1)	谢幕曲：使自己的「蓄能」+1	蓄能合鸣/军功爵位	img/A003.png
+A004	调和	同谐	法术	铜	1				0		spell: medal(allyOne,1)	使1个自己的随从获得【军功】（+1/+1）	军功爵位/蓄能合鸣	img/A004.png
+A005	千星荟萃之城	同谐	法术	铜	1				0		spell: medal(allyOne,1), pctr(蓄能,+1)	使1个自己的随从获得【军功】，并使自己的「蓄能」+1	军功爵位/蓄能合鸣	img/A005.png
+A006	应天涉远的卜者	同谐	随从	铜	1	1	3		0		onPlay: pctr(蓄能,+2)	入场曲：使自己的「蓄能」+2	蓄能合鸣	img/A006.png
+A007	追逐风的时候	同谐	随从	铜	1	1	1		0		onDeath: extraAtk(allyOne,1)	谢幕曲：使1个自己的随从获得「本回合可再进行1次攻击」	额外行动	img/A007.png
+A008	艾丝妲	同谐	随从	金	2	2	2		0		onAllyAttack: pctr(蓄能,+1); turnStart: atkPlus(allyAll,ctr(蓄能)/2)	每当自己的随从攻击，使自己的「蓄能」+1。自己的回合开始时，使全体随从的攻击力额外增加「蓄能」÷2（向下取整）	军功爵位/蓄能合鸣	img/A008.png
+A009	停云	同谐	随从	金	2	1	3		0		onPlay: medal(allyOne,1); onAllyAttack: dmg(enemyLeader,1)	入场曲：使1个自己的随从获得【军功】。自己的随从攻击后，给予敌方的主战者1点伤害（原【赐福】需要独立标记系统，改为无条件生效）	军功爵位/额外行动	img/A009.png
+A010	寒鸦	同谐	随从	金	2	2	2		0		static: rush; onAttack: mark(enemyOne); onAllyAttack[ctr(承负)<1]: ctr(承负,+1), refundPP(1); turnStart: ctr(承负,-1)	突进。攻击时【标记】该敌方随从。自己的随从攻击后回复自己的PP1点（每回合限1次）	军功爵位/额外行动	img/A010.png
+A011	轮契	同谐	法术	铜	2				0		spell: buff(allyAll,1,1), pctr(蓄能,+2)	使自己全体随从+1/+1。使自己的「蓄能」+2	蓄能合鸣/额外行动	img/A011.png
+A012	正阳狮鹫	同谐	随从	银	2	3	1		0	狮鹫	static: rush	突进	额外行动	img/A012.png
+A013	齐颂	同谐	法术	银	2				0		spell: medal(allyAll,1)	使自己全体随从获得【军功】（+1/+1）	军功爵位/蓄能合鸣/额外行动	img/A013.png
+A014	哀歌覆国的诗人	同谐	随从	银	2	2	2		0		onDeath: pctr(蓄能,+3)	谢幕曲：使自己的「蓄能」+3	蓄能合鸣	img/A014.png
+A015	野穗伴行的快枪手	同谐	随从	铜	2	2	2		0		static: rush; onPlay: grant(allyOne,rush)	突进。入场曲：使1个自己的其他随从获得突进	额外行动	img/A015.png
+A016	但战斗还未结束	同谐	法术	银	2				0		spell: pctr(蓄能,+4), draw(1)	使自己的「蓄能」+4，抽1张卡	蓄能合鸣/额外行动	img/A016.png
+A017	骇域漫游的信使	同谐	护符	银	2			3	0		turnStart: extraAtk(allyOne,1)	倒数3。自己的回合开始时，使1个自己的随从获得「本回合可再进行1次攻击」	额外行动/蓄能合鸣	img/A017.png
+A018	驭空	同谐	随从	金	3	2	3		0		turnStart: pctr(蓄能,+2); turnEnd: pctr(蓄能,-1)	自己的回合开始时，使自己的「蓄能」+2；自己的回合结束时，使自己的「蓄能」-1	蓄能合鸣/军功爵位	img/A018.png
+A019	布洛妮娅	同谐	随从	虹	3	2	3		0		onPlay: cleanse(allyOne), extraAtk(allyOne,1)	入场曲：解除1个自己随从的负面效果，并使其获得「本回合可再进行1次攻击」	额外行动/军功爵位	img/A019.png
+A020	月夜天马	同谐	随从	银	3	2	4		0		turnEnd[ctr(蓄能)>=5]: buff(self,2,2)	自己的回合结束时，若自己的「蓄能」为5以上，此随从+2/+2	蓄能合鸣	img/A020.png
+A021	机心戏梦的钟表匠	同谐	护符	金	2			3	0		turnStart: title(allyMedal)	倒数3。自己的回合开始时，使1个拥有【军功】的随从升级为【爵位】（额外+2/+2并获得必杀）	军功爵位	img/A021.png
+A022	开拓者·同谐	同谐	随从	虹	3	3	4		0		onPlay: medal(allyAll,1), pctr(蓄能,+2)	入场曲：使自己全体随从获得【军功】，并使自己的「蓄能」+2	军功爵位/额外行动/蓄能合鸣	img/A022.png
+A023	出云显世与高天神国	同谐	护符	金	3			4	0		turnEnd: buff(allyMedal,1,1)	倒数4。自己的回合结束时，使1个拥有【军功】的自己随从+1/+1	军功爵位	img/A023.png
+A024	美梦小镇大冒险	同谐	随从	铜	3	2	4		0		turnEnd: medal(allyOther,1)	自己的回合结束时，使自己的其他随从获得【军功】（+1/+1）	军功爵位	img/A024.png
+A025	夜色流光溢彩	同谐	法术	银	3				0		spell: extraAtk(allyOne,2)	使1个自己的随从获得「本回合可再进行2次攻击」	额外行动/军功爵位	img/A025.png
+A026	缇宝	同谐	随从	虹	4	3	3		0		onAllyEvolve: dmg(enemyAll,2), pctr(蓄能,+2)	每当自己的随从进化，给予敌方全体随从2点伤害并使自己的「蓄能」+2	蓄能合鸣/额外行动	img/A026.png
+A027	黑日狮鹫	同谐	随从	银	4	4	3		0	狮鹫	static: rush; onPlay: grant(allyAll,rush)	突进。入场曲：使自己全体随从获得突进	额外行动	img/A027.png
+A028	梦想之地匹诺康尼	同谐	护符	金	4				0		turnStart[ctr(蓄能)>=12]: buff(allyAll,3,3), extraAtk(allyAll,1), destroy(self)	自己的「蓄能」达到12时，此护符消失，使自己全体随从+3/+3且本回合可各再进行1次攻击	蓄能合鸣	img/A028.png
+A029	与行星相会	同谐	随从	银	4	3	5		0		onPlay: medal(allyAll,ctr(蓄能)/4)	入场曲：依自己「蓄能」÷4（向下取整），使自己全体随从获得等量层【军功】	蓄能合鸣/军功爵位	img/A029.png
+A030	舞！舞！舞！	同谐	法术	金	4				0		spell: extraAtk(allyAll,1)	使自己全体随从获得「本回合可再进行1次攻击」	额外行动/蓄能合鸣	img/A030.png
+A031	知更鸟	同谐	随从	虹	5	4	5		0		turnEnd: buff(allyAll,1,1)	自己的回合结束时，使自己全体随从+1/+1	蓄能合鸣/军功爵位	img/A031.png
+A032	刻律德菈	同谐	随从	虹	5	4	4		0		onCard: ctr(充能,+1); onCtr(充能,3): ctr(充能,-4), title(allyAllMedal)	每当自己使用卡牌，此随从获得1层充能。拥有3层时：使自己全体拥有【军功】的随从升级为【爵位】	军功爵位	img/A032.png
+A033	示死祸源：深魇蝗灾	同谐	随从	金	5	3	4		0		onPlay: dmg(enemyAll,ctr(蓄能)/3)	入场曲：依自己的「蓄能」数值÷3（向下取整），给予敌方全体随从等量伤害	蓄能合鸣	img/A033.png
+A034	「齐响诗班」神主日	同谐	随从	金	5	3	5		0		turnStart: pctr(蓄能,+3)	自己的回合开始时，使自己的「蓄能」+3	蓄能合鸣/军功爵位	img/A034.png
+A035	阮•梅	同谐	随从	虹	6	4	5		0		onPlay: buff(allyAll,2,2); onEvolve: pctr(蓄能,+6)	入场曲：使自己全体随从+2/+2。进化时：使自己的「蓄能」+6	蓄能合鸣/军功爵位	img/A035.png
+A036	「石心十人」诡弈砂金	同谐	随从	金	6	5	4		0		static: rush; onAttack: extraAtk(allyRandom,1)	突进。攻击时：随机使1个自己的随从获得「本回合可再进行1次攻击」	额外行动	img/A036.png
+A037	花火	同谐	随从	虹	6	3	6		0		onPlay: ppMaxUp(2); onCard: pctr(蓄能,+1)	此随从在场时，自己每回合的PP最大值+2。每当自己使用卡牌，使自己的「蓄能」+1	额外行动/蓄能合鸣	img/A037.png
+A038	苍穹战线格拉默	同谐	法术	金	6				0		spell: buff(allyAll,3,0), grant(allyAll,rush)	使自己全体随从+3/+0并获得突进	军功爵位/额外行动	img/A038.png
+A039	星期日	同谐	随从	虹	7	4	6		0		onPlay: evolveFree(allyOne), extraAtk(allyOne,2)	入场曲：使1个自己的随从进化（不消费EP），并使其获得「本回合可再进行2次攻击」	额外行动/军功爵位/蓄能合鸣	img/A039.png
+A040	「星核猎手」萨姆	同谐	随从	虹	7	6	5		0		static: storm; onPlay: buff(allyAll,1,1)	疾驰。入场曲：使自己全体随从+1/+1	额外行动	img/A040.png
+A041	凯歌祝捷的英豪	同谐	法术	虹	8				0		spell: buff(allyAll,4,4), grant(allyAll,storm)	使自己全体随从+4/+4并获得疾驰	军功爵位/额外行动	img/A041.png
+A042	波涛夫人	同谐	随从	银	3	2	4		0		onPlay: medal(allyOne,1), heal(selfLeader,3)	入场曲：使1个自己的随从获得【军功】，并回复自己的主战者3点生命值	军功爵位	img/A042.png
+A043	至高，至阳，天空的化身	同谐	随从	虹	8	6	6		0		onPlay: medal(allyAll,1), grant(allyAll,storm)	入场曲：使自己全体随从获得【军功】与疾驰	军功爵位/额外行动	img/A043.png

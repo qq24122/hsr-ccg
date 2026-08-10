@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>崩坏：星穹铁道 CCG — 集换式卡牌对战</title>
+<meta name="description" content="以《崩坏：星穹铁道》为题材的集换式卡牌游戏，玩法框架取自《影之诗》初代。363 张卡、8 个职业、24 套卡组，可与 AI 对战。">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.7 "Microsoft YaHei", sans-serif; background: #14161c; color: #dde;
+         display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+  #wrap { max-width: 720px; width: 100%; }
+  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: .5px; }
+  .sub { color: #8a94a6; font-size: 13px; margin-bottom: 22px; }
+  .cta { display: inline-block; padding: 14px 42px; font-size: 17px; font-weight: bold;
+         background: #2f5fa8; color: #fff; text-decoration: none; border-radius: 8px;
+         transition: background .15s, transform .1s; }
+  .cta:hover { background: #3a72c8; transform: translateY(-2px); }
+  .stats { display: flex; gap: 8px; flex-wrap: wrap; margin: 20px 0 6px; }
+  .stat { background: #1d2028; border: 1px solid #2a2d36; border-radius: 7px;
+          padding: 9px 14px; flex: 1; min-width: 108px; }
+  .stat b { display: block; font-size: 19px; color: #8ecdf7; }
+  .stat span { font-size: 11px; color: #8a94a6; }
+  h2 { font-size: 14px; margin: 26px 0 8px; color: #c8d2e0;
+       border-bottom: 1px solid #2a2d36; padding-bottom: 6px; }
+  ul { margin: 0; padding-left: 20px; color: #a8b6c8; font-size: 13px; }
+  li { margin-bottom: 3px; }
+  .cls { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .cls b { font-weight: normal; font-size: 12px; padding: 4px 10px; border-radius: 5px;
+           background: #1d2028; border: 1px solid #2a2d36; color: #c8d2e0; }
+  .dev { font-size: 12px; color: #8a94a6; }
+  .dev a { color: #6ea8e8; }
+  footer { margin-top: 28px; padding-top: 12px; border-top: 1px solid #2a2d36;
+           font-size: 11px; color: #6b7484; line-height: 1.8; }
+</style>
+</head>
+<body>
+<div id="wrap">
+
+  <h1>崩坏：星穹铁道 CCG</h1>
+  <div class="sub">同人集换式卡牌游戏 · 玩法框架取自《影之诗》初代 · 单人对战 AI</div>
+
+  <a class="cta" href="play.html">开始对战</a>
+
+  <div class="stats">
+    <div class="stat"><b>363</b><span>张卡牌</span></div>
+    <div class="stat"><b>8</b><span>个命途职业</span></div>
+    <div class="stat"><b>24</b><span>套预设卡组</span></div>
+    <div class="stat"><b>41–59%</b><span>卡组胜率区间</span></div>
+  </div>
+
+  <h2>八个命途</h2>
+  <div class="cls">
+    <b>毁灭</b><b>存护·丰饶</b><b>巡猎</b><b>智识</b><b>同谐</b><b>虚无</b><b>欢愉</b><b>记忆</b>
+  </div>
+  <div class="sub" style="margin:8px 0 0;font-size:12px">
+    每个命途 3 套卡组，各有独立机制：入魔自伤、护盾铺场、标记连击、弱点触电、军功爵位、
+    持续伤害与侵蚀引爆、笑点爆发、忆质叠加。
+  </div>
+
+  <h2>规则速览</h2>
+  <ul>
+    <li>主战者 20 点生命，卡组 40 张，同名卡最多 3 张</li>
+    <li>场地上限 5（随从与护符共用），手牌上限 9</li>
+    <li>每回合 PP 上限 +1，最高 10；牌库抽空直接判负</li>
+    <li>进化：先手第 5 回合、后手第 4 回合解禁，+2/+2 且当回合可攻击随从</li>
+    <li>开局可重抽不想要的起手牌</li>
+  </ul>
+
+  <h2>怎么玩</h2>
+  <ul>
+    <li><b>点任意一张卡</b>（手牌、双方场上、重抽界面）会弹出详情面板，里面有完整效果说明、
+        当前状态，以及这张卡用到的术语解释</li>
+    <li>出牌、攻击、进化的按钮都在详情面板里</li>
+    <li>需要指定目标时，黄色边框标出的就是合法目标</li>
+  </ul>
+
+  <h2>开发页面</h2>
+  <div class="dev">
+    <a href="test/index.html">规则引擎单元测试</a>　·
+    <a href="test/validate.html">全卡库校验与 1512 局自对弈</a>　·
+    <a href="test/diag.html">24 套卡组平衡诊断</a>
+  </div>
+
+  <footer>
+    非官方同人作品，非商业用途，与米哈游无关。<br>
+    《崩坏：星穹铁道》角色、名称及美术素材版权归米哈游所有；卡面配图取自米游社官方 WIKI。<br>
+    玩法规则参考《Shadowverse》初代，版权归 Cygames 所有。<br>
+    如版权方要求，将立即移除相关素材。
+  </footer>
+
+</div>
+</body>
+</html>

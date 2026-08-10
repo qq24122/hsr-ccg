@@ -1,0 +1,45 @@
+id	name	class	type	quality	cost	atk	hp	countdown	token	tag	effect	note	decks	img
+H001	玄爪狼卒	巡猎	随从	铜	1	2	2		0	狼卒	static: noCounter	此随从无法进行防御	饲饵猎杀/连锁追击/绝命对峙	img/H001.png
+H002	银鬃射手	巡猎	随从	铜	1	1	2		0	银鬃	onPlay: buffHand(1,0)	入场曲：使1张手牌中的随从卡获得+1/+0	连锁追击/绝命对峙	img/H002.png
+H003	蚀月狼卒	巡猎	随从	铜	1	1	2		0	狼卒	onDeath: dmg(enemyMarked,2)	谢幕曲：给予被【标记】的敌方随从2点伤害	连锁追击/绝命对峙	img/H003.png
+H004	天击	巡猎	法术	铜	1				0		spell: mark(enemyOne), draw(1)	【标记】1个敌方随从（被标记者受到的伤害+1）。抽1张卡	饲饵猎杀/绝命对峙	
+H005	银鬃巡尉	巡猎	随从	铜	1	1	2		0	银鬃	onPlay: mark(enemyOne)	入场曲：【标记】1个敌方随从	饲饵猎杀	
+H006	魔阴身士卒	巡猎	随从	铜	2	2	3		0	魔阴身	static: rush	突进	饲饵猎杀/连锁追击	img/H006.png
+H007	幽府武弁	巡猎	随从	铜	2	1	3		0		static: ward; onPlay: draw(1)	守护。入场曲：抽1张卡	饲饵猎杀/绝命对峙	img/H007.png
+H008	银鬃炮手	巡猎	随从	铜	2	2	3		0	银鬃	onAttack: dmg(enemyLeader,2)	攻击时：给予敌方的主战者2点伤害	连锁追击	img/H008.png
+H009	丹恒	巡猎	随从	金	2	2	2		0		static: rush; onAttack[marked]: buff(self,2,0)	突进。攻击时：若目标被【标记】，此随从+2/+0（原"无视守护"已移除：全体标记卡让守护形同不存在）	饲饵猎杀/连锁追击/绝命对峙	img/H009.png
+H010	素裳	巡猎	随从	金	2	2	3		0		onEnemyDeath[markedCount>=1]: buff(self,1,1)	每当1个被【标记】的敌方随从被消灭，此随从+1/+1	连锁追击/绝命对峙	img/H010.png
+H011	魔阴武弁	巡猎	随从	铜	2	1	4		0	魔阴身	static: ward; turnStart: mark(enemyOne)	守护。自己的回合开始时，【标记】1个敌方随从	饲饵猎杀	img/H011.png
+H012	云骑巡防士卒	巡猎	随从	铜	2	1	4		0	云骑	static: ward; onPlay: mark(enemyOne)	守护。入场曲：【标记】1个敌方随从	饲饵猎杀/绝命对峙	img/H012.png
+H013	寒鸦哨探	巡猎	随从	铜	2	2	3		0		onAttack: mark(enemyOne)	攻击时：【标记】该敌方随从	连锁追击	
+H014	天击·连星	巡猎	法术	铜	2				0		spell: mark(enemyOne), mark(enemyRandom), dmg(enemyLeader,2), draw(1)	使1个敌方随从与随机1个敌方随从获得【标记】，给予敌方的主战者2点伤害，抽1张卡	连锁追击	
+H015	貊泽	巡猎	随从	金	3	3	2		0		onPlay: mark(enemyOne), bounce(self)	入场曲：【标记】1个敌方随从，然后此随从离场并加入手牌，费用变为0	饲饵猎杀	img/H015.png
+H016	彦卿	巡猎	随从	虹	3	3	3		0		onAttack[marked]: extraAtk(self,1)	攻击时：若目标被【标记】，此随从可再进行1次攻击	连锁追击/绝命对峙	img/H016.png
+H017	穿云拔箭	巡猎	法术	铜	3				0		spell[markedCount>=1]: dmg(enemyMarked,5); spell[markedCount<1]: dmg(enemyOne,2)	给予被【标记】的敌方随从5点伤害。若敌方场上无被标记的随从，改为给予1个敌方随从2点伤害	饲饵猎杀/连锁追击	
+H018	银鬃近卫	巡猎	随从	铜	3	3	3		0	银鬃	static: storm, leaderOnly	疾驰。此随从只能攻击敌方的主战者	绝命对峙	img/H018.png
+H019	真理医生	巡猎	随从	虹	3	2	3		0		turnEnd: dmg(enemyMarked,2); onEnemyDeath[ctr(诊疗)<1]: ctr(诊疗,+1), draw(1); turnStart: ctr(诊疗,-1)	自己的回合结束时，给予被【标记】的敌方随从2点伤害；若有随从被消灭，抽1张卡（每回合限1次）	饲饵猎杀/连锁追击	img/H019.png
+H020	自动机兵·棕熊	巡猎	随从	银	3	2	4		0	自动机兵	static: ward; onPlay: mark(enemyAll)	守护。入场曲：【标记】敌方全体随从	绝命对峙/饲饵猎杀	img/H020.png
+H021	银鬃射手·精锐	巡猎	随从	铜	3	3	3		0	银鬃	onAttack: dmg(enemyLeader,1)	攻击时：给予敌方的主战者1点伤害	连锁追击/绝命对峙	img/H021.png
+H022	魔阴身校尉	巡猎	随从	铜	3	2	3		0	魔阴身	static: rush; onDeath: mark(enemyOne)	突进。谢幕曲：【标记】1个敌方随从	饲饵猎杀/连锁追击	
+H023	仙舟三月七	巡猎	随从	金	4	3	5		0		turnStart: extraAtk(allyOther,1)	自己的回合开始时，使自己的其他随从获得「本回合可再进行1次攻击」	连锁追击	img/H023.png
+H024	银鬃尉官	巡猎	随从	银	4	4	3		0	银鬃	static: rush; onPlay: mark(enemyOne), draw(1)	突进。入场曲：【标记】1个敌方随从并抽1张卡	饲饵猎杀/连锁追击	img/H024.png
+H025	波提欧	巡猎	随从	虹	4	3	2		0		static: storm; onPlay: mark(enemyOne), dmg(enemyOne,2)	疾驰。入场曲：【标记】1个敌方随从并给予它2点伤害（原设计的"决斗锁定"需要目标限制系统，暂改为标记+点伤）	绝命对峙	img/H025.png
+H026	托帕&账账	巡猎	随从	虹	4	3	3		0		onPlay: summon(账账,1), mark(enemyOne); onAllyAttack[markedCount>=1]: dmg(enemyLeader,1)	入场曲：召唤1只账账并【标记】1个敌方随从。自己的随从攻击且敌方有被标记目标时，给予敌方主战者1点伤害	饲饵猎杀	img/H026.png
+H027	金人勾魂使	巡猎	随从	银	4	3	4		0	金人	onPlay: dmg(enemyMarked,4)	入场曲：给予被【标记】的敌方随从4点伤害	饲饵猎杀/连锁追击	img/H027.png
+H028	素裳·剑势	巡猎	随从	金	4	3	4		0		onAttack[marked]: dmg(enemyRandomAny,2)	攻击时：若目标被【标记】，给予敌方随机1个目标（含主战者）2点伤害	连锁追击	img/H028.png
+H029	穿云弓	巡猎	法术	银	4				0		spell[markedCount>=1]: destroy(enemyMarked); spell[markedCount<1]: dmg(enemyOne,3), mark(enemyOne)	消灭被【标记】的敌方随从。若敌方场上无被标记的随从，改为给予1个敌方随从3点伤害并【标记】它	饲饵猎杀/绝命对峙	
+H030	玄爪狼将	巡猎	随从	银	4	4	3		0	狼卒	static: noCounter; onAttack: mark(enemyOne)	此随从无法进行防御。攻击时：【标记】该敌方随从	饲饵猎杀/绝命对峙	
+H031	希儿	巡猎	随从	虹	5	4	4		0		static: storm; onEnemyDeath[ctr(残梦)<2]: ctr(残梦,+1), extraAtk(self,1); turnStart: ctr(残梦,-2)	疾驰。每当敌方随从被消灭，此随从可再进行1次攻击（每回合限2次）	连锁追击/绝命对峙	img/H031.png
+H032	金人司阍	巡猎	随从	银	5	3	5		0	金人	onPlay: mark(enemyAll)	入场曲：【标记】敌方全体随从	饲饵猎杀	img/H032.png
+H033	云骑骁卫·彦卿	巡猎	随从	金	5	5	4		0	云骑	static: bane	必杀（原设计的突进已移除：必杀+突进等于无损清场，过于强势）	饲饵猎杀/绝命对峙	img/H033.png
+H034	银鬃近卫长	巡猎	随从	银	5	4	2		0	银鬃	static: leaderOnly	此随从只能攻击敌方的主战者（原疾驰已移除：必须先在场上存活一回合）	绝命对峙	img/H034.png
+H035	不死途	巡猎	随从	虹	6	4	5		0		turnStart: mark(enemyOne); onEnemyDamaged[ctr(不死)<1]: ctr(不死,+1), draw(1); turnEnd: ctr(不死,-1)	自己的回合开始时，【标记】1个敌方随从。每当敌方随从受到伤害，抽1张卡（每回合限1次）	饲饵猎杀/连锁追击	img/H035.png
+H036	飞霄	巡猎	随从	虹	6	5	5		0		onAllyAttack: ctr(飞黄,+1); onCtr(飞黄,2): ctr(飞黄,-2), dmg(enemyAll,3)	每当自己的随从攻击，获得1层【飞黄】。拥有2层时：消耗全部层数，给予敌方全体随从3点伤害	连锁追击	img/H036.png
+H037	云骑统领·彦卿	巡猎	随从	虹	6	5	5		0	云骑	static: rush; onAttack[marked]: extraAtk(self,1)	突进（原必杀已移除）。攻击时：若目标被【标记】，此随从可再进行1次攻击	绝命对峙/连锁追击	img/H037.png
+H038	驭空之弦	巡猎	法术	金	6				0		spell: dmg(enemyAll,3), mark(enemyAll)	给予敌方全体随从3点伤害，并【标记】敌方全体随从	连锁追击/饲饵猎杀	
+H039	Archer	巡猎	随从	虹	7	5	5		0		onCard[ctr(箭雨)<1]: ctr(箭雨,+1), extraAtk(self,1); turnStart: ctr(箭雨,-1)	每当自己使用其他卡牌，此随从可再进行1次攻击（每回合最多2次）	连锁追击/绝命对峙	img/H039.png
+H040	自动机兵·灰熊	巡猎	随从	金	7	6	5		0	自动机兵	static: ward, reduce(self,2)	守护。此随从受到的伤害减少2点（原必杀已移除：守护+减伤+必杀三合一无法处理）	绝命对峙	img/H040.png
+H041	寒锋孤影	巡猎	法术	虹	8				0		costIf(3)[markedCount>=1]; spell: dmg(enemyLeader,8)	给予敌方的主战者8点伤害。若敌方场上有被【标记】的随从，此牌费用-3	连锁追击/绝命对峙	
+T201	账账	巡猎	随从	衍生	0	1	1		1		static: rush	（由托帕&账账的效果产生）突进		
+H042	巡猎扑满	巡猎	随从	铜	1	1	2		0		onDeath: mark(enemyOne)	谢幕曲：【标记】1个敌方随从	饲饵猎杀	img/H042.png
+H043	流浪者	巡猎	随从	铜	2	2	3		0		onPlay: mark(enemyOne), buff(allyAll,0,1)	入场曲：【标记】1个敌方随从，并使自己全体随从+0/+1（垫一层血线，抗智识的群体伤害）	饲饵猎杀/绝命对峙	img/H043.png

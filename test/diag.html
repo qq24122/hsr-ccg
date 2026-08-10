@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>崩铁 CCG — 全卡组诊断</title>
+<style>
+  body { font: 13px/1.6 "Microsoft YaHei", sans-serif; margin: 20px; background: #1a1c22; color: #ddd; }
+  pre { background: #22242c; padding: 10px; border-radius: 6px; white-space: pre-wrap; font-size: 12px; }
+</style>
+</head>
+<body>
+<h1>全卡组诊断</h1>
+<p>一次跑完 24 套卡组，对每套报出：胜率、对局长度、<b>把对手打到多少血</b>（看它有没有威胁）、
+<b>抽到了也打不出来的卡</b>（看曲线是不是虚的）。<br>
+用它定位「为什么弱」，再用 validate.html 的 3 种子数据确认改动效果。</p>
+<pre id="out">运行中…</pre>
+
+<script type="module">
+import { parseTSV, CLASS_FILES, listDecks, buildDeckFor, deckPool } from '../src/loader.js';
+import { parseEffect } from '../src/dsl.js';
+import * as S from '../src/state.js';
+import * as E from '../src/engine.js';
+import { takeTurn } from '../src/ai.js';
+
+const SEEDS = 2;
+
+async function loadAll() {
+  const rows = [];
+  for (const [, file] of CLASS_FILES) {
+    const res = await fetch('../data/' + file, { cache: 'no-store' });
+    const got = parseTSV(await res.text()).rows;
+    for (const r of got) r.clauses = parseEffect(r.effect, r.name);
+    rows.push(...got);
+  }
+  const byName = {};
+  for (const r of rows) byName[r.name] = r;
+  return { all: rows, byName };
+}
+
+function playOne(cards, dA, dB, seed) {
+  const s = S.createGame(dA.slice(), dB.slice(), seed);
+  s.__cardIndex = cards.byName; s.__tokenIndex = cards.byName;
+  let g = 0;
+  while (s.winner == null && g < 100) {
+    E.startTurn(s); if (s.winner != null) break;
+    takeTurn(s, s.active); if (s.winner != null) break;
+    E.endTurn(s); g++;
+  }
+  return s;
+}
+
+async function main() {
+  const cards = await loadAll();
+  const decksByCls = listDecks(cards);
+  const E2 = [];
+  for (const [cls] of CLASS_FILES) {
+    for (const dk of (decksByCls[cls] || [])) {
+      if (deckPool(cards, cls, dk).length < 12) continue;
+      E2.push({ cls, deck: dk, label: `${cls}｜${dk}`,
+        deck40: buildDeckFor(cards, cls, dk, S.makeRng(4242)) });
+    }
+  }
+  const st = E2.map(e => ({ w: 0, l: 0, games: 0, turns: 0, foeHp: 0, myHp: 0, deckLeft: 0,
+    played: Object.fromEntries([...new Set(e.deck40.map(d => d.name))].map(n => [n, 0])) }));
+
+  for (let i = 0; i < E2.length; i++) {
+    for (let j = 0; j < E2.length; j++) {
+      if (i === j || E2[i].cls === E2[j].cls) continue;
+      for (let k = 0; k < SEEDS; k++) {
+        const s = playOne(cards, E2[i].deck40, E2[j].deck40, 7000 + (i * 31 + j) * 17 + k * 907);
+        // 谁打出了什么：日志里的「打出 X（」。同一局同一张卡只记一次。
+        const seen = [new Set(), new Set()];
+        for (const ln of s.log) {
+          const m = /^T\d+ P(\d)  *打出 (.+?)（/.exec(ln) || /^T\d+ P(\d) 打出 (.+?)（/.exec(ln);
+          if (m) seen[+m[1]].add(m[2]);
+        }
+        for (const [side, idx] of [[0, i], [1, j]]) {
+          const a = st[idx];
+          a.games++;
+          a.turns += Math.ceil(s.turn / 2);
+          a.foeHp += s.players[1 - side].hp;
+          a.myHp += s.players[side].hp;
+          a.deckLeft += s.players[side].deck.length;
+          if (s.winner === side) a.w++; else if (s.winner === 1 - side) a.l++;
+          for (const n of seen[side]) if (a.played[n] != null) a.played[n]++;
+        }
+      }
+    }
+    document.getElementById('out').textContent = `跑到第 ${i + 1}/${E2.length} 套…`;
+  }
+
+  const pct = a => a.w + a.l ? Math.round(a.w / (a.w + a.l) * 100) : 0;
+  const order = E2.map((_, i) => i).sort((x, y) => pct(st[y]) - pct(st[x]));
+  const rows = [
+    '胜率  回合  对手残血  自己残血  牌库剩  卡组',
+  ];
+  for (const i of order) {
+    const a = st[i];
+    rows.push(`${String(pct(a)).padStart(3)}%  ${(a.turns / a.games).toFixed(1).padStart(4)}`
+      + `  ${(a.foeHp / a.games).toFixed(1).padStart(8)}  ${(a.myHp / a.games).toFixed(1).padStart(8)}`
+      + `  ${(a.deckLeft / a.games).toFixed(1).padStart(6)}  ${E2[i].label}`);
+  }
+  rows.push('');
+  rows.push('=== 打不出来的卡（出场率 < 35% 的，按卡组分组）===');
+  for (const i of order) {
+    const a = st[i];
+    const dead = Object.entries(a.played).filter(([, c]) => c < a.games * 0.35)
+      .sort((x, y) => x[1] - y[1])
+      .map(([n, c]) => `${n}[${cards.byName[n].cost}费 ${Math.round(c / a.games * 100)}%]`);
+    if (dead.length) rows.push(`${String(pct(a)).padStart(3)}% ${E2[i].label}：${dead.join('、')}`);
+  }
+  document.getElementById('out').textContent = rows.join('\n');
+  window.__diag = { seeds: SEEDS, decks: E2.map((e, i) => ({
+    label: e.label, pct: pct(st[i]), turns: +(st[i].turns / st[i].games).toFixed(1),
+    foeHp: +(st[i].foeHp / st[i].games).toFixed(1), myHp: +(st[i].myHp / st[i].games).toFixed(1),
+    dead: Object.entries(st[i].played).filter(([, c]) => c < st[i].games * 0.35)
+      .sort((x, y) => x[1] - y[1])
+      .map(([n, c]) => `${n}(${cards.byName[n].cost}费,${Math.round(c / st[i].games * 100)}%)`),
+  })).sort((a, b) => b.pct - a.pct) };
+}
+main().catch(e => {
+  document.getElementById('out').textContent = '诊断出错：' + e.message + '\n' + (e.stack || '');
+  window.__diag = { fatal: e.message };
+});
+</script>
+</body>
+</html>

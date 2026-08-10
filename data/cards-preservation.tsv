@@ -1,0 +1,50 @@
+id	name	class	type	quality	cost	atk	hp	countdown	token	tag	effect	note	decks	img
+P001	丰饶扑满	存护丰饶	随从	铜	1	1	2		0		onDeath: heal(selfLeader,2)	谢幕曲：回复自己的主战者2点生命值	护盾壁垒/不死回响/孽物增殖	img/P001.png
+P003	龙骨盾	存护丰饶	法术	铜	1				0		spell: summon(龙骨壁,1)	召唤1个龙骨壁（0/2，守护）	护盾壁垒/不死回响	img/P003.png
+P004	好运饼干	存护丰饶	法术	铜	1				0		spell: heal(selfLeader,3), draw(1)	回复自己的主战者3点生命值，抽1张卡	不死回响/孽物增殖	img/P004.png
+P005	幼蛰虫	存护丰饶	随从	铜	1	2	1		0	蛰虫	onDeath: summon(次蛰虫,1)	谢幕曲：召唤1只次蛰虫	孽物增殖	img/P005.png
+P006	蚀蛰虫	存护丰饶	随从	铜	1	1	1		0	蛰虫	onDeath: summon(次蛰虫,2)	谢幕曲：召唤2只次蛰虫	孽物增殖	img/P006.png
+P007	时节不居	存护丰饶	法术	铜	1				0		spell: summon(次蛰虫,1), heal(selfLeader,2)	召唤1只次蛰虫，回复自己的主战者2点生命值	孽物增殖/不死回响	img/P007.png
+P008	「药王秘传」器元士	存护丰饶	随从	铜	2	1	4		0	药王秘传	static: ward; onPlay: heal(selfLeader,2)	守护。入场曲：回复自己的主战者2点生命值	不死回响/护盾壁垒	img/P008.png
+P009	「药王秘传」内丹士	存护丰饶	随从	铜	2	1	3		0	药王秘传	onPlay: heal(selfLeader,3)	入场曲：回复自己的主战者3点生命值	不死回响	img/P009.png
+P010	三月七	存护丰饶	随从	金	2	1	3		0		static: ward; onPlay: summon(龙骨壁,1)	守护。入场曲：召唤1个龙骨壁（0/2，守护）	护盾壁垒/不死回响	img/P010.png
+P011	丰饶灵兽·奎木	存护丰饶	随从	铜	2	2	2		0	丰饶灵兽	onLeaderHeal[ctr(奎木)<1]: ctr(奎木,+1), buff(self,1,1); turnStart: ctr(奎木,-1)	每当自己的主战者回复生命值，此随从+1/+1（每回合限1次）	孽物增殖/不死回响	img/P011.png
+P012	太空封印站	存护丰饶	护符	银	2			4	0		onPlay: summon(星槎壁,1); turnStart: buff(allyTag(盾卫),0,1)	倒数4。入场曲：召唤1个星槎壁（0/2，守护）。自己的回合开始时，使自己全体盾卫+0/+1	护盾壁垒	img/P012.png
+P013	一场术后对话	存护丰饶	法术	银	2				0		spell[!mara]: heal(selfLeader,4); spell[mara]: heal(selfLeader,8)	回复自己的主战者4点生命值。若自己的生命值为10以下，改为8点	不死回响	img/P013.png
+P014	命运从未公平	存护丰饶	法术	银	2				0		spell: grant(allyOne,barrier)	使1个自己的随从获得【屏障】（下次受到的伤害变为0，发动1次后失效）	不死回响	img/P014.png
+P015	入魔机巧·浓云金蟾	存护丰饶	随从	铜	2	2	2		0		onAllySummon: ctr(护盾,+1); onCtr(护盾,2): ctr(护盾,-2), buff(self,1,1)	每当2个随从进入自己的战场，此随从+1/+1	护盾壁垒/孽物增殖	img/P015.png
+P016	玲可	存护丰饶	随从	金	3	2	3		0		turnEnd: heal(selfLeader,2)	自己的回合结束时，回复自己的主战者2点生命值	不死回响/孽物增殖	img/P016.png
+P017	丰饶灵兽·娄金	存护丰饶	随从	铜	3	1	3		0	丰饶灵兽	onPlay: summon(次蛰虫,2)	入场曲：召唤2只次蛰虫	孽物增殖	img/P017.png
+P018	砂金	存护丰饶	随从	虹	3	2	4		0		onPlay: summon(星槎壁,1); turnStart: buff(allyTag(盾卫),0,2)	入场曲：召唤1个星槎壁。此随从在场时，自己的回合开始时使自己全体盾卫+0/+2	护盾壁垒	img/P018.png
+P019	娜塔莎	存护丰饶	随从	金	3	2	4		0		onPlay: heal(selfLeader,allyCount)	入场曲：回复自己的主战者与自己战场上随从数等量的生命值	不死回响/护盾壁垒	img/P019.png
+P020	承露天人	存护丰饶	随从	银	3	2	4		0		static: ward, reduce(self,1)	守护。此随从受到的伤害减少1点	护盾壁垒/孽物增殖	img/P020.png
+P022	她已闭上双眼	存护丰饶	法术	金	3				0		spell: summon(莲灯壁,1), heal(selfLeader,3)	召唤1个莲灯壁（0/4，守护），并回复自己的主战者3点生命值	护盾壁垒/不死回响	img/P022.png
+P023	加拉赫	存护丰饶	随从	金	3	3	4		0		onLeaderHeal: dmg(enemyLeader,1)	每当自己的主战者回复生命值，给予敌方的主战者1点伤害	不死回响/护盾壁垒	img/P023.png
+P024	劫火莲灯铸炼宫	存护丰饶	护符	金	5			3	0		onPlay: summon(莲灯壁,1); onDeath: buff(allyAll,2,2), grant(allyAll,ward)	倒数3。入场曲：召唤1个莲灯壁。谢幕曲：使自己全体随从+2/+2并获得守护	护盾壁垒	img/P024.png
+P025	「药王秘传」炼形者	存护丰饶	随从	银	4	4	4		0	药王秘传	onPlay: buff(allyOne,0,3)	入场曲：使1个自己的随从生命值+3	孽物增殖	img/P025.png
+P026	藿藿	存护丰饶	随从	虹	4	2	5		0		onPlay: cleanse(allyAll), heal(allyAll,99)	入场曲：解除自己全体随从的负面效果并回复其全部生命值	不死回响	img/P026.png
+P027	开拓者·存护	存护丰饶	随从	虹	4	2	6		0		static: ward; onDamaged: ctr(灼热意志,+1), buff(self,1,0); onCtr(灼热意志,4): grant(self,sweep)	守护。每当此随从受到伤害，获得1层【灼热意志】（+1/+0）。拥有4层时：获得「攻击时同时攻击敌方全体随从」	护盾壁垒	img/P027.png
+P028	银枝	存护丰饶	随从	金	4	3	5		0		static: ward; onPlay: grant(allyAll,barrier)	守护。入场曲：使自己全体随从获得【屏障】	护盾壁垒/不死回响	img/P028.png
+P029	丰饶灵兽·长右	存护丰饶	随从	银	4	3	4		0	丰饶灵兽	onPlay: summon(次蛰虫,2), heal(selfLeader,2)	入场曲：召唤2只次蛰虫，并回复自己的主战者2点生命值	孽物增殖/不死回响	img/P029.png
+P030	杰帕德	存护丰饶	随从	虹	5	3	6		0		static: ward, barrier	守护。【屏障】（下次受到的伤害变为0，发动1次后失效）	不死回响/护盾壁垒	img/P030.png
+P031	白露	存护丰饶	随从	虹	5	3	5		0		turnStart: heal(allyAll,2), grant(allyRandom,barrier)	自己的回合开始时，回复自己全体随从2点生命值，并使随机1个自己的随从获得【屏障】	不死回响/孽物增殖	img/P031.png
+P032	吞神子嗣	存护丰饶	随从	银	5	4	4		0		onPlay: buff(self,tagCount(蛰虫),tagCount(蛰虫)), destroy(allyTag(蛰虫))	入场曲：消灭自己全体次蛰虫，每消灭1只则此随从+1/+1	孽物增殖	img/P032.png
+P033	浮烟	存护丰饶	随从	金	5	4	4		0		onPlay: summon(星槎壁,1), summon(次蛰虫,2)	入场曲：召唤1个星槎壁与2只次蛰虫	护盾壁垒/孽物增殖	img/P033.png
+P034	灵砂	存护丰饶	随从	虹	6	3	6		0		onPlay: summon(浮元,1)	入场曲：召唤1只浮元（2/3，每回合可攻击3次）	不死回响/孽物增殖	img/P034.png
+P035	符玄	存护丰饶	随从	虹	6	3	7		0		static: ward; onAllySummon: buff(allyTag(盾卫),0,1)	守护。此随从在场时，每当随从进入自己的战场，使自己全体盾卫+0/+1（原设计的"伤害转移"依赖已废弃的壁垒机制，改为强化盾卫）	护盾壁垒/不死回响	img/P035.png
+P036	丰饶玄鹿	存护丰饶	随从	金	6	4	5		0	丰饶灵兽	onPlay: summon(次蛰虫,2); onEnemyDeath[ctr(玄鹿)<1]: ctr(玄鹿,+1), heal(selfLeader,1), summon(次蛰虫,1); turnStart: ctr(玄鹿,-1)	入场曲：召唤2只次蛰虫。每当有随从离场，回复自己的主战者1点生命值并召唤1只新的次蛰虫（每回合限1次）	孽物增殖	img/P036.png
+P037	罗刹	存护丰饶	随从	虹	6	5	5		0		onPlay: heal(selfLeader,5); onAllyAttack: heal(selfLeader,2)	入场曲：回复自己的主战者5点生命值。此随从在场时，自己的随从攻击后回复自己的主战者2点生命值	不死回响	img/P037.png
+P038	丹恒•腾荒	存护丰饶	随从	虹	7	5	6		0		static: ward, bane; onPlay: summon(莲灯壁,1), summon(龙灵,1)	守护、必杀。入场曲：召唤1个莲灯壁与1只龙灵	护盾壁垒	img/P038.png
+P039	永恒之地翁法罗斯	存护丰饶	护符	虹	7				0		onPlay: maxHpUp(6), heal(selfLeader,6)	使自己的主战者生命上限+6并立即回复6点生命值。此护符不会消失（无倒数）	护盾壁垒	img/P039.png
+P040	虫群·真蛰虫	存护丰饶	随从	虹	7	4	5		0	蛰虫	onPlay: summon(次蛰虫,2), buff(allyTag(蛰虫),1,1); onEnemyDeath[ctr(虫群)<1]: ctr(虫群,+1), summon(次蛰虫,1); turnStart: ctr(虫群,-1)	入场曲：召唤2只次蛰虫并使自己全体蛰虫+1/+1。每当有随从离场，召唤1只新的次蛰虫（每回合限1次）	孽物增殖	img/P040.png
+P041	不死神实·幻胧	存护丰饶	随从	虹	7	5	7		0		static: ward, barrier	守护、【屏障】	不死回响	img/P041.png
+P042	可可利亚	存护丰饶	随从	虹	8	6	7		0		onPlay: dmg(enemyAll,4), heal(selfLeader,6)	入场曲：给予敌方全体随从4点伤害，回复自己的主战者6点生命值	孽物增殖	img/P042.png
+T101	次蛰虫	存护丰饶	随从	衍生	0	1	1		1	蛰虫		（由幼蛰虫、蚀蛰虫、娄金、长右、丰饶玄鹿、真蛰虫、浮烟、时节不居的效果产生）		img/T101.png
+T102	浮元	存护丰饶	随从	衍生	0	2	3		1		static: maxAtk(self,3)	（由灵砂的效果产生）此随从每回合可进行3次攻击		
+T103	龙灵	存护丰饶	随从	衍生	0	1	3		1		turnStart: buff(allyTag(盾卫),0,1)	（由丹恒•腾荒的效果产生）自己的回合开始时，使自己全体盾卫+0/+1		
+T104	龙骨壁	存护丰饶	随从	衍生	0	0	2		1	盾卫	static: ward	（由龙骨盾、三月七的效果产生）守护。0攻的盾卫，用来消耗对手的攻击次数		
+T105	星槎壁	存护丰饶	随从	衍生	0	0	2		1	盾卫	static: ward	（由太空封印站、砂金、银枝、浮烟的效果产生）守护		
+T106	莲灯壁	存护丰饶	随从	衍生	0	0	2		1	盾卫	static: ward	（由她已闭上双眼、劫火莲灯铸炼宫、丹恒•腾荒的效果产生）守护		
+P043	步离战首·呼雷	存护丰饶	随从	虹	6	4	5		0		static: ward; onLeaderHeal[ctr(雷鸣)<1]: ctr(雷鸣,+1), dmg(enemyAll,1); turnStart: ctr(雷鸣,-1)	守护。每当自己的主战者回复生命值，给予敌方全体随从1点伤害（每回合限1次）（把治疗转成清场，给存护一个进攻出口）	护盾壁垒/不死回响	img/P043.png
+P044	霜晶造物	存护丰饶	随从	铜	2	1	4		0		static: ward; onDamaged: dmg(enemyLeader,1)	守护。此随从受到伤害后，给予敌方的主战者1点伤害（对手打你的墙就得掉血）	护盾壁垒	img/P044.png
+P045	鸣雷造物	存护丰饶	随从	金	3	2	5		0		turnEnd: dmg(enemyLeader,tagCount(盾卫))	自己的回合结束时，给予敌方的主战者与自己场上盾卫数等量的伤害（把盾卫从纯防守变成时钟）	护盾壁垒	img/P045.png

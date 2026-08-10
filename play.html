@@ -1,0 +1,997 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>崩铁 CCG — 单人对战</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 13px/1.5 "Microsoft YaHei", sans-serif; background: #14161c; color: #dde; overflow: hidden; }
+  #app { display: flex; height: 100vh; }
+  #board { flex: 1; display: flex; flex-direction: column; padding: 8px 10px; gap: 6px; min-width: 0; }
+  #side { width: 260px; border-left: 1px solid #2a2d36; display: flex; flex-direction: column; background: #171a21; }
+
+  /* ---- 主战者条 ---- */
+  .leader { display: flex; align-items: center; gap: 10px; padding: 6px 10px; background: #1d2028;
+            border: 1px solid #2a2d36; border-radius: 7px; }
+  .leader.me { border-color: #3a5a3a; }
+  .leader.foe { border-color: #5a3a3a; cursor: pointer; }
+  .leader.foe.targetable { border-color: #ffd43b; box-shadow: 0 0 0 2px #ffd43b55; }
+  .lname { font-weight: bold; min-width: 92px; }
+  .hp { font-size: 18px; font-weight: bold; color: #ff8787; min-width: 54px; }
+  .pip { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 2px; }
+  .pp-on { background: #4dabf7; } .pp-off { background: #2a3038; }
+  .ep { color: #ffd43b; }
+  .badge { font-size: 11px; padding: 1px 6px; border-radius: 9px; background: #2a3038; }
+  .badge.bar { background: #1864ab; color: #d0ebff; }
+
+  /* ---- 场地 ---- */
+  .field { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+           min-height: 128px; padding: 4px; border-radius: 7px; background: #191c23; }
+  .slot-empty { width: 92px; height: 118px; border: 1px dashed #2a2d36; border-radius: 7px; }
+
+  /* ---- 场上单位 ---- */
+  .unit { width: 92px; height: 118px; border-radius: 7px; padding: 5px; position: relative;
+          background: #232833; border: 2px solid #39404d; cursor: default; user-select: none;
+          display: flex; flex-direction: column; overflow: hidden; }
+  /* 卡图铺满卡面，文字压在上面；图缺失时自然回退成纯文字 */
+  .art { position: absolute; inset: 0; background-size: cover; background-position: center top;
+         opacity: .55; pointer-events: none; }
+  .unit > *:not(.art), .card > *:not(.art) { position: relative; z-index: 1; }
+  .unit .n { font-size: 11px; font-weight: bold; line-height: 1.25; max-height: 42px; overflow: hidden;
+             text-shadow: 0 1px 3px #000, 0 0 6px #000; }
+  .unit .kw { font-size: 10px; color: #ffd43b; margin-top: auto; line-height: 1.3; }
+  .unit .st { display: flex; justify-content: space-between; font-size: 15px; font-weight: bold; margin-top: 2px; }
+  .unit .a { color: #ffa94d; } .unit .h { color: #ff8787; }
+  .unit.amulet { background: #2b2436; border-color: #4a3a5a; }
+  .unit.ward { border-color: #4dabf7; }
+  .unit.ready { border-color: #51cf66; box-shadow: 0 0 6px #51cf6644; cursor: pointer; }
+  .unit.sel { border-color: #ffd43b; box-shadow: 0 0 0 3px #ffd43b66; }
+  .unit.targetable { border-color: #ffd43b; box-shadow: 0 0 8px #ffd43b88; cursor: crosshair; }
+  .unit .cd { position: absolute; top: -6px; right: -6px; background: #7048e8; color: #fff;
+              width: 20px; height: 20px; border-radius: 50%; font-size: 11px; text-align: center; line-height: 20px; }
+  .unit .marks { font-size: 9px; color: #ff8787; line-height: 1.25; }
+
+  /* ---- 手牌 ---- */
+  #hand { display: flex; gap: 6px; justify-content: center; min-height: 156px; padding: 4px; flex-wrap: wrap; }
+  .card { width: 104px; height: 148px; border-radius: 8px; padding: 6px; background: #242a36;
+          border: 2px solid #39404d; cursor: pointer; position: relative; display: flex; flex-direction: column;
+          transition: transform .08s; user-select: none; }
+  .card:hover { transform: translateY(-6px); }
+  .card.no { opacity: .38; cursor: not-allowed; }
+  .card.no:hover { transform: none; }
+  .card.sel { border-color: #ffd43b; box-shadow: 0 0 0 3px #ffd43b66; }
+  .card .cost { position: absolute; top: -7px; left: -7px; width: 24px; height: 24px; border-radius: 50%;
+                background: #1864ab; color: #fff; font-weight: bold; text-align: center; line-height: 24px; font-size: 13px; }
+  .card .cost.cut { background: #2f9e44; }
+  .card { overflow: hidden; }
+  .card .cn { font-size: 11px; font-weight: bold; margin: 12px 0 3px; line-height: 1.25;
+              text-shadow: 0 1px 3px #000, 0 0 6px #000; }
+  .card .ct { font-size: 10px; color: #cbd; flex: 1; overflow: hidden; line-height: 1.35;
+              text-shadow: 0 1px 2px #000, 0 0 4px #000; }
+  .card .cs { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold;
+              text-shadow: 0 1px 3px #000; }
+  .card .art { opacity: .42; }
+  .q铜 { border-color: #6b5a3e; } .q银 { border-color: #7a8390; }
+  .q金 { border-color: #b8912f; } .q虹 { border-color: #a04ec8; }
+  .q衍生 { border-color: #46603a; }
+
+  #foeHand { display: flex; gap: 3px; justify-content: center; height: 26px; }
+  .back { width: 18px; height: 26px; border-radius: 3px; background: linear-gradient(160deg,#3b2a5a,#25324a); border: 1px solid #4a3a6a; }
+
+  /* ---- 侧栏 ---- */
+  #side h3 { margin: 0; padding: 8px 10px; font-size: 12px; background: #1d2028; border-bottom: 1px solid #2a2d36; }
+  #log { flex: 1; overflow-y: auto; padding: 6px 10px; font-size: 11px; line-height: 1.6; color: #9aa; }
+  #log div { padding: 1px 0; border-bottom: 1px solid #1e2128; }
+  #log div.mine { color: #8ce99a; } #log div.foe { color: #ffa8a8; }
+  #ctl { padding: 8px 10px; border-top: 1px solid #2a2d36; display: flex; flex-direction: column; gap: 6px; }
+  button { padding: 8px; border: 0; border-radius: 6px; background: #2f5fa8; color: #fff; font: inherit;
+           font-weight: bold; cursor: pointer; }
+  button:disabled { background: #2a3038; color: #667; cursor: not-allowed; }
+  button.warn { background: #a83232; }
+  #hint { padding: 6px 10px; font-size: 11px; color: #ffd43b; min-height: 32px; border-top: 1px solid #2a2d36; }
+
+  /* ---- 遮罩 ---- */
+  #veil { position: fixed; inset: 0; background: #0c0e12ee; display: none; align-items: center;
+          justify-content: center; flex-direction: column; gap: 14px; z-index: 20; }
+  #veil.on { display: flex; }
+  #veil h1 { margin: 0; font-size: 28px; }
+  .row { display: flex; gap: 8px; align-items: center; }
+
+  /* 开局选择：用可点的按钮而不是原生 <select>——
+     原生下拉在部分内嵌浏览器里根本弹不出来，会让玩家直接进不去游戏。 */
+  #setup { max-width: 760px; padding: 22px 26px; background: #171a21; border: 1px solid #2a2d36;
+           border-radius: 10px; }
+  .pickRow { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 9px; }
+  .pickLab { width: 68px; flex: none; color: #98a; font-size: 12px; padding-top: 6px; }
+  .pick { display: flex; flex-wrap: wrap; gap: 5px; }
+  .pick b { padding: 5px 12px; border-radius: 5px; background: #242a36; border: 1px solid #39404d;
+            cursor: pointer; font-weight: normal; font-size: 12px; user-select: none; }
+  .pick b:hover { border-color: #5a6478; }
+  .pick b.on { background: #2f5fa8; border-color: #4d7fd0; color: #fff; font-weight: bold; }
+  #deckPeek { font-size: 11px; color: #8a94a6; margin: 10px 0 4px; line-height: 1.6;
+              background: #1d2028; padding: 8px 10px; border-radius: 6px; min-height: 34px; }
+
+  /* ---- 卡牌详情 ----
+     点任意一张卡（手牌 / 双方场上 / 重抽界面）都会开这个面板。
+     卡面上写的是【守护】【侵蚀3】这种压缩记法，不解释根本看不懂，
+     所以面板底部会把这张卡实际用到的术语逐条列出来。 */
+  #detail { position: fixed; z-index: 30; width: 320px; max-height: 88vh; overflow-y: auto;
+            background: #1b1f28; border: 1px solid #3b4454; border-radius: 10px; padding: 0;
+            box-shadow: 0 12px 40px #000a, 0 0 0 1px #0006; display: none; }
+  #detail.on { display: block; animation: popIn .13s ease-out; }
+  #detail .dHead { position: relative; height: 132px; overflow: hidden; border-radius: 9px 9px 0 0;
+                   background: #232833; }
+  #detail .dHead .art { opacity: .85; }
+  #detail .dHead .veilg { position: absolute; inset: 0;
+            background: linear-gradient(180deg, #1b1f2800 40%, #1b1f28ee 100%); }
+  #detail .dTitle { position: absolute; left: 12px; right: 12px; bottom: 8px; z-index: 2; }
+  #detail .dName { font-size: 16px; font-weight: bold; text-shadow: 0 2px 6px #000, 0 0 10px #000; }
+  #detail .dSub { font-size: 11px; color: #9fb0c4; text-shadow: 0 1px 4px #000; }
+  #detail .dBody { padding: 10px 12px 12px; }
+  #detail .dStats { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  #detail .dStat { background: #232a36; border-radius: 6px; padding: 3px 9px; font-size: 12px; }
+  #detail .dStat b { font-size: 14px; }
+  #detail .dText { font-size: 12px; line-height: 1.65; color: #dde; background: #232a36;
+                   border-left: 3px solid #4d7fd0; padding: 7px 9px; border-radius: 0 6px 6px 0; }
+  #detail .dNow { font-size: 11px; color: #ffd43b; margin-top: 7px; line-height: 1.6; }
+  #detail .dGloss { margin-top: 9px; border-top: 1px solid #2a2f3a; padding-top: 7px; }
+  #detail .dGloss .g { font-size: 11px; line-height: 1.6; margin-bottom: 4px; color: #a8b6c8; }
+  #detail .dGloss .g b { color: #ffd43b; font-weight: normal; }
+  #detail .dActs { display: flex; gap: 6px; margin-top: 10px; }
+  #detail .dActs button { flex: 1; padding: 8px; font-size: 12px; }
+  #detail .dClose { position: absolute; top: 6px; right: 8px; z-index: 3; cursor: pointer;
+                    width: 22px; height: 22px; line-height: 20px; text-align: center; border-radius: 50%;
+                    background: #0008; color: #ccd; font-size: 15px; }
+  #detail .dClose:hover { background: #a83232; color: #fff; }
+  .card.insp, .unit.insp { outline: 2px solid #4d7fd0; outline-offset: 1px; }
+
+  /* ---- 动效 ----
+     全部是纯表现层，引擎与自对弈测试完全不经过这里，所以不影响任何数值。 */
+  @keyframes popIn   { from { transform: scale(.86) translateY(6px); opacity: 0 } to { transform: none; opacity: 1 } }
+  @keyframes unitIn  { 0% { transform: scale(.4) translateY(24px); opacity: 0 }
+                       65% { transform: scale(1.08) translateY(-3px); opacity: 1 }
+                       100% { transform: none; opacity: 1 } }
+  @keyframes cardIn  { from { transform: translateY(56px) scale(.8); opacity: 0 } to { transform: none; opacity: 1 } }
+  @keyframes dieOut  { to { transform: scale(.55) rotate(9deg) translateY(14px); opacity: 0; filter: grayscale(1) } }
+  @keyframes floatUp { 0% { transform: translate(-50%, 0) scale(.7); opacity: 0 }
+                       18% { transform: translate(-50%, -8px) scale(1.25); opacity: 1 }
+                       100% { transform: translate(-50%, -46px) scale(1); opacity: 0 } }
+  @keyframes shake   { 10%,90% { transform: translateX(-2px) } 30%,70% { transform: translateX(3px) }
+                       50% { transform: translateX(-4px) } }
+  @keyframes hitFlash{ 0% { box-shadow: 0 0 0 0 #ff6b6bcc } 40% { box-shadow: 0 0 14px 5px #ff6b6bcc }
+                       100% { box-shadow: 0 0 0 0 #ff6b6b00 } }
+  @keyframes evoRing { 0% { box-shadow: 0 0 0 0 #ffd43bee } 100% { box-shadow: 0 0 0 26px #ffd43b00 } }
+  @keyframes buffPop { 0% { transform: none } 45% { transform: scale(1.14) } 100% { transform: none } }
+
+  .unit.animIn { animation: unitIn .3s cubic-bezier(.2,1.5,.4,1); }
+  .card.animIn { animation: cardIn .26s ease-out; }
+  .unit.animHit { animation: hitFlash .42s ease-out; }
+  .unit.animBuff { animation: buffPop .34s ease-out; }
+  .unit.animEvo { animation: evoRing .55s ease-out; }
+  .leader.animHit { animation: shake .34s, hitFlash .42s ease-out; }
+
+  .ghost { position: fixed; z-index: 18; pointer-events: none; animation: dieOut .38s ease-in forwards; }
+  .fly   { position: fixed; z-index: 19; pointer-events: none;
+           transition: transform .26s cubic-bezier(.4,0,.6,1), opacity .26s; }
+  .pop { position: fixed; z-index: 22; pointer-events: none; font-weight: bold; font-size: 21px;
+         text-shadow: 0 2px 5px #000, 0 0 9px #000; animation: floatUp .85s ease-out forwards; }
+  .pop.dmg { color: #ff6b6b } .pop.heal { color: #8ce99a } .pop.gain { color: #ffd43b }
+  .lunge { transition: transform .16s cubic-bezier(.3,0,.7,1); z-index: 5; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="board">
+    <div class="leader foe" id="foeLeader"></div>
+    <div id="foeHand"></div>
+    <div class="field" id="foeField"></div>
+    <div class="field" id="myField"></div>
+    <div id="hand"></div>
+    <div class="leader me" id="myLeader"></div>
+  </div>
+  <div id="side">
+    <h3>对战记录</h3>
+    <div id="log"></div>
+    <div id="hint"></div>
+    <div id="ctl">
+      <button id="btnEvolve">进化（消耗1点EP）</button>
+      <button id="btnEnd">结束回合</button>
+      <button id="btnCancel" class="warn" style="display:none">取消选择</button>
+    </div>
+  </div>
+</div>
+
+<!-- 卡牌详情：点任意一张卡都会开 -->
+<div id="detail"></div>
+
+<div id="veil" class="on">
+  <div id="setup">
+    <h1 style="margin:0 0 4px">崩铁 CCG</h1>
+    <div id="loadInfo" style="font-size:11px;color:#889;margin-bottom:10px"></div>
+
+    <div class="pickRow"><span class="pickLab">我方职业</span><span id="pMe" class="pick"></span></div>
+    <div class="pickRow"><span class="pickLab">我方卡组</span><span id="pMeDeck" class="pick"></span></div>
+    <div class="pickRow"><span class="pickLab">对手职业</span><span id="pFoe" class="pick"></span></div>
+    <div class="pickRow"><span class="pickLab">对手卡组</span><span id="pFoeDeck" class="pick"></span></div>
+    <div class="pickRow"><span class="pickLab">先手</span><span id="pFirst" class="pick"></span></div>
+
+    <div id="deckPeek"></div>
+    <button id="btnStart" style="padding:12px 34px;font-size:15px;margin-top:4px">开始对战</button>
+  </div>
+</div>
+
+<!-- 开局重抽 -->
+<div id="mull" style="position:fixed;inset:0;background:#0c0e12f2;display:none;z-index:25;
+     flex-direction:column;align-items:center;justify-content:center;gap:16px">
+  <h1 style="margin:0;font-size:22px">开局重抽</h1>
+  <div style="color:#98a;font-size:12px;max-width:520px;text-align:center">
+    点任意一张卡看详情，在面板里选「换掉这张」（会变暗），然后确认。<br>
+    被换掉的那一张不会再被抽到，但仍可能抽到其他同名卡。
+  </div>
+  <div id="mullCards" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"></div>
+  <div class="row">
+    <button id="mullOk" style="padding:10px 24px">确认（不换）</button>
+    <button id="mullNone" class="warn" style="padding:10px 18px">全部保留</button>
+  </div>
+</div>
+
+<script type="module">
+import { loadCards, CLASS_FILES, listDecks, buildDeckFor, deckPool } from './src/loader.js';
+import * as S from './src/state.js';
+import * as E from './src/engine.js';
+import { planTurn } from './src/ai.js';
+
+let CARDS = null, s = null, DECKS = null;
+/* 引擎里永远是 players[0] 先手，所以「人类选后手」= 人类坐 players[1]。
+ * ME 必须是变量：写死成 0 的话选后手会让 AI 去打人类的手牌。 */
+let ME = 0;
+let sel = null;                     // { kind:'target'|'attack'|'evolve', ... }
+let busy = false;                   // 对手回合中，锁住输入
+
+const $ = id => document.getElementById(id);
+const KW_CN = { ward: '守护', rush: '突进', storm: '疾驰', bane: '必杀', barrier: '屏障',
+  drain: '虹吸', noCounter: '不能防御', sweep: '横扫', undestroyable: '不灭',
+  ignoreWard: '无视守护', leaderOnly: '只攻主战者', pierce: '无视守护', dotAura: '侵蚀强化' };
+
+/* ---------------- 术语表 ----------------
+ * 卡面写的是【守护】【侵蚀3】这种压缩记法，不解释看不懂。
+ * 详情面板只列出这张卡文本里真的出现过的词条，不会一次糊 30 条上去。
+ * key 就是在卡面文字里要匹配的字样。 */
+const GLOSS = [
+  ['守护', '只要它在场上，对手无法攻击你的其他随从，也无法攻击你的主战者。'],
+  ['突进', '进入战场的当回合就能攻击随从（但不能攻击主战者）。'],
+  ['疾驰', '进入战场的当回合就能攻击，包括直接打对方主战者。'],
+  ['必杀', '通过交战造成伤害时，直接破坏对方随从（无视其生命值）。攻击力为 0、或伤害被【屏障】归零，也照样发动。'],
+  ['屏障', '受到伤害时把这次伤害变为 0，发动一次后消失。挡不住【必杀】。可以挂在随从或主战者身上。'],
+  ['虹吸', '通过攻击造成伤害时，你的主战者回复等量生命值（伤害被归零时不回血）。'],
+  ['横扫', '攻击随从时，同时对敌方全体随从造成等量伤害。'],
+  ['不灭', '不受「消灭」「破坏」类效果影响。生命值被打到 0 依然会死。'],
+  ['无视守护', '攻击时可以越过对方的【守护】随从，直接打别的目标。'],
+  ['只攻主战者', '这个随从只能攻击对方的主战者，不能打随从。'],
+  ['不能防御', '被随从攻击时不造成反击伤害。'],
+  ['入场曲', '这张卡从手牌打出、进入战场时发动一次。由其他卡的效果直接生成到战场的不会发动。'],
+  ['谢幕曲', '这个随从/护符离开战场（被消灭、倒数归零）时发动。'],
+  ['倒数', '护符专用。你的回合开始时 -1，变成 0 时护符被破坏（会触发【谢幕曲】）。护符无法攻击，也不会被攻击。'],
+  ['进化', '消耗 1 点 EP，使随从 +2/+2。进化当回合可以立刻攻击随从，但不能攻击主战者。先手方第 5 回合、后手方第 4 回合开始解禁。'],
+  ['入魔', '自己主战者的生命值 ≤ 10 时视为已入魔。毁灭的许多卡在入魔后效果更强，代价是把自己的血压低。'],
+  ['标记', '被标记的随从受到的伤害 +1，直到它离场。巡猎的部分卡可以无视守护攻击被标记的目标。'],
+  ['弱点', '可叠加。每层使该随从受到的伤害 +1。'],
+  ['触电', '每当施加方的回合结束时，该随从受到 2 点伤害。'],
+  ['持续伤害', '可叠加。每当施加方的回合结束时，该随从受到「层数 × 1」点伤害。随从离场时，没结算完的层数会沉淀到它主人的主战者身上变成【侵蚀】。'],
+  ['侵蚀', '主战者身上的【持续伤害】层数。每当施加方回合结束时造成固定 1 点伤害且不消耗层数——层数是攒给「引爆」用的弹药。'],
+  ['引爆', '立刻按层数结算【持续伤害】/【侵蚀】并清空层数。打随从时超出其生命值的部分会穿透到它主人的主战者。'],
+  ['奥迹', '可叠加。使该目标每层【持续伤害】的结算数值 +1。'],
+  ['缺陷', '三种之一：迟缓（被攻击时不反击）／脆弱（受到的伤害 +1）／衰弱（攻击力 -1）。'],
+  ['老主顾', '场上唯一的标记，虚无的部分卡会针对它。同时只能存在一个。'],
+  ['军功', '可叠加，每层使随从 +1/+1。是升【爵位】的前置。'],
+  ['爵位', '需要该随从已有【军功】。额外 +2/+2 并获得【必杀】。'],
+  ['忆质', '记忆的专属衍生随从，一方场上只会存在 1 个。再次召唤时改为使它的层数 +1 并 +1/+1，所以它会越打越大，也不会占掉你其他随从的位置。'],
+  ['忆灵', '记忆的具名衍生随从（长夜月、犬形、翼蛇形等），各自独立占一个场地位。'],
+  ['间隙织线', '记忆的标记，部分卡会检查随从身上有没有它。'],
+  ['笑点', '欢愉的职业计数器。多张卡会检查它的数值，攒得越高收益越大（天国@直播间 的伤害就是笑点/3）。'],
+  ['解读', '智识的职业计数器，多张卡的条件与伤害按它计算。'],
+  ['蓄能', '同谐的职业计数器，多张卡的条件按它计算。'],
+  ['衍生', '由其他卡的效果生成的卡，不能放进卡组，也不会触发【入场曲】。'],
+  ['蛰虫', '存护丰饶的衍生随从标签，多张卡会一次性强化你场上全部蛰虫。'],
+  ['涂鸦', '欢愉的衍生随从标签，多张卡会一次性强化你场上全部涂鸦。'],
+];
+
+/** 这张卡的文本里出现了哪些术语（含关键词英文名映射过来的中文） */
+function glossFor(def, unit) {
+  const hay = (def.note || '') + ' ' + (def.effect || '') + ' ' + (def.type || '')
+    + ' ' + (def.quality || '') + ' ' + (def.tag || '')
+    + ' ' + (unit ? [...unit.keywords].map(k => KW_CN[k] || '').join(' ') : '')
+    + ' ' + Object.keys(def.clauses || []).length;
+  const kwText = (def.clauses || []).flatMap(c => c.actions.map(a =>
+    a.op === 'grant' ? (KW_CN[a.args[1]] || '') : '')).join(' ');
+  const trig = (def.clauses || []).map(c => ({
+    onPlay: '入场曲', onDeath: '谢幕曲', countdown: '倒数', onEvolve: '进化',
+  }[c.trigger] || '')).join(' ');
+  const all = hay + ' ' + kwText + ' ' + trig;
+  return GLOSS.filter(([k]) => all.includes(k));
+}
+
+/* ============================ 启动 ============================ */
+/* 当前选择。用普通变量 + 按钮，不依赖原生 select 的弹出行为。 */
+const CH = { me: '', meDeck: '', foe: '', foeDeck: '', first: 0 };
+
+(async function init() {
+  try {
+    CARDS = await loadCards('ALL');
+    DECKS = listDecks(CARDS);
+    const names = CLASS_FILES.map(([c]) => c);
+    CH.me = names[0];
+    CH.foe = names[1];
+    CH.meDeck = (DECKS[CH.me] || [])[0] || '';
+    CH.foeDeck = (DECKS[CH.foe] || [])[0] || '';
+    $('loadInfo').textContent = `已载入 ${CARDS.all.length} 张卡，${Object.values(DECKS).flat().length} 套卡组　—　点下面的按钮选择`;
+    drawPicks();
+  } catch (e) {
+    $('loadInfo').innerHTML = `<span style="color:#ff8787">卡表载入失败：${e.message}</span>`;
+  }
+})();
+
+/** 画一排可点按钮；sel 是当前值，onPick 是点了之后干什么 */
+function picks(el, list, cur, onPick) {
+  $(el).innerHTML = list.map((x, i) =>
+    `<b data-i="${i}" class="${x === cur ? 'on' : ''}">${esc(x)}</b>`).join('');
+  for (const b of $(el).querySelectorAll('b')) {
+    b.onclick = () => { onPick(list[+b.dataset.i]); drawPicks(); };
+  }
+}
+
+function drawPicks() {
+  const names = CLASS_FILES.map(([c]) => c);
+  picks('pMe', names, CH.me, v => {
+    CH.me = v;
+    if (!(DECKS[v] || []).includes(CH.meDeck)) CH.meDeck = (DECKS[v] || [])[0] || '';
+  });
+  picks('pMeDeck', DECKS[CH.me] || [], CH.meDeck, v => { CH.meDeck = v });
+  picks('pFoe', names, CH.foe, v => {
+    CH.foe = v;
+    if (!(DECKS[v] || []).includes(CH.foeDeck)) CH.foeDeck = (DECKS[v] || [])[0] || '';
+  });
+  picks('pFoeDeck', DECKS[CH.foe] || [], CH.foeDeck, v => { CH.foeDeck = v });
+  picks('pFirst', ['我方先手', '对手先手'], CH.first ? '对手先手' : '我方先手',
+    v => { CH.first = v === '对手先手' ? 1 : 0 });
+  peek();
+}
+
+/** 让人在开局前看一眼这套卡组长什么样，不然选了个名字也不知道会拿到什么 */
+function peek() {
+  if (!CARDS || !CH.meDeck) return;
+  const pool = deckPool(CARDS, CH.me, CH.meDeck);
+  const cv = {};
+  for (const c of pool) cv[c.cost] = (cv[c.cost] || 0) + 1;
+  $('deckPeek').innerHTML =
+    `<b style="color:#dde">${esc(CH.me)}｜${esc(CH.meDeck)}</b>　${pool.length} 种可用卡　`
+    + `费用 ` + [1, 2, 3, 4, 5, 6, 7, 8].map(k => `${k}:${cv[k] || 0}`).join(' ')
+    + `<br>${esc(pool.map(c => c.name).join('、'))}`;
+}
+
+$('btnStart').onclick = () => {
+  const a = CH.me, b = CH.foe, da = CH.meDeck, db = CH.foeDeck;
+  if (!da || !db) return;
+  const seed = ((Date.now() % 100000) | 0) || 7;   // 每局不同；引擎内部仍是可复现的 seeded RNG
+  const rng = S.makeRng(seed);
+  const humanFirst = CH.first === 0;
+  ME = humanFirst ? 0 : 1;
+  const P0 = humanFirst ? [a, da] : [b, db];       // players[0] = 先手方
+  const P1 = humanFirst ? [b, db] : [a, da];
+  s = S.createGame(buildDeckFor(CARDS, ...P0, rng), buildDeckFor(CARDS, ...P1, rng), seed);
+  s.__cardIndex = CARDS.byName;
+  s.__tokenIndex = CARDS.byName;
+  s.__cls = [`${P0[0]}·${P0[1]}`, `${P1[0]}·${P1[1]}`];
+  $('veil').classList.remove('on');
+  openMulligan();
+};
+
+/* ---------------- 开局重抽 ----------------
+ * 官方：「可选择任意张不需要的卡牌进行重新抽取。所选卡牌本身不会被再次抽取，
+ * 但可能会抽到其他同名卡牌。」→ 先抽替补，再把换掉的那几张洗回牌库。 */
+let mullPicked = new Set();
+function openMulligan() {
+  mullPicked = new Set();
+  renderMulligan();
+  $('mull').style.display = 'flex';
+}
+function renderMulligan() {
+  const hand = s.players[ME].hand;
+  $('mullCards').innerHTML = hand.map((h, i) => {
+    const d = h.def;
+    return `<div class="card q${d.quality}" data-mull="${i}" style="${mullPicked.has(i) ? 'opacity:.32' : ''}">`
+      + art(d)
+      + `<div class="cost">${d.cost}</div><div class="cn">${esc(d.name)}</div>`
+      + `<div class="ct">${esc(d.note || '')}</div>`
+      + (d.type === '随从' ? `<div class="cs"><span class="a">${d.atk}</span><span class="h">${d.hp}</span></div>`
+         : `<div class="cs"><span style="font-size:11px;color:#98a">${d.type}</span></div>`)
+      + '</div>';
+  }).join('');
+  // 重抽阶段恰恰最需要看懂卡，所以这里也是「点开详情」，换不换在详情面板里点
+  for (const el of $('mullCards').querySelectorAll('[data-mull]')) {
+    el.onclick = () => {
+      const i = +el.dataset.mull;
+      if (insp && insp.kind === 'mull' && insp.hand === i) return closeDetail();
+      openDetail({ kind: 'mull', hand: i }, el);
+    };
+  }
+  $('mullOk').textContent = mullPicked.size ? `重抽 ${mullPicked.size} 张` : '确认（不换）';
+  markInspected();
+}
+$('mullNone').onclick = () => { mullPicked = new Set(); doMulligan(); };
+$('mullOk').onclick = doMulligan;
+
+function doMulligan() {
+  const p = s.players[ME];
+  if (mullPicked.size) {
+    const idx = [...mullPicked].sort((a, b) => b - a);
+    const set = idx.map(i => p.hand.splice(i, 1)[0]);   // 先离手，避免又抽回同一张
+    for (let i = 0; i < set.length; i++) S.drawCard(s, ME);
+    for (const inst of set) p.deck.push(inst.def);      // 换掉的洗回牌库
+    S.shuffle(p.deck, s.rng);
+    S.log(s, `开局重抽 ${set.length} 张`);
+  }
+  $('mull').style.display = 'none';
+  E.startTurn(s);
+  render();
+  if (s.active !== ME) foeTurn();       // 人类选了后手，先让 AI 走第一个回合
+}
+
+/* ============================ 渲染 ============================ */
+function render() {
+  const me = s.players[ME], foe = s.players[1 - ME];
+  const myTurn = s.active === ME && !busy && s.winner == null;
+
+  $('foeLeader').className = 'leader foe' + (sel && canHitLeader() ? ' targetable' : '');
+  $('foeLeader').innerHTML = leaderHTML(foe, s.__cls[1 - ME], false);
+  $('myLeader').innerHTML = leaderHTML(me, s.__cls[ME], true);
+  $('foeHand').innerHTML = foe.hand.map(() => '<div class="back"></div>').join('')
+    + `<span style="color:#778;font-size:11px;margin-left:6px">手牌 ${foe.hand.length}｜牌库 ${foe.deck.length}</span>`;
+
+  $('foeField').innerHTML = fieldHTML(foe, false);
+  $('myField').innerHTML = fieldHTML(me, true);
+  $('hand').innerHTML = me.hand.map((h, i) => cardHTML(h, i, myTurn)).join('');
+
+  $('btnEnd').disabled = !myTurn;
+  $('btnEvolve').disabled = !myTurn || !E.canEvolve(s);
+  $('btnEvolve').textContent = `进化（EP ${me.ep}）`;
+  $('btnCancel').style.display = sel ? 'block' : 'none';
+
+  $('hint').textContent = !myTurn ? (s.winner != null ? '' : '对手思考中…')
+    : sel ? hintFor(sel)
+    : `你的回合｜PP ${me.pp}/${me.ppMax + me.ppBonus}　点任意卡牌看详情，出牌与攻击的按钮在详情面板里`;
+
+  bind();
+  const lg = $('log');
+  lg.innerHTML = s.log.slice(-160).map(l => {
+    const mine = / P0 /.test(l);
+    return `<div class="${mine ? 'mine' : 'foe'}">${esc(l)}</div>`;
+  }).join('');
+  lg.scrollTop = lg.scrollHeight;
+
+  if (s.winner != null) finish();
+}
+
+function leaderHTML(p, cls, isMe) {
+  const cap = p.ppMax + p.ppBonus;
+  let pips = '';
+  for (let i = 0; i < Math.max(cap, 1); i++) pips += `<span class="pip ${i < p.pp ? 'pp-on' : 'pp-off'}"></span>`;
+  return `<span class="lname">${isMe ? '我方' : '对手'}·${cls}</span>`
+    + `<span class="hp">${p.hp}<span style="font-size:11px;color:#886">/${p.maxHp}</span></span>`
+    + `<span>${pips}</span><span class="badge">PP ${p.pp}/${cap}</span>`
+    + `<span class="badge ep">EP ${p.ep}</span>`
+    + (p.keywords.has('barrier') ? '<span class="badge bar">屏障</span>' : '')
+    + `<span class="badge">牌库 ${p.deck.length}</span>`;
+}
+
+function fieldHTML(p, isMe) {
+  const cells = p.board.map(u => unitHTML(u, isMe));
+  for (let i = p.board.length; i < S.RULES.BOARD_LIMIT; i++) cells.push('<div class="slot-empty"></div>');
+  return cells.join('');
+}
+
+function unitHTML(u, isMe) {
+  const amulet = u.type === '护符';
+  const ready = isMe && s.active === ME && !busy && E.canAttack(s, u);
+  const selected = sel && sel.kind === 'attack' && sel.uid === u.uid;
+  const tgt = sel && isTargetable(u);
+  const kws = [...u.keywords].map(k => KW_CN[k] || k).join('·');
+  const marks = [];
+  if (u.marks.has('标记')) marks.push('标记');
+  if (u.marks.has('军功')) marks.push('军功');
+  if (u.marks.has('爵位')) marks.push('爵位');
+  if (u.marks.has('老主顾')) marks.push('老主顾');
+  if (u.marks.has('织线')) marks.push('织线');
+  if (u.vuln) marks.push(`弱点${u.vuln}`);
+  if (u.dots) marks.push(`侵蚀${u.dots}${u.aura ? `+奥迹${u.aura}` : ''}`);
+  if (u.shocked) marks.push('触电');
+  for (const f of u.flaws) marks.push(f);
+  const ctr = Object.entries(u.counters).filter(([, v]) => v > 0).map(([k, v]) => `${k}${v}`);
+  const ea = E.effAtk(s, u);
+  return `<div class="unit ${amulet ? 'amulet' : ''} ${u.keywords.has('ward') ? 'ward' : ''}`
+    + ` ${ready ? 'ready' : ''} ${selected ? 'sel' : ''} ${tgt ? 'targetable' : ''}"`
+    + ` data-uid="${u.uid}" data-side="${isMe ? 'me' : 'foe'}" title="${esc(u.def.note || '')}">`
+    + art(u.def)
+    + (amulet && u.countdown != null ? `<div class="cd">${u.countdown}</div>` : '')
+    + `<div class="n">${esc(u.name)}${u.evolved ? ' ★' : ''}</div>`
+    + (marks.length ? `<div class="marks">${esc(marks.join('·'))}</div>` : '')
+    + (ctr.length ? `<div class="marks" style="color:#ffd43b">${esc(ctr.join(' '))}</div>` : '')
+    + (kws ? `<div class="kw">${esc(kws)}</div>` : '<div class="kw"></div>')
+    + (amulet ? '' : `<div class="st"><span class="a">${ea}${ea !== u.atk ? '*' : ''}</span>`
+        + `<span class="h">${u.hp}</span></div>`)
+    + '</div>';
+}
+
+function cardHTML(inst, i, myTurn) {
+  const d = inst.def;
+  const cost = E.handCost(s, inst);
+  const chk = E.canPlay(s, i);
+  const ok = myTurn && chk.ok;
+  const selected = sel && sel.kind === 'target' && sel.hand === i;
+  return `<div class="card q${d.quality} ${ok ? '' : 'no'} ${selected ? 'sel' : ''}" data-hand="${i}"`
+    + ` title="${esc((d.note || '') + (chk.ok ? '' : '\n【无法使用】' + chk.why))}">`
+    + art(d)
+    + `<div class="cost ${cost < d.cost ? 'cut' : ''}">${cost}</div>`
+    + `<div class="cn">${esc(d.name)}</div>`
+    + `<div class="ct">${esc(d.note || '')}</div>`
+    + (d.type === '随从' ? `<div class="cs"><span class="a">${d.atk}</span><span class="h">${d.hp}</span></div>`
+       : `<div class="cs"><span style="font-size:11px;color:#98a">${d.type}${d.countdown ? ' 倒数' + d.countdown : ''}</span></div>`)
+    + '</div>';
+}
+
+const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/** 卡图层。img 列为空时返回空串，卡面自然退回纯文字，不会出现裂图。
+ *  换成你自己的图：直接用同名文件覆盖 game/img/<卡牌id>.png 即可，代码不用动。 */
+function art(def) {
+  return def.img ? `<div class="art" style="background-image:url('${encodeURI(def.img)}')"></div>` : '';
+}
+
+/* ============================ 卡牌详情 ============================
+ * 单击任意一张卡就开这个面板：完整效果文字 + 当前状态 + 用到的术语解释。
+ * 出牌 / 攻击 / 进化 的按钮也放在面板里，所以「看清楚再决定」和「操作」是一条路径。 */
+let insp = null;        // { kind:'hand'|'unit', hand?:number, uid?:number }
+
+function openDetail(spec, anchorEl) {
+  insp = spec;
+  const d = $('detail');
+  d.innerHTML = detailHTML(spec);
+  d.classList.add('on');
+  // 贴着被点的那张卡放，尽量不挡住战场
+  const r = anchorEl.getBoundingClientRect();
+  const w = 320, pad = 8;
+  let left = r.right + 10;
+  if (left + w > innerWidth - pad) left = r.left - w - 10;
+  if (left < pad) left = Math.min(pad, innerWidth - w - pad);
+  d.style.left = left + 'px';
+  d.style.top = '0px';
+  const h = d.offsetHeight;
+  let top = r.top + r.height / 2 - h / 2;
+  top = Math.max(pad, Math.min(top, innerHeight - h - pad));
+  d.style.top = top + 'px';
+  d.querySelector('.dClose').onclick = closeDetail;
+  for (const b of d.querySelectorAll('[data-act]')) b.onclick = () => detailAct(b.dataset.act);
+  markInspected();
+}
+function closeDetail() { insp = null; $('detail').classList.remove('on'); markInspected(); }
+function markInspected() {
+  for (const el of document.querySelectorAll('.insp')) el.classList.remove('insp');
+  if (!insp) return;
+  const sq = insp.kind === 'hand' ? `.card[data-hand="${insp.hand}"]`
+    : insp.kind === 'mull' ? `[data-mull="${insp.hand}"]`
+    : `.unit[data-uid="${insp.uid}"]`;
+  const el = document.querySelector(sq);
+  if (el) el.classList.add('insp');
+}
+
+function detailHTML(spec) {
+  const unit = spec.kind === 'unit' ? S.findUnit(s, spec.uid) : null;
+  const inst = spec.kind === 'unit' ? null : s.players[ME].hand[spec.hand];
+  const def = unit ? unit.def : inst.def;
+  const myTurn = s.active === ME && !busy && s.winner == null;
+  const mine = unit ? s.players[ME].board.includes(unit) : true;
+
+  const stats = [];
+  if (spec.kind === 'hand') {
+    const c = E.handCost(s, inst);
+    stats.push(`<span class="dStat">费用 <b style="color:${c < def.cost ? '#8ce99a' : '#8ecdf7'}">${c}</b>`
+      + (c !== def.cost ? `<span style="color:#889"> （原 ${def.cost}）</span>` : '') + '</span>');
+  } else if (spec.kind === 'mull') {
+    stats.push(`<span class="dStat">费用 <b style="color:#8ecdf7">${def.cost}</b></span>`);
+  } else {
+    stats.push(`<span class="dStat">费用 <b style="color:#8ecdf7">${def.cost}</b></span>`);
+  }
+  if (def.type === '随从') {
+    if (unit) {
+      const ea = E.effAtk(s, unit);
+      stats.push(`<span class="dStat">攻击 <b style="color:#ffa94d">${ea}</b>`
+        + (ea !== unit.atk ? `<span style="color:#889"> （基础 ${unit.atk}）</span>` : '') + '</span>');
+      stats.push(`<span class="dStat">生命 <b style="color:#ff8787">${unit.hp}</b>`
+        + `<span style="color:#889"> / ${unit.maxHp}</span></span>`);
+    } else {
+      const a = def.atk + (inst.atkMod || 0), h = def.hp + (inst.hpMod || 0);
+      stats.push(`<span class="dStat">攻击 <b style="color:#ffa94d">${a}</b></span>`);
+      stats.push(`<span class="dStat">生命 <b style="color:#ff8787">${h}</b></span>`);
+    }
+  } else if (def.countdown) {
+    stats.push(`<span class="dStat">倒数 <b style="color:#c8a2f0">${unit ? unit.countdown : def.countdown}</b></span>`);
+  }
+
+  // 场上单位的实时状态：能不能攻击、身上挂了什么
+  const now = [];
+  if (unit) {
+    const kws = [...unit.keywords].map(k => KW_CN[k] || k);
+    if (kws.length) now.push('关键词：' + kws.join('·'));
+    const st = [];
+    if (unit.evolved) st.push('已进化');
+    for (const m of unit.marks) st.push(m);
+    if (unit.vuln) st.push(`弱点 ${unit.vuln} 层`);
+    if (unit.dots) st.push(`持续伤害 ${unit.dots} 层`);
+    if (unit.aura) st.push(`奥迹 ${unit.aura} 层`);
+    if (unit.shocked) st.push('触电');
+    for (const f of unit.flaws) st.push('缺陷·' + f);
+    for (const [k, v] of Object.entries(unit.counters)) if (v > 0) st.push(`${k} ${v}`);
+    if (st.length) now.push('状态：' + st.join('、'));
+    if (mine && unit.type === '随从') {
+      now.push(E.canAttack(s, unit) ? '本回合可以攻击'
+        : '本回合无法攻击' + (unit.summonedTurn === s.turn ? '（刚进场，没有突进/疾驰）' : '（已用完攻击次数）'));
+    }
+  }
+  // 可执行的操作
+  const acts = [];
+  if (spec.kind === 'mull') {
+    acts.push(mullPicked.has(spec.hand)
+      ? '<button data-act="keep">保留这张</button>'
+      : '<button class="warn" data-act="toss">换掉这张</button>');
+  } else if (spec.kind === 'hand') {
+    const chk = E.canPlay(s, spec.hand);
+    if (myTurn && chk.ok) acts.push(`<button data-act="play">打出（${E.handCost(s, inst)} PP）</button>`);
+    else acts.push(`<button disabled>${myTurn ? esc(chk.why) : '不是你的回合'}</button>`);
+  } else if (unit && mine && unit.type === '随从') {
+    if (myTurn && E.canAttack(s, unit)) acts.push('<button data-act="attack">发起攻击</button>');
+    if (myTurn && !unit.evolved && E.canEvolve(s)) acts.push('<button data-act="evolve">进化</button>');
+  }
+
+  const gl = glossFor(def, unit);
+  return `<div class="dHead">${art(def)}<div class="veilg"></div><div class="dClose">×</div>`
+    + `<div class="dTitle"><div class="dName">${esc(unit ? unit.name : def.name)}`
+    + `${unit && unit.evolved ? ' ★' : ''}</div>`
+    + `<div class="dSub">${esc(def.class || '')}　${esc(def.quality || '')}　${esc(def.type)}`
+    + `${def.tag ? '　' + esc(def.tag) : ''}</div></div></div>`
+    + '<div class="dBody">'
+    + `<div class="dStats">${stats.join('')}</div>`
+    + `<div class="dText">${esc(def.note || '（无特殊效果）')}</div>`
+    + (now.length ? `<div class="dNow">${now.map(esc).join('<br>')}</div>` : '')
+    + (gl.length ? `<div class="dGloss">${gl.map(([k, v]) =>
+        `<div class="g"><b>【${esc(k)}】</b>${esc(v)}</div>`).join('')}</div>` : '')
+    + (acts.length ? `<div class="dActs">${acts.join('')}</div>` : '')
+    + '</div>';
+}
+
+function detailAct(a) {
+  const spec = insp;
+  if (a === 'toss' || a === 'keep') {
+    a === 'toss' ? mullPicked.add(spec.hand) : mullPicked.delete(spec.hand);
+    closeDetail();
+    return renderMulligan();
+  }
+  closeDetail();
+  if (!spec) return;
+  if (a === 'play') {
+    const inst = s.players[ME].hand[spec.hand];
+    if (!inst) return render();
+    const need = E.needsTarget(inst.def);
+    if (need) { sel = { kind: 'target', hand: spec.hand, need }; return render(); }
+    return doPlay(spec.hand, {});
+  }
+  if (a === 'attack') { sel = { kind: 'attack', uid: spec.uid }; return render(); }
+  if (a === 'evolve') {
+    act(() => { const r = E.evolve(s, spec.uid); if (!r.ok) flash(r.why); });
+  }
+}
+
+/* ============================ 目标判定 ============================ */
+function isTargetable(u) {
+  if (!sel) return false;
+  const mine = s.players[ME].board.includes(u);
+  if (sel.kind === 'evolve') return mine && u.type === '随从' && !u.evolved;
+  if (sel.kind === 'attack') {
+    if (mine || u.type !== '随从') return false;
+    return E.attackAllowed(s, sel.uid, u.uid);
+  }
+  if (sel.kind === 'target') {
+    if (u.type !== '随从') return false;
+    return sel.need === 'allyOne' ? mine : !mine;
+  }
+  return false;
+}
+function canHitLeader() {
+  if (!sel) return false;
+  if (sel.kind === 'attack') return E.attackAllowed(s, sel.uid, 'leader');
+  if (sel.kind === 'target') return sel.need === 'enemyAny';
+  return false;
+}
+function hintFor(x) {
+  if (x.kind === 'evolve') return '选择要进化的随从（+2/+2，当回合可攻击随从）';
+  if (x.kind === 'attack') return '选择攻击目标（黄框可选）；对方有守护时必须先打守护';
+  return x.need === 'allyOne' ? '为这张卡选择 1 个自己的随从'
+    : x.need === 'enemyAny' ? '选择敌方主战者或 1 个敌方随从'
+    : '选择 1 个敌方随从';
+}
+
+/* ============================ 交互 ============================
+ * 没有进行中的选择时，点卡 = 看详情（卡面上的压缩记法需要解释）。
+ * 正在选目标 / 选攻击目标时，点卡 = 执行，这时不弹详情，否则选目标会被面板挡住。 */
+function bind() {
+  for (const el of document.querySelectorAll('.card[data-hand]')) {
+    el.onclick = () => onHand(+el.dataset.hand, el);
+  }
+  for (const el of document.querySelectorAll('.unit[data-uid]')) {
+    el.onclick = () => onUnit(+el.dataset.uid, el.dataset.side === 'me', el);
+  }
+  $('foeLeader').onclick = onFoeLeader;
+  markInspected();
+}
+
+function onHand(i, el) {
+  if (s.winner != null) return;
+  if (sel && sel.kind === 'target' && sel.hand === i) { sel = null; closeDetail(); return render(); }
+  if (sel) return;                                    // 正在选目标/攻击时不响应手牌
+  if (insp && insp.kind === 'hand' && insp.hand === i) return closeDetail();
+  openDetail({ kind: 'hand', hand: i }, el);
+}
+
+function onUnit(uid, mine, el) {
+  if (s.winner != null) return;
+  const u = S.findUnit(s, uid);
+  if (!u) return;
+
+  if (sel && sel.kind === 'evolve') {
+    if (!isTargetable(u)) return flash('这个随从不能进化');
+    sel = null;
+    return act(() => { const r = E.evolve(s, uid); if (!r.ok) flash(r.why); });
+  }
+  if (sel && sel.kind === 'target') {
+    if (!isTargetable(u)) return flash('不是合法目标');
+    const h = sel.hand, opts = sel.need === 'allyOne' ? { ally: u } : { target: u };
+    sel = null;
+    return doPlay(h, opts);
+  }
+  if (sel && sel.kind === 'attack') {
+    if (sel.uid === uid) { sel = null; return render(); }
+    if (!isTargetable(u)) return flash('不能攻击这个目标');
+    const from = sel.uid;
+    sel = null;
+    return act(() => { const r = E.attack(s, from, uid); if (!r.ok) flash(r.why); }, { lunge: [from, uid] });
+  }
+  // 无选择状态：看详情（详情里有「发起攻击」按钮）
+  if (insp && insp.kind === 'unit' && insp.uid === uid) return closeDetail();
+  openDetail({ kind: 'unit', uid }, el);
+}
+
+function onFoeLeader() {
+  if (busy || s.active !== ME || s.winner != null || !sel) return;
+  if (!canHitLeader()) return flash(sel.kind === 'attack' ? '对方有守护随从，必须先处理' : '这张卡不能指定主战者');
+  if (sel.kind === 'attack') {
+    const from = sel.uid;
+    sel = null;
+    return act(() => { const r = E.attack(s, from, 'leader'); if (!r.ok) flash(r.why); },
+      { lunge: [from, 'leader'] });
+  }
+  const h = sel.hand;
+  sel = null;
+  doPlay(h, { target: { __leader: 1 - ME } });
+}
+
+function doPlay(i, opts) {
+  const el = document.querySelector(`.card[data-hand="${i}"]`);
+  act(() => {
+    const r = E.playCard(s, i, opts);
+    if (!r.ok) flash(r.why);
+  }, { flyFrom: el });
+}
+
+/* ============================ 动效 ============================
+ * 纯表现层：引擎与自对弈测试完全不经过 play.html，所以这些不影响任何数值。
+ *
+ * render() 是整块重建 innerHTML 的，动画元素会被冲掉。所以做法是：
+ *   动作前拍一张快照（每个单位的 uid / 攻血 / 屏幕位置 + 主战者血量）
+ *   → 执行动作 → render() → 与快照对比，把差异演出来。
+ * 这样不管改动来自玩家还是 AI，都能自动得到入场、掉血飘字、死亡、增益的动画。 */
+function rectsNow() {
+  const m = new Map();
+  for (const el of document.querySelectorAll('.unit[data-uid]')) {
+    m.set(+el.dataset.uid, { rect: el.getBoundingClientRect(), html: el.outerHTML, w: el.offsetWidth });
+  }
+  return m;
+}
+function snap() {
+  const u = new Map();
+  for (const pi of [0, 1]) for (const x of s.players[pi].board) {
+    u.set(x.uid, { hp: x.hp, atk: E.effAtk(s, x), evolved: x.evolved, side: pi });
+  }
+  return { u, dom: rectsNow(), hp: [s.players[0].hp, s.players[1].hp],
+    hand: s.players[ME].hand.length };
+}
+
+/** 执行一个会改变局面的动作，并把变化演出来 */
+function act(fn, opt = {}) {
+  const before = snap();
+  // 详情面板里的手牌下标在出牌后就失效了，动手之前先关掉
+  if (insp) closeDetail();
+  if (opt.flyFrom) flyOut(opt.flyFrom);
+  if (opt.lunge) lunge(before, opt.lunge[0], opt.lunge[1]);
+  fn();
+  render();
+  playAnims(before);
+}
+
+function playAnims(before) {
+  const now = snap();
+  // 新进场的单位
+  for (const uid of now.u.keys()) {
+    if (before.u.has(uid)) continue;
+    const el = document.querySelector(`.unit[data-uid="${uid}"]`);
+    if (el) el.classList.add('animIn');
+  }
+  // 离场的单位：原地留一个残影演消失（真元素已经被 render 冲掉了）
+  for (const [uid, o] of before.dom) {
+    if (now.u.has(uid)) continue;
+    const g = document.createElement('div');
+    g.className = 'ghost';
+    g.innerHTML = o.html;
+    g.style.left = o.rect.left + 'px';
+    g.style.top = o.rect.top + 'px';
+    g.style.width = o.rect.width + 'px';
+    g.style.height = o.rect.height + 'px';
+    document.body.appendChild(g);
+    setTimeout(() => g.remove(), 400);
+  }
+  // 单位的血量 / 攻击力变化
+  for (const [uid, a] of now.u) {
+    const b = before.u.get(uid);
+    if (!b) continue;
+    const el = document.querySelector(`.unit[data-uid="${uid}"]`);
+    if (!el) continue;
+    if (a.hp < b.hp) { el.classList.add('animHit'); popAt(el, `-${b.hp - a.hp}`, 'dmg'); }
+    else if (a.hp > b.hp) { el.classList.add('animBuff'); popAt(el, `+${a.hp - b.hp}`, 'heal'); }
+    else if (a.atk > b.atk) { el.classList.add('animBuff'); popAt(el, `+${a.atk - b.atk}`, 'gain'); }
+    if (a.evolved && !b.evolved) el.classList.add('animEvo');
+  }
+  // 主战者血量变化
+  for (const pi of [0, 1]) {
+    const d = now.hp[pi] - before.hp[pi];
+    if (!d) continue;
+    const el = $(pi === ME ? 'myLeader' : 'foeLeader');
+    el.classList.add('animHit');
+    setTimeout(() => el.classList.remove('animHit'), 460);
+    popAt(el, (d > 0 ? '+' : '') + d, d < 0 ? 'dmg' : 'heal');
+  }
+  // 新抽到的手牌
+  if (now.hand > before.hand) {
+    const cards = document.querySelectorAll('.card[data-hand]');
+    for (let i = before.hand; i < cards.length; i++) cards[i].classList.add('animIn');
+  }
+}
+
+/** 在某个元素上方冒一个数字 */
+function popAt(el, text, kind) {
+  const r = el.getBoundingClientRect();
+  const p = document.createElement('div');
+  p.className = 'pop ' + kind;
+  p.textContent = text;
+  p.style.left = (r.left + r.width / 2) + 'px';
+  p.style.top = (r.top + 6) + 'px';
+  document.body.appendChild(p);
+  setTimeout(() => p.remove(), 900);
+}
+
+/** 打出的那张手牌飞向战场 */
+function flyOut(el) {
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  const f = document.createElement('div');
+  f.className = 'fly';
+  f.innerHTML = el.outerHTML;
+  f.style.left = r.left + 'px';
+  f.style.top = r.top + 'px';
+  f.style.width = r.width + 'px';
+  document.body.appendChild(f);
+  const field = $('myField').getBoundingClientRect();
+  requestAnimationFrame(() => {
+    f.style.transform = `translate(${field.left + field.width / 2 - r.left - r.width / 2}px,`
+      + `${field.top + field.height / 2 - r.top - r.height / 2}px) scale(.72)`;
+    f.style.opacity = '0';
+  });
+  setTimeout(() => f.remove(), 300);
+}
+
+/** 攻击者朝目标冲一下 */
+function lunge(before, fromUid, toUid) {
+  const a = before.dom.get(fromUid);
+  const el = document.querySelector(`.unit[data-uid="${fromUid}"]`);
+  if (!a || !el) return;
+  const t = toUid === 'leader' ? $('foeLeader').getBoundingClientRect()
+    : (before.dom.get(toUid) || {}).rect;
+  if (!t) return;
+  const dx = (t.left + t.width / 2 - a.rect.left - a.rect.width / 2) * 0.42;
+  const dy = (t.top + t.height / 2 - a.rect.top - a.rect.height / 2) * 0.42;
+  const g = document.createElement('div');
+  g.className = 'ghost';
+  g.style.animation = 'none';
+  g.innerHTML = a.html;
+  g.style.cssText += `left:${a.rect.left}px;top:${a.rect.top}px;width:${a.rect.width}px;`
+    + `height:${a.rect.height}px;transition:transform .17s cubic-bezier(.3,0,.7,1)`;
+  document.body.appendChild(g);
+  requestAnimationFrame(() => { g.style.transform = `translate(${dx}px,${dy}px)`; });
+  setTimeout(() => { g.style.transform = 'none'; }, 180);
+  setTimeout(() => g.remove(), 360);
+}
+
+let flashTimer = null;
+function flash(msg) {
+  $('hint').textContent = '⚠ ' + msg;
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(render, 1600);
+}
+
+$('btnEvolve').onclick = () => {
+  if (busy || s.active !== ME) return;
+  if (!E.canEvolve(s)) return flash('进化点不足，或还没到可进化的回合');
+  closeDetail();
+  sel = { kind: 'evolve' };
+  render();
+};
+$('btnCancel').onclick = () => { sel = null; closeDetail(); render(); };
+$('btnEnd').onclick = () => {
+  if (busy || s.active !== ME || s.winner != null) return;
+  sel = null;
+  closeDetail();
+  act(() => { E.endTurn(s); });
+  if (s.winner != null) return;
+  act(() => { E.startTurn(s); });
+  foeTurn();
+};
+
+/* ============================ 对手 AI ============================ */
+/* 策略实现在 src/ai.js，与平衡测试共用同一套——
+ * 否则「测出来的平衡」和「你实际面对的对手」是两回事。
+ * 这里只负责分步播放，让你看清它每一步做了什么。 */
+function foeTurn() {
+  busy = true;
+  sel = null;
+  closeDetail();
+  render();
+  const steps = planTurn(s, s.active);
+  let k = 0;
+  (function step() {
+    if (s.winner != null) { busy = false; return render(); }
+    if (k < steps.length) {
+      // 每一步都走 act()，掉血飘字 / 入场 / 死亡的动画就自动有了
+      act(() => {
+        try { steps[k++](); } catch (e) { S.log(s, '对手回合出错: ' + e.message); k = steps.length; }
+      });
+      return setTimeout(step, 700);
+    }
+    act(() => { E.endTurn(s); });
+    if (s.winner != null) { busy = false; return render(); }
+    act(() => { E.startTurn(s); });
+    busy = false;
+    render();
+  })();
+}
+
+/* ============================ 结束 ============================ */
+function finish() {
+  const win = s.winner === ME;
+  $('veil').innerHTML = `<h1 style="color:${win ? '#8ce99a' : '#ff8787'}">${win ? '胜利' : '败北'}</h1>`
+    + `<div>${esc(s.__cls[ME])}（我方 ${s.players[ME].hp} 血） vs ${esc(s.__cls[1 - ME])}（对手 ${s.players[1 - ME].hp} 血）</div>`
+    + `<div style="color:#889;font-size:12px">共 ${s.turn} 个回合</div>`
+    + '<button onclick="location.reload()" style="padding:10px 28px">再来一局</button>';
+  $('veil').classList.add('on');
+}
+</script>
+</body>
+</html>

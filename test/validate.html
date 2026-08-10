@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>崩铁 CCG — 全卡库校验</title>
+<style>
+  body { font: 13px/1.6 "Microsoft YaHei", sans-serif; margin: 20px; background: #1a1c22; color: #ddd; }
+  h1 { font-size: 17px; margin: 0 0 12px; }
+  .sum { padding: 9px 13px; border-radius: 6px; margin-bottom: 12px; font-weight: bold; }
+  .pass { background: #1d3a24; color: #8ce99a; } .fail { background: #3a1d1d; color: #ff8787; }
+  table { border-collapse: collapse; margin-bottom: 16px; }
+  th, td { padding: 3px 9px; border-bottom: 1px solid #2c2f38; text-align: left; }
+  th { color: #888; font-weight: normal; }
+  pre { background: #22242c; padding: 9px; border-radius: 6px; max-height: 360px; overflow: auto; font-size: 12px; white-space: pre-wrap; }
+  .no { color: #ff8787; } .ok { color: #8ce99a; } .warn { color: #ffd43b; }
+</style>
+</head>
+<body>
+<h1>全卡库校验</h1>
+<div id="sum" class="sum">运行中…</div>
+<div id="body"></div>
+
+<script type="module">
+import { parseTSV, CLASS_FILES, listDecks, buildDeckFor, deckPool } from '../src/loader.js';
+import { parseEffect } from '../src/dsl.js';
+import * as S from '../src/state.js';
+import * as E from '../src/engine.js';
+import { takeTurn } from '../src/ai.js';
+
+/* AI 在 src/ai.js —— 与对战页共用同一套，
+ * 否则「测出来的平衡」和「玩家实际面对的对手」是两回事。 */
+const autoPlay = s => takeTurn(s, s.active);
+
+function playOne(cards, dA, dB, seed) {
+  const s = S.createGame(dA.slice(), dB.slice(), seed);
+  s.__cardIndex = cards.byName; s.__tokenIndex = cards.byName;
+  let g = 0;
+  while (s.winner == null && g < 100) {
+    E.startTurn(s); if (s.winner != null) break;
+    autoPlay(s); if (s.winner != null) break;
+    E.endTurn(s); g++;
+  }
+  return s;
+}
+
+async function main() {
+  const perClass = [], errors = [], missing = [], allRows = [];
+  for (const [cls, file] of CLASS_FILES) {
+    let res;
+    try { res = await fetch('../data/' + file, { cache: 'no-store' }); }
+    catch (e) { missing.push(`${cls} → ${e.message}`); continue; }
+    if (!res.ok) { missing.push(`${cls}（${file}）→ HTTP ${res.status}`); continue; }
+    const rows = parseTSV(await res.text()).rows;
+    let bad = 0;
+    for (const r of rows) {
+      r.__file = file;
+      if (!r.id || !r.name) { errors.push(`${cls}: 缺少 id 或 name`); bad++; continue; }
+      if (!['随从', '法术', '护符'].includes(r.type)) { errors.push(`${cls}/${r.name}: 类型非法 "${r.type}"`); bad++; }
+      if (r.type === '随从' && (r.atk == null || r.hp == null)) { errors.push(`${cls}/${r.name}: 随从缺少攻/血`); bad++; }
+      if (r.type !== '随从' && (r.atk != null || r.hp != null)) { errors.push(`${cls}/${r.name}: 非随从却填了攻/血`); bad++; }
+      try { r.clauses = parseEffect(r.effect, r.name); }
+      catch (e) { errors.push(`${cls}/${e.message}`); bad++; }
+    }
+    allRows.push(...rows);
+    const nonToken = rows.filter(r => !r.isToken);
+    const curve = {};
+    for (const r of nonToken) curve[r.cost] = (curve[r.cost] || 0) + 1;
+    perClass.push({ cls, file, total: rows.length, token: rows.length - nonToken.length, bad,
+      minion: rows.filter(r => r.type === '随从').length,
+      spell: rows.filter(r => r.type === '法术').length,
+      amulet: rows.filter(r => r.type === '护符').length,
+      curve });
+  }
+
+  // 重名检查（byName 索引会互相覆盖，导致 summon/transform 找错卡）
+  const seen = new Map();
+  for (const r of allRows) {
+    if (seen.has(r.name)) errors.push(`卡名重复："${r.name}" 同时出现在 ${seen.get(r.name)} 与 ${r.__file}`);
+    else seen.set(r.name, r.__file);
+  }
+  // 引用完整性：summon/transform/addHand 指向的卡必须存在
+  for (const r of allRows) {
+    for (const cl of (r.clauses || [])) {
+      for (const a of (cl.actions || [])) {
+        if (!['summon', 'stackSummon', 'transform', 'addHand'].includes(a.op)) continue;
+        const ref = a.op === 'transform' ? a.args[1] : a.args[0];
+        if (ref && !seen.has(ref)) errors.push(`${r.name}: ${a.op} 引用了不存在的卡 "${ref}"`);
+      }
+    }
+  }
+  // 孤儿衍生卡：没有任何卡能产生它
+  const produced = new Set();
+  for (const r of allRows) for (const cl of (r.clauses || [])) for (const a of (cl.actions || [])) {
+    if (a.op === 'summon' || a.op === 'stackSummon' || a.op === 'addHand') produced.add(a.args[0]);
+    if (a.op === 'transform') produced.add(a.args[1]);
+  }
+  const orphans = allRows.filter(r => r.isToken && !produced.has(r.name)).map(r => r.name);
+
+  const nClass = perClass.length;
+  const ok = errors.length === 0;
+  const sum = document.getElementById('sum');
+  sum.className = 'sum ' + (ok ? 'pass' : 'fail');
+  sum.textContent = `${nClass}/8 个职业已录入，共 ${allRows.length} 张卡`
+    + (ok ? '，DSL 全部通过校验' : `，${errors.length} 项错误`)
+    + (missing.length ? `｜未录入：${missing.length}` : '');
+
+  let html = '<table><tr><th>职业</th><th>卡数</th><th>随从</th><th>法术</th><th>护符</th><th>衍生</th><th>错误</th><th>费用曲线 1→9+</th></tr>';
+  for (const c of perClass) {
+    const cv = [1,2,3,4,5,6,7,8,9].map(k => (c.curve[k] || 0)).join('/');
+    html += `<tr><td>${c.cls}</td><td>${c.total}</td><td>${c.minion}</td><td>${c.spell}</td>`
+         + `<td>${c.amulet}</td><td>${c.token}</td>`
+         + `<td class="${c.bad ? 'no' : 'ok'}">${c.bad || '—'}</td><td>${cv}</td></tr>`;
+  }
+  html += '</table>';
+  if (missing.length) html += `<div class="warn">未录入：${missing.join('；')}</div>`;
+  if (orphans.length) html += `<div class="warn">孤儿衍生卡（没有任何卡能产生它）：${orphans.join('、')}</div>`;
+  if (errors.length) html += `<h1>错误明细</h1><pre class="no">${errors.join('\n')}</pre>`;
+  document.getElementById('body').innerHTML = html;
+
+  const stats = { classes: nClass, cards: allRows.length, errors: errors.length,
+    missing, orphans, perClass: perClass.map(c => ({ cls: c.cls, n: c.total, bad: c.bad })) };
+
+  // 全部录入且无错时，跑职业两两自对弈
+  if (ok && nClass === 8) {
+    const cards = { byName: {}, all: allRows };
+    for (const r of allRows) cards.byName[r.name] = r;
+    /* 按「卡组」而不是「职业整池」对战。
+     * 之前用整池按文件顺序凑 40 张，等于只拿了每职业最便宜的十几张卡，
+     * 既不是卡组也没有曲线——那批胜率数字因此无效。 */
+    const decksByCls = listDecks(cards);
+    const entries = [];      // [{cls, deck, label, deck40}]
+    const thin = [];
+    for (const [cls] of CLASS_FILES) {
+      for (const dk of (decksByCls[cls] || [])) {
+        const pool = deckPool(cards, cls, dk);
+        if (pool.length < 12) { thin.push(`${cls}｜${dk}（仅 ${pool.length} 种）`); continue; }
+        entries.push({ cls, deck: dk, label: `${cls}｜${dk}`,
+          deck40: buildDeckFor(cards, cls, dk, S.makeRng(4242)) });
+      }
+    }
+
+    const games = [], crashes = [];
+    /* 每对卡组打 SEEDS 个不同的发牌序列。1 个种子时单套卡组只有 42 局，
+     * 换个 seed 同一套卡组能从 31% 跳到 48%——那种精度下做 ±5% 的数值调整
+     * 全是在追噪声。3 个种子把单套卡组的样本抬到 126 局，标准误约 4.5%。 */
+    const SEEDS = 3;
+    for (let i = 0; i < entries.length; i++) {
+      for (let j = 0; j < entries.length; j++) {
+        if (i === j || entries[i].cls === entries[j].cls) continue;   // 同职业内不对打
+        for (let k = 0; k < SEEDS; k++) {
+          try {
+            const s = playOne(cards, entries[i].deck40, entries[j].deck40,
+              9000 + (i * 31 + j) * 17 + k * 613);
+            const warn = s.log.filter(l => /未实现|找不到/.test(l));
+            games.push({ a: i, b: j, winner: s.winner, turn: s.turn });
+            if (warn.length) crashes.push(`${entries[i].label} vs ${entries[j].label}: ${warn.slice(0, 2).join(' | ')}`);
+          } catch (e) {
+            crashes.push(`${entries[i].label} vs ${entries[j].label} 崩溃: ${e.message}`);
+          }
+        }
+      }
+    }
+
+    const dw = entries.map(() => ({ w: 0, l: 0 }));
+    const cw = {};
+    for (const [cls] of CLASS_FILES) cw[cls] = { w: 0, l: 0 };
+    for (const g of games) {
+      const wi = g.winner === 0 ? g.a : g.winner === 1 ? g.b : null;
+      if (wi == null) continue;
+      const li = wi === g.a ? g.b : g.a;
+      dw[wi].w++; dw[li].l++;
+      cw[entries[wi].cls].w++; cw[entries[li].cls].l++;
+    }
+    const pct = o => (o.w + o.l) ? Math.round(o.w / (o.w + o.l) * 100) : 0;
+
+    let h2 = `<h1>卡组两两自对弈（${entries.length} 套卡组，${games.length} 局）</h1>`;
+    h2 += '<table><tr><th>卡组</th><th>胜</th><th>负</th><th>胜率</th></tr>';
+    const order = entries.map((e, i) => i).sort((x, y) => pct(dw[y]) - pct(dw[x]));
+    for (const i of order) {
+      const p = pct(dw[i]);
+      const col = p >= 60 ? '#ff8787' : p <= 40 ? '#ffd43b' : '#8ce99a';
+      h2 += `<tr><td>${entries[i].label}</td><td>${dw[i].w}</td><td>${dw[i].l}</td>`
+          + `<td style="color:${col}">${p}%</td></tr>`;
+    }
+    h2 += '</table><table><tr><th>职业合计</th><th>胜率</th></tr>';
+    for (const [cls] of CLASS_FILES) h2 += `<tr><td>${cls}</td><td>${pct(cw[cls])}%</td></tr>`;
+    h2 += '</table>';
+    const avgTurn = games.length ? (games.reduce((a, g) => a + g.turn, 0) / games.length).toFixed(1) : 0;
+    h2 += `<div>平均对局长度 ${avgTurn} 回合｜未分出胜负 ${games.filter(g => g.winner == null).length} 局</div>`;
+    if (thin.length) h2 += `<div class="warn">卡数不足、已跳过：${thin.join('；')}</div>`;
+    if (crashes.length) h2 += `<h1>崩溃 / 未实现动作</h1><pre class="no">${crashes.slice(0, 40).join('\n')}</pre>`;
+    document.getElementById('body').innerHTML += h2;
+
+    stats.selfplay = { decks: entries.length, games: games.length, crashes: crashes.length,
+      avgTurn: +avgTurn, undecided: games.filter(g => g.winner == null).length, thin,
+      byClass: Object.fromEntries(CLASS_FILES.map(([c]) => [c, pct(cw[c])])),
+      byDeck: order.map(i => [entries[i].label, pct(dw[i])]),
+      crashList: crashes.slice(0, 6) };
+  }
+  window.__validate = stats;
+}
+main().catch(e => {
+  document.getElementById('sum').className = 'sum fail';
+  document.getElementById('sum').textContent = '校验器本身出错：' + e.message;
+  window.__validate = { fatal: e.message, stack: (e.stack || '').split('\n').slice(0, 5).join(' | ') };
+});
+</script>
+</body>
+</html>

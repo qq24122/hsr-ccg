@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>崩铁 CCG — 阶段0 引擎测试</title>
+<style>
+  body { font: 14px/1.7 "Microsoft YaHei", sans-serif; margin: 24px; background: #1a1c22; color: #ddd; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .sub { color: #888; font-size: 12px; margin-bottom: 16px; }
+  .sum { padding: 10px 14px; border-radius: 6px; margin-bottom: 14px; font-weight: bold; }
+  .pass { background: #1d3a24; color: #8ce99a; }
+  .fail { background: #3a1d1d; color: #ff8787; }
+  table { border-collapse: collapse; width: 100%; }
+  td { padding: 5px 10px; border-bottom: 1px solid #2c2f38; vertical-align: top; }
+  td.i { width: 34px; text-align: center; }
+  .ok { color: #8ce99a; } .no { color: #ff8787; }
+  .err { color: #ffa8a8; font-size: 12px; }
+  pre { background: #22242c; padding: 10px; border-radius: 6px; max-height: 300px; overflow: auto; font-size: 12px; }
+</style>
+</head>
+<body>
+<h1>崩铁 CCG — 阶段0 规则引擎测试</h1>
+<div class="sub">数据源 data/cards.tsv（改表格后刷新即生效）｜引擎 src/{dsl,state,engine,loader}.js</div>
+<div id="summary" class="sum">运行中…</div>
+<table id="rows"></table>
+<h1 style="margin-top:24px">自对弈样本对局</h1>
+<pre id="log">—</pre>
+
+<script type="module">
+import { runAll } from './cases.js';
+import { loadCards, buildDeck } from '../src/loader.js';
+import * as S from '../src/state.js';
+import * as E from '../src/engine.js';
+
+/** 极简 AI：优先打出高费可用牌 → 能进化就进化 → 有守护先清、否则打脸 */
+function autoPlay(s) {
+  const p = S.self(s);
+  for (let guard = 0; guard < 30; guard++) {
+    const cand = p.hand
+      .map((h, i) => ({ i, cost: E.handCost(s, h) }))
+      .filter(x => E.canPlay(s, x.i).ok)
+      .sort((a, b) => b.cost - a.cost)[0];
+    if (!cand) break;
+    if (!E.playCard(s, cand.i).ok) break;
+  }
+  if (E.canEvolve(s)) {
+    const m = S.minionsOf(p).find(u => !u.evolved);
+    if (m) E.evolve(s, m.uid);
+  }
+  const foe = S.foe(s);
+  for (const u of S.minionsOf(p).slice()) {
+    let guard = 0;
+    while (E.canAttack(s, u) && guard++ < 5) {
+      const taunts = S.tauntTargets(foe);
+      const target = taunts.length ? taunts[0].uid : 'leader';
+      if (!E.attack(s, u.uid, target).ok) break;
+      if (s.winner != null) return;
+    }
+  }
+}
+
+async function main() {
+  let res;
+  try { res = await runAll(); }
+  catch (e) {
+    const sum = document.getElementById('summary');
+    sum.className = 'sum fail';
+    sum.textContent = '测试无法启动：' + e.message;
+    window.__result = { fatal: e.message };
+    return;
+  }
+  const pass = res.filter(r => r.ok).length;
+  const fail = res.length - pass;
+  const sum = document.getElementById('summary');
+  sum.className = 'sum ' + (fail ? 'fail' : 'pass');
+  sum.textContent = `${pass} / ${res.length} 通过` + (fail ? `，${fail} 个失败` : '，全部通过');
+  document.getElementById('rows').innerHTML = res.map(r =>
+    `<tr><td class="i ${r.ok ? 'ok' : 'no'}">${r.ok ? '✓' : '✗'}</td>` +
+    `<td>${r.name}${r.ok ? '' : `<div class="err">${r.err}</div>`}</td></tr>`).join('');
+
+  let logText = '';
+  try {
+    const cards = await loadCards('../data/cards.tsv');
+    const dPool = cards.all.filter(c => c.class === '毁灭' && !c.isToken);
+    const pPool = cards.all.filter(c => c.class === '存护丰饶' && !c.isToken);
+    const s = S.createGame(buildDeck(dPool), buildDeck(pPool), 2026);
+    s.__cardIndex = cards.byName; s.__tokenIndex = cards.byName;
+    let guard = 0;
+    while (s.winner == null && guard < 80) {
+      E.startTurn(s); autoPlay(s);
+      if (s.winner != null) break;
+      E.endTurn(s); guard++;
+    }
+    logText = `胜者: ${s.winner == null ? '未分出（80回合上限）' : 'P' + s.winner}\n`
+      + `总回合: ${s.turn}   P0(毁灭)血: ${s.players[0].hp}   P1(存护丰饶)血: ${s.players[1].hp}\n`
+      + `P0场面: ${s.players[0].board.map(u => `${u.name}(${u.atk}/${u.hp})`).join(' ') || '空'}\n`
+      + `P1场面: ${s.players[1].board.map(u => `${u.name}(${u.atk}/${u.hp})`).join(' ') || '空'}\n`
+      + `\n--- 最后 40 条日志 ---\n` + s.log.slice(-40).join('\n');
+    window.__selfplay = { winner: s.winner, turn: s.turn, hp: [s.players[0].hp, s.players[1].hp], logLines: s.log.length };
+  } catch (e) {
+    logText = '自对弈出错: ' + e.message + '\n' + (e.stack || '');
+    window.__selfplay = { error: e.message, stack: (e.stack || '').split('\n').slice(0, 4).join(' | ') };
+  }
+  document.getElementById('log').textContent = logText;
+  window.__result = { pass, fail, total: res.length, failures: res.filter(r => !r.ok).map(r => ({ name: r.name, err: r.err })) };
+}
+main();
+</script>
+</body>
+</html>

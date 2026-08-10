@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>崩铁 CCG — 单卡组探针</title>
+<style>
+  body { font: 13px/1.6 "Microsoft YaHei", sans-serif; margin: 20px; background: #1a1c22; color: #ddd; }
+  pre { background: #22242c; padding: 10px; border-radius: 6px; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>单卡组探针</h1>
+<p>用法：<code>probe.html?deck=虚无｜引爆奥迹</code> —— 拿这套卡组打全部异职业卡组，
+统计它每局实际发生了什么（层数攒到多少、引爆打出多少、哪些卡根本没被打出来）。</p>
+<pre id="out">运行中…</pre>
+
+<script type="module">
+import { parseTSV, CLASS_FILES, listDecks, buildDeckFor, deckPool } from '../src/loader.js';
+import { parseEffect } from '../src/dsl.js';
+import * as S from '../src/state.js';
+import * as E from '../src/engine.js';
+import { takeTurn } from '../src/ai.js';
+
+const WANT = new URLSearchParams(location.search).get('deck') || '虚无｜引爆奥迹';
+
+async function loadAll() {
+  const rows = [];
+  for (const [, file] of CLASS_FILES) {
+    const res = await fetch('../data/' + file, { cache: 'no-store' });
+    const got = parseTSV(await res.text()).rows;
+    for (const r of got) r.clauses = parseEffect(r.effect, r.name);
+    rows.push(...got);
+  }
+  const byName = {};
+  for (const r of rows) byName[r.name] = r;
+  return { all: rows, byName };
+}
+
+function playOne(cards, dA, dB, seed) {
+  const s = S.createGame(dA.slice(), dB.slice(), seed);
+  s.__cardIndex = cards.byName; s.__tokenIndex = cards.byName;
+  let g = 0;
+  while (s.winner == null && g < 100) {
+    E.startTurn(s); if (s.winner != null) break;
+    takeTurn(s, s.active); if (s.winner != null) break;
+    E.endTurn(s); g++;
+  }
+  return s;
+}
+
+async function main() {
+  const cards = await loadAll();
+  const decksByCls = listDecks(cards);
+  const entries = [];
+  for (const [cls] of CLASS_FILES) {
+    for (const dk of (decksByCls[cls] || [])) {
+      if (deckPool(cards, cls, dk).length < 12) continue;
+      entries.push({ cls, deck: dk, label: `${cls}｜${dk}`,
+        deck40: buildDeckFor(cards, cls, dk, S.makeRng(4242)) });
+    }
+  }
+  const meIdx = entries.findIndex(e => e.label === WANT);
+  if (meIdx < 0) {
+    document.getElementById('out').textContent =
+      `找不到卡组 "${WANT}"。可选：\n` + entries.map(e => e.label).join('\n');
+    return;
+  }
+  const ME = entries[meIdx];
+  const playedCount = {};                       // 卡名 → 被打出的局数
+  for (const d of ME.deck40) playedCount[d.name] = 0;
+
+  let w = 0, l = 0, spill = 0, boom = 0, boomDmg = 0, peak = 0, games = 0, myTurns = 0;
+  const lines = [];
+  for (let j = 0; j < entries.length; j++) {
+    if (j === meIdx || entries[j].cls === ME.cls) continue;
+    for (const side of [0, 1]) {                // 先手 / 后手都打
+      const a = side === 0 ? ME : entries[j], b = side === 0 ? entries[j] : ME;
+      const s = playOne(cards, a.deck40, b.deck40, 9000 + j * 17 + side * 613);
+      const mine = side, foe = 1 - side;
+      games++;
+      if (s.winner === mine) w++; else if (s.winner === foe) l++;
+      myTurns += Math.ceil(s.turn / 2);
+      // 从日志里统计这套卡组的机制实际跑了多少
+      let sp = 0, bm = 0, bd = 0, pk = 0, run = 0;
+      const seenThisGame = new Set();
+      for (const ln of s.log) {
+        let m;
+        if ((m = /沉淀为侵蚀（共 (\d+) 层）/.exec(ln))) { sp++; run = +m[1]; pk = Math.max(pk, run); }
+        else if ((m = /主战者获得 (\d+) 层侵蚀（共 (\d+) 层）/.exec(ln))) { run = +m[2]; pk = Math.max(pk, run); }
+        else if ((m = /引爆 .*? 的侵蚀，(\d+) 点/.exec(ln))) { bm++; bd += +m[1]; }
+        else if ((m = /引爆 (.+?) 的持续伤害 (\d+) 点/.exec(ln))) { bm++; bd += +m[2]; }
+        if ((m = /^T\d+ P\d+ 打出 (.+?)（/.exec(ln))) seenThisGame.add(m[1]);
+      }
+      for (const n of seenThisGame) if (playedCount[n] != null) playedCount[n]++;
+      spill += sp; boom += bm; boomDmg += bd; peak += pk;
+      lines.push(`${s.winner === mine ? '胜' : s.winner === foe ? '负' : '平'} vs ${entries[j].label}`
+        + `${side ? '（后手）' : '（先手）'} T${s.turn}  沉淀${sp}次 峰值${pk}层 引爆${bm}次共${bd}点`);
+    }
+  }
+  const deckKinds = [...new Set(ME.deck40.map(d => d.name))]
+    .sort((x, y) => playedCount[x] - playedCount[y]);
+  const out = [
+    `卡组：${ME.label}   ${w} 胜 ${l} 负（${Math.round(w / (w + l) * 100)}%），${games} 局`,
+    `平均：自己行动 ${(myTurns / games).toFixed(1)} 回合｜层数沉淀 ${(spill / games).toFixed(1)} 次`
+      + `｜脸上峰值 ${(peak / games).toFixed(1)} 层｜引爆 ${(boom / games).toFixed(1)} 次共 ${(boomDmg / games).toFixed(1)} 点`,
+    '',
+    '各卡被打出的局数（升序 —— 排前面的就是抽到也打不出来的卡）：',
+    ...deckKinds.map(n => `  ${String(playedCount[n]).padStart(3)}/${games}  ${n}`
+      + `  [${cards.byName[n].cost}费]`),
+    '',
+    ...lines,
+  ].join('\n');
+  document.getElementById('out').textContent = out;
+  window.__probe = { label: ME.label, w, l, games,
+    pct: Math.round(w / (w + l) * 100),
+    spill: +(spill / games).toFixed(1), peak: +(peak / games).toFixed(1),
+    boom: +(boom / games).toFixed(1), boomDmg: +(boomDmg / games).toFixed(1),
+    myTurns: +(myTurns / games).toFixed(1),
+    never: deckKinds.filter(n => playedCount[n] === 0),
+    rare: deckKinds.filter(n => playedCount[n] > 0 && playedCount[n] < games * 0.3)
+      .map(n => `${n}(${playedCount[n]})`) };
+}
+main().catch(e => {
+  document.getElementById('out').textContent = '探针出错：' + e.message + '\n' + (e.stack || '');
+  window.__probe = { fatal: e.message };
+});
+</script>
+</body>
+</html>

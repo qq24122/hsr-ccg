@@ -1,0 +1,27 @@
+id	name	class	type	quality	cost	atk	hp	countdown	token	effect	note
+D001	虚卒·掠夺者	毁灭	随从	铜	1	1	2		0	onPlay: dmg(bothLeader,1)	入场曲：给予双方的主战者各1点伤害
+D002	毁灭扑满	毁灭	随从	铜	1	1	1		0	onAttack: dmg(selfLeader,1), draw(1)	攻击时：给予自己的主战者1点伤害，抽1张卡
+D003	重子	毁灭	随从	铜	2	1	4		0	static: ward; onPlay[!mara]: dmg(selfLeader,2)	守护。入场曲：若入魔未发动，给予自己的主战者2点伤害
+D004	虚卒·抹消者	毁灭	随从	铜	2	2	2		0	onPlay[!mara]: dmg(selfLeader,2); onPlay[mara]: dmg(enemyLeader,2)	入场曲：若入魔未发动则自伤2点；已发动则改为给予敌方主战者2点
+D005	炎之爪牙	毁灭	法术	银	2				0	spell: dmg(selfLeader,2), dmg(enemyOne,3)	给予自己的主战者2点伤害，并给予1个敌方随从3点伤害
+D006	不灭的怨念	毁灭	法术	银	2				0	spell: draw(2), dmg(selfLeader,2)	抽2张卡，给予自己的主战者2点伤害
+D007	阿兰	毁灭	随从	金	3	2	3		0	static: drain; onLeaderDamaged: buff(self,1,0)	【虹吸】。每当自己的主战者受到伤害，此随从+1/+0
+D008	虚卒·践踏者	毁灭	随从	银	4	4	4		0	onPlay: draw(2); onPlay[!mara]: setLeaderHp(10)	入场曲：抽2张卡。若入魔未发动，则使自己主战者生命值转变为10
+D009	克拉拉	毁灭	随从	虹	5	2	6		0	static: ward; onDamaged: dmg(enemyRandom,3)	守护。此随从受到伤害后，给予随机1个敌方随从3点伤害（史瓦罗反击）
+D010	刃	毁灭	随从	虹	6	4	5		0	onLeaderDamaged: ctr(充能,+1); onCtr(充能,5): ctr(充能,-5), dmg(enemyAll,4), heal(selfLeader,5)	每当主战者受伤攒1层充能；5层时消耗全部，给予敌方全体4点并回复自己5点
+D011	白厄	毁灭	随从	虹	5	3	5		0	onLeaderDamaged: ctr(火种,+1); onCtr(火种,4): ctr(火种,-4), transform(self,卡厄斯兰那)	每当主战者受伤攒1层火种；4层时变身为卡厄斯兰那
+D012	以血偿还	毁灭	法术	金	5				0	spell: dmg(enemyOne,4), heal(selfLeader,2)	给予1个敌方随从4点伤害，并回复自己的主战者2点生命值
+T001	卡厄斯兰那	毁灭	随从	衍生	0	8	8		1	static: bane	（由白厄变身产生）必杀。变身当回合无法攻击，下回合起可攻击
+P001	丰饶扑满	存护丰饶	随从	铜	1	1	2		0	onDeath: heal(selfLeader,2)	谢幕曲：回复自己的主战者2点生命值
+P002	存护扑满	存护丰饶	随从	铜	1	1	3		0	static: ward	守护
+P003	龙骨盾	存护丰饶	护符	铜	2			2	0	onPlay: grant(selfLeader,barrier); onDeath: heal(selfLeader,3)	入场曲：使自己的主战者获得【屏障】。倒数2。谢幕曲：回复自己的主战者3点生命值
+P004	好运饼干	存护丰饶	法术	铜	1				0	spell: heal(selfLeader,3), draw(1)	回复自己的主战者3点生命值，抽1张卡
+P005	幼蛰虫	存护丰饶	随从	铜	1	2	1		0	onDeath: summon(次蛰虫,1)	谢幕曲：召唤1只次蛰虫
+P006	三月七	存护丰饶	随从	金	2	1	3		0	static: ward; onPlay: heal(selfLeader,2)	守护。入场曲：回复自己的主战者2点生命值
+P007	娜塔莎	存护丰饶	随从	金	3	2	4		0	onPlay: heal(selfLeader,3)	入场曲：回复自己的主战者3点生命值
+P008	承露天人	存护丰饶	随从	银	3	2	5		0	static: ward	守护
+P009	玲可	存护丰饶	随从	金	3	2	3		0	turnEnd: heal(selfLeader,2)	自己的回合结束时，回复自己的主战者2点生命值
+P010	加拉赫	存护丰饶	随从	金	4	3	4		0	onLeaderHeal: dmg(enemyLeader,1)	每当自己的主战者回复生命值，给予敌方的主战者1点伤害
+P011	杰帕德	存护丰饶	随从	虹	5	3	6		0	static: ward, barrier	守护。【屏障】（下次受到的伤害变为0，发动1次后失效）
+P012	丰饶玄鹿	存护丰饶	随从	金	6	4	5		0	onPlay: summon(次蛰虫,2)	入场曲：召唤2只次蛰虫
+T002	次蛰虫	存护丰饶	随从	衍生	0	1	1		1		（由幼蛰虫、丰饶玄鹿的效果产生）
