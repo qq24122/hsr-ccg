@@ -17,8 +17,8 @@
 import { BUILD } from './version.js';
 
 /* 接收端地址。空字符串 = 只存本地、不上传。
- * 部署好 Cloudflare Worker 后把它填成 https://xxx.workers.dev/report 即可。 */
-export const ENDPOINT = '';
+ * 这是 Cloudflare Worker（代码见 server/worker.js），只接受本站来源的请求。 */
+export const ENDPOINT = 'https://hsr-stats.2412257981.workers.dev/report';
 
 const K_QUEUE = 'hsr.stats.queue';    // 待上传队列
 const K_DONE  = 'hsr.stats.done';     // 已上传的本地留档（给玩家看自己的战绩）

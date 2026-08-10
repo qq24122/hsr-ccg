@@ -192,6 +192,7 @@ export default {
       }
     }
 
-    return json({ ok: true, service: 'hsr-ccg stats', routes: ['/report', '/stats', '/raw'] }, 200, H);
+    return json({ ok: true, service: 'hsr-ccg stats',
+      routes: ['/init', '/report', '/stats', '/raw'] }, 200, H);
   },
 };
