@@ -4,7 +4,8 @@
  * 粘贴进在线编辑器覆盖默认代码，然后绑定一个名为 DB 的 D1 数据库即可。
  * 不需要 Node、不需要 wrangler、不需要命令行。
  *
- * 三个路由：
+ * 四个路由：
+ *   GET  /init     建表（幂等，访问一次即可，省得去 D1 的 Console 粘 SQL）
  *   POST /report   接收战绩（客户端调这个）
  *   GET  /stats    按卡组汇总胜率（我用来看数据；只读、可公开）
  *   GET  /raw      导出原始行（需要 ?key=<ADMIN_KEY>，用于拉全量做深入分析）
@@ -73,6 +74,41 @@ export default {
     const H = cors(origin);
 
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: H });
+
+    /* ---------- 建表 ----------
+     * D1 网页 Console 是按分号切分再逐条发送的，注释行和空行会被切成「空语句」，
+     * 发到 API 就报 "Requests without any query are not supported"。
+     * 所以干脆让 Worker 自己建表：全是 IF NOT EXISTS，重复访问也没有副作用。 */
+    if (url.pathname === '/init') {
+      const DDL = [
+        `CREATE TABLE IF NOT EXISTS matches (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           ins_at INTEGER NOT NULL, client_ts INTEGER,
+           build TEXT NOT NULL, sid TEXT NOT NULL, mode TEXT NOT NULL,
+           me_cls TEXT NOT NULL, me_deck TEXT NOT NULL,
+           foe_cls TEXT NOT NULL, foe_deck TEXT NOT NULL,
+           first INTEGER NOT NULL, result TEXT NOT NULL,
+           turns INTEGER, me_hp INTEGER, foe_hp INTEGER,
+           dur_ms INTEGER, mull INTEGER, ip_cc TEXT)`,
+        `CREATE INDEX IF NOT EXISTS idx_matches_build ON matches(build, me_cls, me_deck)`,
+        `CREATE INDEX IF NOT EXISTS idx_matches_time ON matches(ins_at)`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS idx_matches_dedup
+           ON matches(sid, client_ts, me_deck, result)`,
+      ];
+      if (!env.DB) {
+        return json({ ok: false, err: '没有绑定 D1。去 Worker 的 Settings → Bindings 加一个 '
+          + 'D1 database，变量名必须是 DB。' }, 500, H);
+      }
+      const done = [];
+      try {
+        for (const sql of DDL) { await env.DB.prepare(sql).run(); done.push(sql.slice(0, 46)); }
+        const probe = await env.DB.prepare('SELECT COUNT(*) c FROM matches').first();
+        return json({ ok: true, ran: done.length, rows_now: probe && probe.c,
+          msg: '建表完成，可以开始接收战绩了。' }, 200, H);
+      } catch (e) {
+        return json({ ok: false, ran: done.length, err: String(e && e.message || e) }, 500, H);
+      }
+    }
 
     /* ---------- 接收战绩 ---------- */
     if (url.pathname === '/report' && request.method === 'POST') {
