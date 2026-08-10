@@ -1,46 +1,46 @@
 id	name	class	type	quality	cost	atk	hp	countdown	token	tag	effect	note	decks	img
-E001	自动机兵·蜘蛛	智识	随从	铜	1	1	1		0	自动机兵	onPlay: pctr(解读,+1)	入场曲：使自己的「解读」+1	解读演算/神君追击/弱点揭露	img/E001.png
-E002	序列扑满	智识	随从	铜	1	1	2		0		onDeath: pctr(解读,+1)	谢幕曲：使自己的「解读」+1	解读演算/神君追击	img/E002.png
+E001	自动机兵·蜘蛛	智识	随从	铜	1	1	1		0	自动机兵	onPlay: pctr(解读,+1)	【入场曲】：使自己的「解读」+1	解读演算/神君追击/弱点揭露	img/E001.png
+E002	序列扑满	智识	随从	铜	1	1	2		0		onDeath: pctr(解读,+1)	【谢幕曲】：使自己的「解读」+1	解读演算/神君追击	img/E002.png
 E004	天外合金	智识	法术	铜	1				0		spell: dmg(enemyOne,2), pctr(解读,+1)	给予1个敌方随从2点伤害。使自己的「解读」+1	解读演算/弱点揭露	img/E004.png
 E005	分裂银币	智识	法术	铜	1				0		costIf(1)[ctr(解读)>=5]; spell: draw(1)	抽1张卡。若自己的「解读」为5以上，此牌费用变为0	解读演算/神君追击	img/E005.png
 E006	反无机病毒	智识	法术	铜	2				0		spell: dmg(enemyAll,1), pctr(解读,+1)	给予敌方全体随从1点伤害。使自己的「解读」+1	弱点揭露	img/E006.png
-E007	基层员工·外勤	智识	随从	铜	1	2	2		0	基层员工	onPlay: pctr(解读,+2)	入场曲：使自己的「解读」+2	解读演算	img/E007.png
+E007	基层员工·外勤	智识	随从	铜	1	2	2		0	基层员工	onPlay: pctr(解读,+2)	【入场曲】：使自己的「解读」+2	解读演算	img/E007.png
 E008	赐福残晶·理性	智识	法术	铜	1				0		spell: shock(enemyOne), pctr(解读,+2)	使1个敌方随从获得【触电】，并使自己的「解读」+2	解读演算/弱点揭露	img/E008.png
-E009	自动机兵·战犬	智识	随从	铜	2	2	2		0	自动机兵	onPlay: summon(机兵残骸,1)	入场曲：召唤1个机兵残骸	神君追击	img/E009.png
+E009	自动机兵·战犬	智识	随从	铜	2	2	2		0	自动机兵	onPlay: summon(机兵残骸,1)	【入场曲】：召唤1个机兵残骸	神君追击	img/E009.png
 E011	基层员工·安保	智识	随从	铜	2	2	3		0	基层员工	onSpell: buff(self,1,0)	每当自己使用法术卡，此随从+1/+0	解读演算/神君追击	img/E011.png
-E012	识海迷坠的学者	智识	法术	银	3				0		spell: dmg(enemyShocked,4), vuln(enemyAll,1), pctr(解读,+2)	给予全部【触电】的敌方随从4点伤害，并使敌方全体获得1层【弱点】。使自己的「解读」+2（原为无条件群伤，改为需要前置）	解读演算/弱点揭露	img/E012.png
+E012	识海迷坠的学者	智识	法术	银	3				0		spell: dmg(enemyShocked,4), vuln(enemyAll,1), pctr(解读,+2)	给予全部【触电】的敌方随从4点伤害，并使敌方全体获得1层【弱点】。使自己的「解读」+2	解读演算/弱点揭露	img/E012.png
 E013	平行宇宙对讲机	智识	法术	银	3				0		spell: draw(2), pctr(解读,+2)	抽2张卡。使自己的「解读」+2	解读演算/神君追击	img/E013.png
-E014	万识囊	智识	护符	银	3			3	0		turnStart: dmg(enemyOne,1), draw(1)	倒数3。自己的回合开始时，给予1个敌方随从1点伤害并抽1张卡	弱点揭露	img/E014.png
-E015	希露瓦	智识	随从	金	2	2	2		0		onPlay: shock(enemyOne); onSpell: dmg(enemyShocked,1)	入场曲：使1个敌方随从获得【触电】。每当自己使用法术卡，给予全部触电的敌方随从1点伤害	弱点揭露/解读演算	img/E015.png
+E014	万识囊	智识	护符	银	3			3	0		turnStart: dmg(enemyOne,1), draw(1)	【倒数3】。自己的回合开始时，给予1个敌方随从1点伤害并抽1张卡	弱点揭露	img/E014.png
+E015	希露瓦	智识	随从	金	2	2	2		0		onPlay: shock(enemyOne); onSpell: dmg(enemyShocked,1)	【入场曲】：使1个敌方随从获得【触电】。每当自己使用法术卡，给予全部【触电】的敌方随从1点伤害	弱点揭露/解读演算	img/E015.png
 E016	希露瓦·雷殛	智识	随从	铜	2	2	1		0		onAttack: shock(enemyOne)	攻击时：使该敌方随从获得【触电】	弱点揭露/解读演算	img/E016.png
-E017	破晓战队•灰烬	智识	随从	铜	2	2	2		0	破晓战队	onDeath: summon(机兵残骸,2)	谢幕曲：召唤2个机兵残骸	神君追击	img/E017.png
-E018	青雀	智识	随从	金	3	2	4		0		onPlay: drawKind(法术,3), costDown(1)	入场曲：从牌库抽取3张法术卡，并使自己手牌费用-1（原设计的"同费用则费用变0"需要牌堆内容判定，改为统一降费）	解读演算/神君追击	img/E018.png
+E017	破晓战队•灰烬	智识	随从	铜	2	2	2		0	破晓战队	onDeath: summon(机兵残骸,2)	【谢幕曲】：召唤2个机兵残骸	神君追击	img/E017.png
+E018	青雀	智识	随从	金	3	2	4		0		onPlay: drawKind(法术,3), costDown(1)	【入场曲】：从牌库抽取3张法术卡，并使自己手牌费用-1	解读演算/神君追击	img/E018.png
 E019	黑塔	智识	随从	虹	3	2	5		0		onEnemyDamaged[ctr(观测)<1]: ctr(观测,+1), dmg(enemyAll,1); turnStart: ctr(观测,-1)	每当敌方随从受到伤害，给予敌方全体随从1点伤害（每回合限1次）	解读演算/弱点揭露	img/E019.png
-E020	自动机兵·甲虫	智识	随从	铜	3	3	2		0	自动机兵	onPlay: summon(机兵残骸,2)	入场曲：召唤2个机兵残骸	神君追击	img/E020.png
+E020	自动机兵·甲虫	智识	随从	铜	3	3	2		0	自动机兵	onPlay: summon(机兵残骸,2)	【入场曲】：召唤2个机兵残骸	神君追击	img/E020.png
 E021	智识火漆	智识	护符	金	2				0		turnStart[ctr(解读)>=6]: draw(3), refundPP(3), destroy(self)	自己的「解读」达到6时，此护符消失，抽3张卡并回复自己的PP3点	解读演算	img/E021.png
 E022	那刻夏	智识	随从	虹	3	2	2		0		onAttack: vuln(enemyOne,1)	攻击时：使1个敌方随从获得1层【弱点】（每层使其受到的伤害+1）	弱点揭露	img/E022.png
-E023	自动机兵·雷卫	智识	随从	铜	3	2	3		0	自动机兵	onPlay: shock(enemyAll)	入场曲：使敌方全体随从获得【触电】	弱点揭露	
-E024	破晓战队•曙光	智识	随从	银	3	2	4		0	破晓战队	static: ward; onPlay: summon(机兵残骸,1), pctr(解读,+2)	守护。入场曲：召唤1个机兵残骸，并使自己的「解读」+2	神君追击/解读演算	img/E024.png
-E025	咆哮灵柩	智识	随从	银	4	3	3		0		onPlay: dmg(enemyAll,2)	入场曲：给予敌方全体随从2点伤害	弱点揭露	img/E025.png
-E026	咆哮灵柩·雷鸣	智识	随从	银	5	4	4		0		onPlay: dmg(enemyShocked,4)	入场曲：给予全部拥有【触电】的敌方随从4点伤害	弱点揭露/神君追击	img/E026.png
+E023	自动机兵·雷卫	智识	随从	铜	3	2	3		0	自动机兵	onPlay: shock(enemyAll)	【入场曲】：使敌方全体随从获得【触电】	弱点揭露	
+E024	破晓战队•曙光	智识	随从	银	3	2	4		0	破晓战队	static: ward; onPlay: summon(机兵残骸,1), pctr(解读,+2)	【守护】。【入场曲】：召唤1个机兵残骸，并使自己的「解读」+2	神君追击/解读演算	img/E024.png
+E025	咆哮灵柩	智识	随从	银	4	3	3		0		onPlay: dmg(enemyAll,2)	【入场曲】：给予敌方全体随从2点伤害	弱点揭露	img/E025.png
+E026	咆哮灵柩·雷鸣	智识	随从	银	5	4	4		0		onPlay: dmg(enemyShocked,4)	【入场曲】：给予全部拥有【触电】的敌方随从4点伤害	弱点揭露/神君追击	img/E026.png
 E027	姬子•启行	智识	随从	虹	5	3	5		0		turnStart: extraAtk(allyAll,1), pctr(解读,+2)	自己的回合开始时，使自己全体随从获得「本回合可再进行1次攻击」，然后使自己的「解读」+2	解读演算/神君追击	img/E027.png
-E028	破晓战队•赤焰	智识	随从	银	4	4	2		0	破晓战队	static: rush; onPlay: buff(allyTag(机兵残骸),1,1)	突进。入场曲：使自己战场上全体机兵残骸+1/+1	神君追击	img/E028.png
+E028	破晓战队•赤焰	智识	随从	银	4	4	2		0	破晓战队	static: rush; onPlay: buff(allyTag(机兵残骸),1,1)	【突进】。【入场曲】：使自己战场上全体机兵残骸+1/+1	神君追击	img/E028.png
 E029	银枝·观测	智识	随从	虹	4	2	5		0		onAttack[ctr(观测枝)<10]: ctr(观测枝,+1), buff(self,1,0)	每当此随从攻击，其永久+1/+0（最多10次）	解读演算/弱点揭露	img/E029.png
 E030	熔岩锻铸的火匠	智识	法术	金	5				0		spell: dmg(enemyAll,3), pctr(解读,+2)	给予敌方全体随从3点伤害。使自己的「解读」+2	弱点揭露/解读演算	img/E030.png
 E031	希露瓦·超载	智识	法术	金	4				0		spell: dmg(enemyShocked,5), dmg(enemyLeader,3), pctr(解读,+3)	给予全部【触电】的敌方随从5点伤害，给予敌方的主战者3点伤害，使自己的「解读」+3	解读演算	img/E031.png
-E032	破晓战队•苍翼	智识	随从	银	5	3	5		0	破晓战队	static: ward; turnEnd: summon(机兵残骸,1)	守护。自己的回合结束时，召唤1个机兵残骸	神君追击	img/E032.png
-E033	入魔机巧·率从狻猊	智识	随从	银	5	5	3		0		onPlay: destroy(enemyLowestHp)	入场曲：消灭生命值最低的1个敌方随从	弱点揭露/神君追击	img/E033.png
+E032	破晓战队•苍翼	智识	随从	银	5	3	5		0	破晓战队	static: ward; turnEnd: summon(机兵残骸,1)	【守护】。自己的回合结束时，召唤1个机兵残骸	神君追击	img/E032.png
+E033	入魔机巧·率从狻猊	智识	随从	银	5	5	3		0		onPlay: destroy(enemyLowestHp)	【入场曲】：消灭生命值最低的1个敌方随从	弱点揭露/神君追击	img/E033.png
 E034	大黑塔	智识	随从	虹	5	5	5		0		static: atkPlus(self,sumVuln); onEnemySummon: vuln(enemyOne,1)	每当1个敌方随从进入战场，使其获得1层【弱点】。此随从的攻击力额外增加敌方全体【弱点】层数总和	解读演算	img/E034.png
-E035	自动机兵·齿狼	智识	随从	金	6	4	5		0	自动机兵	onPlay: buff(allyTag(机兵残骸),2,2)	入场曲：使自己战场上全体机兵残骸获得+2/+2（原附带的突进已移除：铺场后免费突进等于直接斩杀）	神君追击	img/E035.png
+E035	自动机兵·齿狼	智识	随从	金	6	4	5		0	自动机兵	onPlay: buff(allyTag(机兵残骸),2,2)	【入场曲】：使自己战场上全体机兵残骸获得+2/+2	神君追击	img/E035.png
 E036	姬子	智识	随从	虹	6	4	5		0		onEnemyDeath: ctr(充能,+1); onCtr(充能,3): ctr(充能,-3), dmg(enemyAll,4)	每当1个敌方随从被消灭，获得1层充能。拥有3层时：消耗全部充能，给予敌方全体随从4点伤害	解读演算/弱点揭露	img/E036.png
-E037	景元	智识	随从	虹	6	3	6		0		onPlay: summon(神君,1); turnEnd: buff(allyTag(神君),1,0), maxAtk(allyTag(神君),2)	入场曲：召唤1只神君（3/3）。自己的回合结束时，使神君+1/+0，并使其每回合攻击次数上限为2	神君追击	img/E037.png
+E037	景元	智识	随从	虹	6	3	6		0		onPlay: summon(神君,1); turnEnd: buff(allyTag(神君),1,0), maxAtk(allyTag(神君),2)	【入场曲】：召唤1只神君（3/3）。自己的回合结束时，使神君+1/+0，并使其每回合攻击次数上限为2	神君追击	img/E037.png
 E038	乱破	智识	随从	虹	6	5	4		0		onEnemyDeath: ctr(残影,+1); onCtr(残影,3): ctr(残影,-3), dmg(enemyLeader,5)	每当1个敌方随从被消灭，获得1层充能。拥有3层时：给予敌方的主战者5点伤害	弱点揭露	img/E038.png
-E039	史瓦罗	智识	随从	金	6	4	5		0		onPlay: destroy(enemyAmulet), dmg(enemyAll,3)	入场曲：破坏全部敌方的护符，给予敌方全体随从3点伤害	弱点揭露	img/E039.png
+E039	史瓦罗	智识	随从	金	6	4	5		0		onPlay: destroy(enemyAmulet), dmg(enemyAll,3)	【入场曲】：破坏全部敌方的护符，给予敌方全体随从3点伤害	弱点揭露	img/E039.png
 E040	星如我见的领航员	智识	法术	虹	5				0		spell: draw(4), costDown(2)	抽4张卡。使自己手牌在本回合中的费用-2	解读演算/神君追击	img/E040.png
-E041	合金机铠•帕姆王	智识	随从	虹	7	5	6		0	自动机兵	onPlay: summon(机兵残骸,2), buff(allyTag(机兵残骸),1,1); onEnemyDeath: draw(1)	入场曲：召唤2个机兵残骸并使自己全体机兵残骸+1/+1。每当有随从离场，抽1张卡	神君追击	img/E041.png
+E041	合金机铠•帕姆王	智识	随从	虹	7	5	6		0	自动机兵	onPlay: summon(机兵残骸,2), buff(allyTag(机兵残骸),1,1); onEnemyDeath: draw(1)	【入场曲】：召唤2个机兵残骸并使自己全体机兵残骸+1/+1。每当有随从离场，抽1张卡	神君追击	img/E041.png
 E042	远坂凛	智识	随从	虹	6	5	6		0		onSpell: refundPP(1), pctr(解读,+1)	每当自己使用法术卡，回复自己的PP1点并使自己的「解读」+1	解读演算	img/E042.png
-E043	第一位天才，隐德来希，赞达尔	智识	随从	虹	6	6	6		0		onPlay[ctr(解读)>=12]: destroy(enemyAll), dmg(enemyLeader,5)	入场曲：若自己的「解读」为12以上，消灭敌方全体随从并给予敌方的主战者5点伤害	解读演算/弱点揭露	img/E043.png
-E044	祈祷之路	智识	法术	虹	8				0		spell: dmg(enemyAll,5)	给予敌方全体随从5点伤害（原为无条件消灭，无解清场改成可被高血量抵抗的伤害）	弱点揭露	img/E044.png
+E043	第一位天才，隐德来希，赞达尔	智识	随从	虹	6	6	6		0		onPlay[ctr(解读)>=12]: destroy(enemyAll), dmg(enemyLeader,5)	【入场曲】：若自己的「解读」为12以上，消灭敌方全体随从并给予敌方的主战者5点伤害	解读演算/弱点揭露	img/E043.png
+E044	祈祷之路	智识	法术	虹	8				0		spell: dmg(enemyAll,5)	给予敌方全体随从5点伤害	弱点揭露	img/E044.png
 T301	机兵残骸	智识	随从	衍生	0	1	1		1	机兵残骸		（由自动机兵、破晓战队、帕姆王的效果产生）		
 T302	神君	智识	随从	衍生	0	3	3		1	神君		（由景元的效果产生）此随从每回合可进行的攻击次数由景元决定		
-E045	外宇宙之冰	智识	随从	铜	3	2	4		0		static: ward; onPlay: pctr(解读,+1)	守护。入场曲：使自己的「解读」+1	解读演算	img/E045.png
+E045	外宇宙之冰	智识	随从	铜	3	2	4		0		static: ward; onPlay: pctr(解读,+1)	【守护】。【入场曲】：使自己的「解读」+1	解读演算	img/E045.png
