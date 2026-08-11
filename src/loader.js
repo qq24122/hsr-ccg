@@ -133,8 +133,11 @@ const MAX_COPIES = 3;
  * 按卡组名构建一副 40 张的牌。
  * 每个费用档按配额从该档的卡里取，同名最多 3 张；某档缺卡就把名额让给相邻档。
  */
-export function buildDeckFor(cards, cls, deckName, rng = Math.random) {
-  const pool = deckPool(cards, cls, deckName);
+export function buildDeckFor(cards, cls, deckName, rng = Math.random, exclude = null) {
+  /* exclude 是给消融实验用的：把某一张卡从卡池里拿掉再组牌，
+   * 组牌器会自动用同档的其他卡补满 40 张——正好等于「这张卡不存在时的卡组」。 */
+  let pool = deckPool(cards, cls, deckName);
+  if (exclude) pool = pool.filter(c => c.name !== exclude);
   if (!pool.length) throw new Error(`卡组「${cls}｜${deckName}」没有任何卡`);
 
   const band = c => Math.min(8, Math.max(1, c.cost || 1));

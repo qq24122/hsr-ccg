@@ -12,7 +12,7 @@ L010	治安忠犬	欢愉	随从	铜	2	2	3		0		static: ward; onPlay: pctr(笑点,
 L011	惊梦剧团的发条暴徒	欢愉	随从	铜	2	2	3		0	惊梦剧团	turnStart[ctr(笑点)>=6]: maxAtk(self,2)	若自己的「笑点」为6以上，此随从每回合可进行2次攻击	大吉大利	img/L011.png
 L012	泡影稚子	欢愉	随从	铜	2	2	2		0		onDeath: summon(涂鸦,2)	【谢幕曲】：召唤2个涂鸦	笑点狂欢/剧团登场	img/L012.png
 L013	狸猫记者	欢愉	法术	银	2				0		spell: draw(2), pctr(笑点,+2)	抽2张卡。使自己的「笑点」+2	笑点狂欢/大吉大利	img/L013.png
-L014	助手涂鸦•赶稿	欢愉	随从	铜	2	3	2		0		static: noCounter	此随从无法进行防御	剧团登场/笑点狂欢	img/L014.png
+L014	助手涂鸦•赶稿	欢愉	随从	铜	2	3	3		0		static: noCounter	此随从无法进行防御	剧团登场/笑点狂欢	img/L014.png
 L015	喜剧学家	欢愉	随从	铜	2	2	3		0		onSpell: pctr(笑点,+2)	每当自己使用法术卡，使自己的「笑点」+2	笑点狂欢/大吉大利	img/L015.png
 L016	毁烬焚骨的大公	欢愉	护符	银	2			4	0		turnEnd: dmg(enemyRandomAny,1), dmg(enemyRandomAny,1), dmg(enemyRandomAny,1)	【倒数3】。自己的回合结束时，给予敌方随机3个目标各1点伤害	大吉大利	img/L016.png
 L017	开拓者·欢愉	欢愉	随从	虹	3	3	4		0		onAttack: pctr(笑点,+3)	攻击时：使自己的「笑点」+3	笑点狂欢/大吉大利	img/L017.png

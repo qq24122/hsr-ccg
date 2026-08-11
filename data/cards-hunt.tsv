@@ -28,7 +28,7 @@ H026	托帕&账账	巡猎	随从	虹	4	3	3		0		onPlay: summon(账账,1), mark(en
 H027	金人勾魂使	巡猎	随从	银	4	3	4		0	金人	onPlay: dmg(enemyMarked,4)	【入场曲】：给予被【标记】的敌方随从4点伤害	饲饵猎杀/连锁追击	img/H027.png
 H028	素裳·剑势	巡猎	随从	金	4	3	4		0		onAttack[marked]: dmg(enemyRandomAny,2)	攻击时：若目标被【标记】，给予敌方随机1个目标（含主战者）2点伤害	连锁追击	img/H028.png
 H029	穿云弓	巡猎	法术	银	4				0		spell[markedCount>=1]: destroy(enemyMarked); spell[markedCount<1]: dmg(enemyOne,3), mark(enemyOne)	消灭被【标记】的敌方随从。若敌方场上无被【标记】的随从，改为给予1个敌方随从3点伤害并【标记】它	饲饵猎杀/绝命对峙	
-H030	玄爪狼将	巡猎	随从	银	4	4	3		0	狼卒	static: noCounter; onAttack: mark(enemyOne)	此随从无法进行防御。攻击时：【标记】该敌方随从	饲饵猎杀/绝命对峙	
+H030	玄爪狼将	巡猎	随从	银	4	4	4		0	狼卒	static: noCounter; onAttack: mark(enemyOne)	此随从无法进行防御。攻击时：【标记】该敌方随从	饲饵猎杀/绝命对峙	
 H031	希儿	巡猎	随从	虹	5	4	4		0		static: storm; onEnemyDeath[ctr(残梦)<2]: ctr(残梦,+1), extraAtk(self,1); turnStart: ctr(残梦,-2)	【疾驰】。每当敌方随从被消灭，此随从可再进行1次攻击（每回合限2次）	连锁追击/绝命对峙	img/H031.png
 H032	金人司阍	巡猎	随从	银	5	3	5		0	金人	onPlay: mark(enemyAll)	【入场曲】：【标记】敌方全体随从	饲饵猎杀	img/H032.png
 H033	云骑骁卫·彦卿	巡猎	随从	金	5	5	4		0	云骑	static: bane	【必杀】	饲饵猎杀/绝命对峙	img/H033.png

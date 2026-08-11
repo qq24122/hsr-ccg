@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>崩铁 CCG — 单卡消融实验</title>
+<style>
+  body { font: 13px/1.6 "Microsoft YaHei", sans-serif; margin: 18px; background: #1a1c22; color: #ddd; }
+  pre { background: #22242c; padding: 10px; border-radius: 6px; white-space: pre-wrap; font-size: 12px; }
+  h1 { font-size: 17px; } .hint { color: #8a94a6; font-size: 12px; max-width: 900px; }
+</style>
+</head>
+<body>
+<h1>单卡消融实验</h1>
+<p class="hint">
+逐张把卡从卡池里拿掉，用<b>同一批对手、同一批种子</b>重跑，看胜率变化。<br>
+<b>Δ 越负 = 这张卡越重要</b>（拿掉它胜率掉得多）。<br>
+<b>Δ ≈ 0</b> = 这张卡可有可无。<b>Δ 明显为正</b> = 拿掉它反而更强，这张卡在拖后腿。<br>
+出场率低不代表没用（贵但强的卡出场率天然低），所以只看出场率会误判——这个实验直接测因果。<br>
+用 <code>?seeds=2</code> 提高精度，<code>?deck=毁灭｜地狱变</code> 只测一套。
+</p>
+<pre id="out">准备中…</pre>
+
+<script type="module">
+import { parseTSV, CLASS_FILES, listDecks, buildDeckFor, deckPool } from '../src/loader.js';
+import { parseEffect } from '../src/dsl.js';
+import * as S from '../src/state.js';
+import * as E from '../src/engine.js';
+import { takeTurn } from '../src/ai.js';
+
+const Q = new URLSearchParams(location.search);
+const SEEDS = Math.max(1, Math.min(4, +(Q.get('seeds') || 1)));
+const ONLY = Q.get('deck');
+const out = document.getElementById('out');
+
+async function loadAll() {
+  const rows = [];
+  for (const [, file] of CLASS_FILES) {
+    const res = await fetch('../data/' + file, { cache: 'no-store' });
+    const got = parseTSV(await res.text()).rows;
+    for (const r of got) r.clauses = parseEffect(r.effect, r.name);
+    rows.push(...got);
+  }
+  const byName = {};
+  for (const r of rows) byName[r.name] = r;
+  return { all: rows, byName };
+}
+
+/* 同费用的白板随从，用来顶替被测卡。
+ * 关键是「只换这一张、其余 39 张与顺序全都不变」——
+ * 第一版我让组牌器重新组牌，结果它会用剩下的卡补满 40 张（某张卡从 2 份变 3 份），
+ * 变体成了一副多样性更低的牌，于是几乎每张卡拿掉都掉 5~17%，
+ * 测出来的是「多样性损失」而不是「这张卡的价值」。
+ * 换成白板之后，Δ 的含义才精确：这张卡比一张同费白板强多少。 */
+const FILLER_CACHE = {};
+function FILLER(cost) {
+  const c = Math.max(1, Math.min(8, cost | 0));
+  if (!FILLER_CACHE[c]) {
+    const v = Math.min(c, 7);                    // 1费1/1、2费2/2…7费以上7/7
+    FILLER_CACHE[c] = { id: 'FILL' + c, name: '白板' + c, class: '测试', type: '随从',
+      quality: '铜', cost: c, atk: v, hp: v, effect: '', note: '消融实验用的白板随从',
+      isToken: false };
+  }
+  return FILLER_CACHE[c];
+}
+
+function playOne(cards, dA, dB, seed) {
+  const s = S.createGame(dA.slice(), dB.slice(), seed);
+  s.__cardIndex = cards.byName; s.__tokenIndex = cards.byName;
+  let g = 0;
+  while (s.winner == null && g < 100) {
+    E.startTurn(s); if (s.winner != null) break;
+    takeTurn(s, s.active); if (s.winner != null) break;
+    E.endTurn(s); g++;
+  }
+  return s;
+}
+
+/** 一副牌对全部异职业对手打一遍，返回胜场数（分母固定，便于配对比较） */
+function runGauntlet(cards, deck40, myIdx, entries) {
+  let w = 0, n = 0;
+  for (let j = 0; j < entries.length; j++) {
+    if (j === myIdx || entries[j].cls === entries[myIdx].cls) continue;
+    for (let k = 0; k < SEEDS; k++) {
+      // 种子只由「对手 + 第几个种子」决定，不含被测卡 → 基线与变体用的是同一批发牌
+      const seed = 6100 + j * 37 + k * 811;
+      for (const side of [0, 1]) {
+        const a = side === 0 ? deck40 : entries[j].deck40;
+        const b = side === 0 ? entries[j].deck40 : deck40;
+        const s = playOne(cards, a, b, seed + side * 5);
+        n++;
+        if (s.winner === side) w++;
+      }
+    }
+  }
+  return { w, n };
+}
+
+async function main() {
+  const cards = await loadAll();
+  const decksByCls = listDecks(cards);
+  const entries = [];
+  for (const [cls] of CLASS_FILES) {
+    for (const dk of (decksByCls[cls] || [])) {
+      if (deckPool(cards, cls, dk).length < 12) continue;
+      entries.push({ cls, deck: dk, label: `${cls}｜${dk}`,
+        deck40: buildDeckFor(cards, cls, dk, S.makeRng(4242)) });
+    }
+  }
+
+  const targets = entries.map((e, i) => i).filter(i => !ONLY || entries[i].label === ONLY);
+  if (!targets.length) {
+    out.textContent = '找不到卡组。可选：\n' + entries.map(e => e.label).join('\n');
+    return;
+  }
+
+  const report = [];
+  const flat = [];
+  let done = 0, totalWork = 0;
+  for (const i of targets) totalWork += deckPool(cards, entries[i].cls, entries[i].deck).length + 1;
+
+  for (const i of targets) {
+    const E0 = entries[i];
+    const base = runGauntlet(cards, E0.deck40, i, entries);
+    done++;
+    const pool = deckPool(cards, E0.cls, E0.deck);
+    const rows = [];
+    for (const c of pool) {
+      // 只把这张卡换成同费白板，其余 39 张一模一样、顺序也一样 → 严格配对
+      const variant = E0.deck40.map(d => d.name === c.name ? FILLER(d.cost) : d);
+      if (!E0.deck40.some(d => d.name === c.name)) { /* 本来没进牌，Δ 必为 0 */ }
+      const r = runGauntlet(cards, variant, i, entries);
+      const dPct = Math.round((r.w / r.n - base.w / base.n) * 1000) / 10;
+      // 这张卡在基线牌里放了几张（0 = 配额没轮到它，本来就没进牌）
+      const copies = E0.deck40.filter(d => d.name === c.name).length;
+      rows.push({ name: c.name, cost: c.cost, type: c.type, copies, d: dPct, n: r.n });
+      flat.push({ deck: E0.label, ...rows[rows.length - 1] });
+      done++;
+      out.textContent = `进度 ${done}/${totalWork}　当前：${E0.label} — ${c.name}`;
+    }
+    rows.sort((a, b) => a.d - b.d);
+    report.push({ label: E0.label, baseW: base.w, baseN: base.n,
+      basePct: Math.round(base.w / base.n * 100), rows });
+  }
+
+  let txt = `消融实验　每套卡组每张卡 ${report[0] ? report[0].rows[0].n : 0} 局`
+    + `（${SEEDS} 个种子）\n\n`;
+  for (const R of report) {
+    txt += `${'='.repeat(74)}\n${R.label}　基线 ${R.basePct}%（${R.baseW}/${R.baseN}）\n`;
+    txt += `${'Δ胜率'.padEnd(8)}${'份数'.padEnd(6)}${'费'.padEnd(4)}卡名\n`;
+    for (const r of R.rows) {
+      const tag = r.copies === 0 ? "  ← 没进牌" : r.d <= -6 ? "  ← 核心" : r.d <= -3 ? "  ← 有用" : r.d >= 4 ? "  ← 不如白板" : "  ← 与白板无异";
+      txt += `${(r.d > 0 ? '+' : '') + r.d}%`.padEnd(8)
+        + `${r.copies}`.padEnd(6) + `${r.cost}`.padEnd(4) + r.name + tag + '\n';
+    }
+    txt += '\n';
+  }
+
+  // 跨卡组汇总：同一张卡在多套卡组里都没用，才最值得改
+  const byCard = new Map();
+  for (const f of flat) {
+    const o = byCard.get(f.name) || { name: f.name, cost: f.cost, ds: [], decks: [] };
+    o.ds.push(f.d); o.decks.push(f.deck.split('｜')[1]);
+    byCard.set(f.name, o);
+  }
+  const agg = [...byCard.values()].map(o => ({ ...o,
+    avg: Math.round(o.ds.reduce((a, b) => a + b, 0) / o.ds.length * 10) / 10 }))
+    .sort((a, b) => b.avg - a.avg);
+  txt += `${'='.repeat(74)}\n拿掉后胜率上升最多的卡（最可能在拖后腿）\n`;
+  for (const o of agg.slice(0, 25)) {
+    txt += `${(o.avg > 0 ? '+' : '') + o.avg}%`.padEnd(8) + `${o.cost}费`.padEnd(6)
+      + o.name.padEnd(24) + o.decks.join('/') + '\n';
+  }
+  txt += `\n${'='.repeat(74)}\n拿掉后胜率下降最多的卡（真正在干活）\n`;
+  for (const o of agg.slice(-15).reverse()) {
+    txt += `${(o.avg > 0 ? '+' : '') + o.avg}%`.padEnd(8) + `${o.cost}费`.padEnd(6)
+      + o.name.padEnd(24) + o.decks.join('/') + '\n';
+  }
+
+  out.textContent = txt;
+  window.__ablate = { seeds: SEEDS, decks: report.map(R => ({ label: R.label, base: R.basePct,
+    rows: R.rows })), agg };
+}
+main().catch(e => { out.textContent = '出错：' + e.message + '\n' + (e.stack || '');
+  window.__ablate = { fatal: e.message }; });
+</script>
+</body>
+</html>

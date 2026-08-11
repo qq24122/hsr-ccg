@@ -583,6 +583,24 @@ export async function runAll() {
     eq(v.hp, 7, '1 层 ×（1+海瑟音1）= 2 点，不是 3 点');
   });
 
+  t('谢幕曲互杀不会无限递归（同一个单位只能死一次）', () => {
+    const s = game(); turnTo(s, 9);
+    /* 双方各放一个「谢幕曲：给敌方全体随从 5 点」的随从。
+     * A 死 → 打死 B → B 的谢幕曲又打到还没被移除的 A → 以前会无限递归卡死整局。 */
+    // 注意：引擎是从 def.effect 现解析的（clausesOf），预设 clauses 不起作用
+    const mk = name => ({ id: 'X', name, class: '测试', type: '随从', quality: '铜',
+      cost: 1, atk: 1, hp: 1, effect: 'onDeath: dmg(enemyAll,5)' });
+    const a = S.makeUnit(mk('回响甲'), -99); s.players[0].board.push(a);
+    const b = S.makeUnit(mk('回响乙'), -99); s.players[1].board.push(b);
+    let threw = null;
+    try { E.dealDamage(s, a, 5, null); } catch (e) { threw = e.message; }
+    eq(threw, null, '不该抛异常（以前是 Maximum call stack size exceeded）');
+    eq(s.players[0].board.length, 0, 'A 已离场');
+    ok(b.hp <= 0, `B 应被 A 的谢幕曲打死，实际 hp=${b.hp}`);
+    eq(s.players[1].board.map(x => `${x.name}(${x.hp})`).join(','), '',
+      'B 也应离场');
+  });
+
   t('DSL：写尚未实现的关键词会报错而不是静默失效', () => {
     let threw = false;
     try { parseEffect('static: ambush', '测试卡'); } catch (e) { threw = true; }

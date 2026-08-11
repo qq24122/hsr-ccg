@@ -676,8 +676,17 @@ export function healTarget(s, target, n) {
 }
 
 export function killUnit(s, u) {
+  /* 同一个单位只能死一次。
+   *
+   * 【谢幕曲】是在单位还留在场上时结算的（fireTrigger 靠它在场才找得到那条子句），
+   * 于是「谢幕曲：给敌方全体随从伤害」能杀掉对面同样带这种谢幕曲的随从，
+   * 对面那条又打回来、再次命中这个 hp≤0 但尚未移除的单位——
+   * killUnit → 谢幕曲 → dealDamage → killUnit，无限递归，整局卡死。
+   * 双方同时在场才会触发，所以 1512 局自对弈没撞上；消融实验换掉一张卡后撞出来了。 */
+  if (u.__dying) return;
   const pi = S.ownerOf(s, u.uid);
   if (pi < 0) return;
+  u.__dying = true;
   const wasMinion = u.type === '随从';
   fireTrigger(s, 'onDeath', { source: u, ownerIdx: pi });   // 【谢幕曲】
   removeUnit(s, u);
