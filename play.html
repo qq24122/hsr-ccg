@@ -205,11 +205,21 @@
             background: #1b1f28; border: 1px solid #3b4454; border-radius: 10px; padding: 0;
             box-shadow: 0 12px 40px #000a, 0 0 0 1px #0006; display: none; }
   #detail.on { display: block; animation: popIn .13s ease-out; }
-  #detail .dHead { position: relative; height: 132px; overflow: hidden; border-radius: 9px 9px 0 0;
+  /* 详情面板顶部的卡图。
+     原来这里直接用 .art 的 cover：面板是 320 宽、132 高的横条（宽高比 2.4），
+     而卡图是竖的（200×256，宽高比 0.78）——cover 会把图放大到 320×410，
+     只露出最上面 132px，也就是整张图的三分之一，看起来卡图是缺的。
+     改成：整张图用 contain 放全，背后垫一张放大模糊的同图把两侧填满。 */
+  #detail .dHead { position: relative; height: 208px; overflow: hidden; border-radius: 9px 9px 0 0;
                    background: #232833; }
-  #detail .dHead .art { opacity: .85; }
+  #detail .dHead .artBlur { position: absolute; inset: -14px; background-size: cover;
+            background-position: center; filter: blur(16px) saturate(1.25) brightness(.7);
+            opacity: .85; pointer-events: none; }
+  #detail .dHead .artFull { position: absolute; inset: 0; background-size: contain;
+            background-position: center top; background-repeat: no-repeat;
+            pointer-events: none; }
   #detail .dHead .veilg { position: absolute; inset: 0;
-            background: linear-gradient(180deg, #1b1f2800 40%, #1b1f28ee 100%); }
+            background: linear-gradient(180deg, #1b1f2800 52%, #1b1f28f2 100%); }
   #detail .dTitle { position: absolute; left: 12px; right: 12px; bottom: 8px; z-index: 2; }
   #detail .dName { font-size: 16px; font-weight: bold; text-shadow: 0 2px 6px #000, 0 0 10px #000; }
   #detail .dSub { font-size: 11px; color: #9fb0c4; text-shadow: 0 1px 4px #000; }
@@ -501,6 +511,7 @@
     <div class="pickRow"><span class="pickLab">对手职业</span><span id="pFoe" class="pick"></span></div>
     <div class="pickRow"><span class="pickLab">对手卡组</span><span id="pFoeDeck" class="pick"></span></div>
     <div class="pickRow"><span class="pickLab">先手</span><span id="pFirst" class="pick"></span></div>
+    <div class="pickRow"><span class="pickLab">声音</span><span id="pSnd" class="pick"></span></div>
 
     <div id="deckPeek"></div>
     <button id="btnStart" style="padding:12px 34px;font-size:15px;margin-top:4px">开始对战</button>
@@ -528,6 +539,7 @@ import * as S from './src/state.js';
 import * as E from './src/engine.js';
 import { planTurn } from './src/ai.js';
 import * as Stats from './src/stats.js';
+import * as Snd from './src/audio.js';
 
 let CARDS = null, s = null, DECKS = null;
 /* 这一局的元信息，只给战绩记录用，不参与任何规则判定 */
@@ -664,6 +676,20 @@ function applyUrlChoice() {
 
 $('btnStayPortrait').onclick = () => $('rotate').classList.add('off');
 
+/* ---------------- 声音 ----------------
+ * 浏览器禁止在用户做出手势之前发声，所以 AudioContext 只能在第一次点击时才建。
+ * 挂在捕获阶段的全局监听上，比在每个按钮里单独调可靠——漏一个入口就整局没声音。
+ * unlock() 是幂等的，重复调用只会在 context 被系统挂起时把它唤回来。 */
+addEventListener('pointerdown', e => {
+  Snd.unlock();
+  if (e.target.closest('button, .pick b')) Snd.play('click');
+}, true);
+
+/** 现在轮到人类了就敲一声，让人知道该自己动了（AI 回合可能演好几秒） */
+function chimeIfMyTurn() {
+  if (s && s.winner == null && s.active === ME) Snd.play('turn');
+}
+
 /* ---------------- 分享 ---------------- */
 /** 临时把按钮文字换成提示，1.8 秒后换回去。比弹 alert 温和得多。 */
 function toast(btn, msg) {
@@ -716,6 +742,20 @@ function drawPicks() {
   picks('pFoeDeck', DECKS[CH.foe] || [], CH.foeDeck, v => { CH.foeDeck = v });
   picks('pFirst', ['我方先手', '对手先手'], CH.first ? '对手先手' : '我方先手',
     v => { CH.first = v === '对手先手' ? 1 : 0 });
+  /* 声音三档。选择存在 localStorage 里，下次打开还是这个设置。
+   * 「音效」和「音效+音乐」分开，是因为录视频时通常要关掉 BGM——
+   * B站 会对视频里的音乐做版权识别，游戏里响过的 BGM 会被一起录进去。 */
+  const sndCur = Snd.isMuted() ? '静音'
+    : (Snd.volumes().bgm > 0 ? '音效 + 音乐' : '只要音效');
+  picks('pSnd', ['音效 + 音乐', '只要音效', '静音'], sndCur, v => {
+    Snd.unlock();
+    if (v === '静音') { Snd.setMuted(true); Snd.stopBgm(0.3); }
+    else {
+      Snd.setMuted(false);
+      Snd.setBgm(v === '音效 + 音乐' ? 0.35 : 0);
+      if (v === '只要音效') Snd.stopBgm(0.3);
+    }
+  });
   peek();
 }
 
@@ -748,6 +788,10 @@ function startMatch() {
   s.__cls = [`${P0[0]}·${P0[1]}`, `${P1[0]}·${P1[1]}`];
   MATCH = { startAt: Date.now(), mull: 0, meCls: a, meDeck: da, foeCls: b, foeDeck: db,
     first: humanFirst };
+  /* 点「开始对战」是一次确凿的用户手势，正好用来解锁音频。
+   * BGM 要有 audio/manifest.json 才会响，没配就是静音，音效不受影响。 */
+  Snd.unlock();
+  Snd.initFiles().then(() => { if (!Snd.isMuted()) Snd.startBgm(); });
   $('veil').classList.remove('on');
   openMulligan();
 }
@@ -1015,6 +1059,15 @@ function art(def) {
   return `<div class="art${gen}" style="background-image:url('${encodeURI(def.img)}')"></div>`;
 }
 
+/** 详情面板顶部的卡图：整张放全（contain），背后垫一张模糊放大的同图填满两侧。
+ *  卡面上用的 art() 是 cover，在这个横条比例里会把图裁掉三分之二。 */
+function artHead(def) {
+  if (!def.img) return '';
+  const u = encodeURI(def.img);
+  return `<div class="artBlur" style="background-image:url('${u}')"></div>`
+    + `<div class="artFull" style="background-image:url('${u}')"></div>`;
+}
+
 /* ============================ 卡牌详情 ============================
  * 单击任意一张卡就开这个面板：完整效果文字 + 当前状态 + 用到的术语解释。
  * 出牌 / 攻击 / 进化 的按钮也放在面板里，所以「看清楚再决定」和「操作」是一条路径。 */
@@ -1132,7 +1185,7 @@ function detailHTML(spec) {
   }
 
   const gl = glossFor(def, unit);
-  return `<div class="dHead">${art(def)}<div class="veilg"></div><div class="dClose">×</div>`
+  return `<div class="dHead">${artHead(def)}<div class="veilg"></div><div class="dClose">×</div>`
     + `<div class="dTitle"><div class="dName">${esc(unit ? unit.name : def.name)}`
     + `${unit && unit.evolved ? ' ★' : ''}</div>`
     + `<div class="dSub">${esc(def.class || '')}　${esc(def.quality || '')}　${esc(def.type)}`
@@ -1536,6 +1589,9 @@ function drawFly(n) {
 
 /** 最后一击：闪白 + 震屏 + 大字 */
 function lethalHit(win) {
+  // BGM 先淡出，让这一下砸得干净；音效里自带 0.3 秒起势，和闪白基本同步
+  Snd.stopBgm(0.5);
+  Snd.play('lethal');
   const L = $('lethal');
   L.innerHTML = `<div class="fl"></div>`
     + `<div class="wd" style="color:${win ? '#ffe066' : '#ff8787'}">`
@@ -1558,9 +1614,49 @@ function act(fn, opt = {}) {
   return playAnims(before);      // 返回「这一步的画面要放多久」，供 AI 回合调节奏
 }
 
+/* 音效和动画共用同一份还原出来的事件，所以对手的操作、卡效触发的连锁召唤，
+ * 声音全都自动有，不需要在 ai.js 里埋任何回调。 */
+function playSounds(ev, before, now) {
+  let nSummon = 0, nPlay = 0;
+  for (const e of ev) {
+    const foe = !e.mine;
+    if (e.k === 'play') {
+      // 一步里可能连打好几张，全叠在一瞬间会糊成噪音，所以错开并只响前三个
+      if (nPlay < 3) Snd.play('play', { foe, delay: nPlay * 0.18 });
+      nPlay++;
+    } else if (e.k === 'summon') {
+      const def = CARDS && CARDS.byName[e.name];
+      if (nSummon < 3) {
+        // 跟着卡面亮相的 620ms 间隔走
+        Snd.play('summon', { foe, path: def && def.class, delay: nSummon * 0.62 });
+        if (def) Snd.playVoice(def.id);
+      }
+      nSummon++;
+    }
+    else if (e.k === 'atkFace') Snd.play('attack', { foe });
+    else if (e.k === 'trade')   Snd.play('trade', { foe });
+    else if (e.k === 'barrier') Snd.play('barrier');
+    else if (e.k === 'boom')    Snd.play('boom', { dmg: e.dmg });
+  }
+  // 主战者掉血。两边同时掉时只响一次，取伤害大的那边
+  let worst = 0;
+  for (const pi of [0, 1]) {
+    const d = now.hp[pi] - before.hp[pi];
+    if (d < 0 && -d > worst) worst = -d;
+  }
+  if (worst) Snd.play('hit', { dmg: worst });
+  // 进化
+  for (const [uid, a] of now.u) {
+    const b = before.u.get(uid);
+    if (b && a.evolved && !b.evolved) { Snd.play('evolve'); break; }
+  }
+  if (now.hand > before.hand) Snd.play('draw');
+}
+
 function playAnims(before) {
   const now = snap();
   const ev = eventsSince(before.logLen);
+  playSounds(ev, before, now);
 
   /* 打出的卡与被召唤的随从：亮一下卡面。
    * 一步里可能连续召唤好几个（比如浮烟同时出星槎壁和两只次蛰虫），
@@ -1770,6 +1866,7 @@ function foeTurn() {
     act(() => { E.startTurn(s); });
     busy = false;
     render();
+    chimeIfMyTurn();          // AI 回合可能演好几秒，敲一声告诉玩家该自己动了
   })();
 }
 
@@ -1805,6 +1902,7 @@ function finish() {
 }
 
 function showResult(win) {
+  Snd.play(win ? 'win' : 'lose');
   const sm = Stats.summary();
   const me = s.players[ME], foe = s.players[1 - ME];
   const rate = sm.total ? Math.round(sm.w / sm.total * 100) : 0;
