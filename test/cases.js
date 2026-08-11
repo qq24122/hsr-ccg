@@ -552,15 +552,21 @@ export async function runAll() {
     eq(s.players[1].dots, 3, '离场后 3 层沉淀成【侵蚀】');
   });
 
-  t('侵蚀：每回合固定 1 点且不消耗层数，引爆才按层数结算', () => {
+  t('侵蚀：每回合伤害随层数成长、层数不消耗，引爆按层数一次性结算', () => {
+    // 1+floor(层数/5)，上限 3：1~4层→1点、5~9层→2点、10层以上→3点
+    for (const [layers, expect] of [[1,1],[4,1],[5,2],[9,2],[10,3],[30,3]]) {
+      const s = game(); turnTo(s, 9);
+      s.players[1].dots = layers;
+      const hp0 = s.players[1].hp;
+      s.active = 0; E.endTurn(s);                // 施加方回合结束时结算
+      eq(hp0 - s.players[1].hp, expect, `${layers} 层应造成 ${expect} 点`);
+      eq(s.players[1].dots, layers, '层数不消耗');
+    }
     const s = game(); turnTo(s, 9);
     s.players[1].dots = 5;
     const hp0 = s.players[1].hp;
-    s.active = 0; E.endTurn(s);                  // 施加方回合结束时结算
-    eq(s.players[1].hp, hp0 - 1, '5 层也只造成 1 点');
-    eq(s.players[1].dots, 5, '层数不消耗');
     E.runActions(s, [{ op: 'detonate', args: ['enemyLeader'] }], { ownerIdx: 0, source: null });
-    eq(s.players[1].hp, hp0 - 1 - 5, '引爆按层数一次性打 5 点');
+    eq(hp0 - s.players[1].hp, 5, '引爆按层数一次性打 5 点');
     eq(s.players[1].dots, 0, '引爆后清空');
   });
 

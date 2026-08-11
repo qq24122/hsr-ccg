@@ -763,12 +763,19 @@ function settleDots(s, pi) {
     if (u.dots > 0) dealDamage(s, u, u.dots * (1 + (u.aura || 0) + dotAuraBonus(s, u)), null);
     if (u.shocked) dealDamage(s, u, RULES.SHOCK_DMG, null);
   }
-  /* 主战者身上的【侵蚀】固定只造成 1 点（受【奥迹】与 dotAura 加成），而且不消耗层数。
-   * 不按层数结算是刻意的：那样中盘就直接结束比赛了。层数是攒给「引爆」的弹药，
-   * 每回合这 1 点只保证对手不能无限拖下去。 */
+  /* 主战者身上的【侵蚀】：每回合结算，层数不消耗，伤害随层数成长。
+   *
+   * 原来是固定 1 点，层数纯粹是「攒给引爆的弹药」。消融实验证明这条设计不成立：
+   * 引爆卡在没层数时等于空放，而对局只有 6~7 个自己的回合，
+   * 「施加 → 攒够 → 抽到引爆 → 层数足够多」这条 4 步链条根本走不完，
+   * 于是三张引爆卡实测都不如一张同费白板（蚀刻残响 +9.5%）。
+   * 现在层数本身就是递进的压力，引爆从「唯一出口」变成「提前兑现」。
+   * 上限 4 点是为了不让它在中盘直接结束比赛。 */
   const P = s.players[pi];
   if (P.dots > 0) {
-    dealDamage(s, { __leader: pi }, 1 + (P.aura || 0) + auraGranters(s, S.opp(pi)), null);
+    // 曲线是量出来的：1+层数/3 上限4 让引爆奥迹从 44% 冲到 75%，太陡；放缓成 1+层数/5 上限3（/3和/4在常见的3~8层区间给出的值几乎一样，等于没调）
+    const scale = Math.min(3, 1 + Math.floor(P.dots / 5));
+    dealDamage(s, { __leader: pi }, scale + (P.aura || 0) + auraGranters(s, S.opp(pi)), null);
   }
 }
 

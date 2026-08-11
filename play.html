@@ -40,6 +40,8 @@
   .badge.bar { background: #1864ab; color: #d0ebff; }
   .badge.mara { background: #a52a2a; color: #ffe3e3; font-weight: bold;
                 animation: maraPulse 1.6s ease-in-out infinite; }
+  .badge.rot { background: #4a2f5e; color: #e5c7ff; font-weight: bold;
+               border: 1px solid #7a4f9e; }
   @keyframes maraPulse { 0%,100% { box-shadow: 0 0 0 0 #ff6b6b00 }
                          50% { box-shadow: 0 0 9px 2px #ff6b6b88 } }
 
@@ -456,7 +458,9 @@ const GLOSS = [
   ['弱点', '可叠加。每层使该随从受到的伤害 +1。'],
   ['触电', '每当施加方的回合结束时，该随从受到 2 点伤害。'],
   ['持续伤害', '可叠加。每当施加方的回合结束时，该随从受到「层数 × 1」点伤害。随从离场时，没结算完的层数会沉淀到它主人的主战者身上变成【侵蚀】。'],
-  ['侵蚀', '主战者身上的【持续伤害】层数。每当施加方回合结束时造成固定 1 点伤害且不消耗层数——层数是攒给「引爆」用的弹药。'],
+  ['侵蚀', '主战者身上的【持续伤害】层数。每当施加方回合结束时结算，且不消耗层数，'
+    + '所以它会一直压着你。伤害随层数成长：1~4 层每回合 1 点，5~9 层 2 点，10 层以上 3 点（上限）。'
+    + '随从身上没结算完的层数在它离场时会沉淀成【侵蚀】。'],
   ['引爆', '立刻按层数结算【持续伤害】/【侵蚀】并清空层数。打随从时超出其生命值的部分会穿透到它主人的主战者。'],
   ['奥迹', '可叠加。使该目标每层【持续伤害】的结算数值 +1。'],
   ['缺陷', '三种之一：迟缓（被攻击时不反击）／脆弱（受到的伤害 +1）／衰弱（攻击力 -1）。'],
@@ -710,6 +714,9 @@ function leaderHTML(p, cls, isMe) {
     + (p.keywords.has('barrier') ? '<span class="badge bar">屏障</span>' : '')
     // 【入魔】是毁灭一整套卡的开关，血量掉到 10 以下必须让人立刻看见
     + (S.isMara(p) ? '<span class="badge mara">入魔</span>' : '')
+    /* 【侵蚀】现在是一条递进的时钟（伤害随层数成长），不显示出来玩家就是在被暗杀 */
+    + (p.dots > 0 ? `<span class="badge rot" title="每回合结束时受到 ${Math.min(3, 1 + Math.floor(p.dots / 5)) + (p.aura || 0)} 点伤害，层数不消耗">`
+        + `侵蚀 ${p.dots}　-${Math.min(3, 1 + Math.floor(p.dots / 5)) + (p.aura || 0)}/回合</span>` : '')
     + `<span class="badge">牌库 ${p.deck.length}</span>`
     + resourceHTML(p, isMe);
 }
