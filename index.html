@@ -105,12 +105,17 @@
     <div id="statMsg" style="color:#ffd43b;margin-top:6px;min-height:18px"></div>
   </div>
 
-  <h2>开发页面</h2>
-  <div class="dev">
-    <a href="test/index.html">规则引擎单元测试</a>　·
-    <a href="test/validate.html">全卡库校验与 1512 局自对弈</a>　·
-    <a href="test/diag.html">24 套卡组平衡诊断</a>　·
-    <a href="test/art-preview.html">全部卡面预览</a>
+  <!-- 开发页面对玩家没有意义，默认藏起来。
+       想看时在网址后面加 ?dev=1，即 index.html?dev=1 。
+       页面本身仍然可以直接输网址访问（静态站点没法也不需要真正锁住它们）。 -->
+  <div id="devBox" style="display:none">
+    <h2>开发页面</h2>
+    <div class="dev">
+      <a href="test/index.html">规则引擎单元测试</a>　·
+      <a href="test/validate.html">全卡库校验与 1512 局自对弈</a>　·
+      <a href="test/diag.html">24 套卡组平衡诊断</a>　·
+      <a href="test/art-preview.html">全部卡面预览</a>
+    </div>
   </div>
 
   <footer>
@@ -132,9 +137,14 @@ const $ = id => document.getElementById(id);
  * bili 留空时那个按钮就不显示——宁可少一个按钮，也不要给人一个点进去 404 的链接。
  * 要启用：把下面的 bili 填成你的 B站主页地址，play.html 里还有一份同名配置，两处都要填。 */
 const LINKS = {
-  bili: '',                                     // 例：https://space.bilibili.com/12345678
+  bili: 'https://space.bilibili.com/379527696',
   site: 'https://qq24122.github.io/hsr-ccg/',
 };
+
+// 开发页面默认隐藏，?dev=1 才显示
+if (new URLSearchParams(location.search).get('dev') === '1') {
+  $('devBox').style.display = '';
+}
 
 function toast(btn, msg) {
   const old = btn.dataset.label || btn.textContent;
