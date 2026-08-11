@@ -16,6 +16,11 @@
          background: #2f5fa8; color: #fff; text-decoration: none; border-radius: 8px;
          transition: background .15s, transform .1s; }
   .cta:hover { background: #3a72c8; transform: translateY(-2px); }
+  .acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .acts button { padding: 9px 18px; border: 1px solid #2a2d36; border-radius: 7px;
+                 background: #1d2028; color: #c8d2e0; font: inherit; font-size: 13px;
+                 cursor: pointer; transition: background .13s, border-color .13s; }
+  .acts button:hover { background: #252932; border-color: #3d4658; }
   .stats { display: flex; gap: 8px; flex-wrap: wrap; margin: 20px 0 6px; }
   .stat { background: #1d2028; border: 1px solid #2a2d36; border-radius: 7px;
           padding: 9px 14px; flex: 1; min-width: 108px; }
@@ -42,11 +47,16 @@
 
   <a class="cta" href="play.html">开始对战</a>
 
+  <div class="acts">
+    <button id="shareBtn">分享这个游戏</button>
+    <button id="biliBtn" style="display:none">作者的 B站主页</button>
+  </div>
+
   <div class="stats">
     <div class="stat"><b>363</b><span>张卡牌</span></div>
     <div class="stat"><b>8</b><span>个命途职业</span></div>
     <div class="stat"><b>24</b><span>套预设卡组</span></div>
-    <div class="stat"><b>41–59%</b><span>卡组胜率区间</span></div>
+    <div class="stat"><b>42–60%</b><span>卡组胜率区间</span></div>
   </div>
 
   <h2>八个命途</h2>
@@ -99,7 +109,8 @@
   <div class="dev">
     <a href="test/index.html">规则引擎单元测试</a>　·
     <a href="test/validate.html">全卡库校验与 1512 局自对弈</a>　·
-    <a href="test/diag.html">24 套卡组平衡诊断</a>
+    <a href="test/diag.html">24 套卡组平衡诊断</a>　·
+    <a href="test/art-preview.html">全部卡面预览</a>
   </div>
 
   <footer>
@@ -116,6 +127,45 @@ import * as Stats from './src/stats.js';
 import { BUILD } from './src/version.js';
 
 const $ = id => document.getElementById(id);
+
+/* ---------------- 外链与分享 ----------------
+ * bili 留空时那个按钮就不显示——宁可少一个按钮，也不要给人一个点进去 404 的链接。
+ * 要启用：把下面的 bili 填成你的 B站主页地址，play.html 里还有一份同名配置，两处都要填。 */
+const LINKS = {
+  bili: '',                                     // 例：https://space.bilibili.com/12345678
+  site: 'https://qq24122.github.io/hsr-ccg/',
+};
+
+function toast(btn, msg) {
+  const old = btn.dataset.label || btn.textContent;
+  btn.dataset.label = old;
+  btn.textContent = msg;
+  clearTimeout(btn.__t);
+  btn.__t = setTimeout(() => { btn.textContent = btn.dataset.label; }, 1800);
+}
+
+$('shareBtn').onclick = async e => {
+  const btn = e.currentTarget;
+  const url = LINKS.site || location.href;
+  const text = '崩坏：星穹铁道 同人集换式卡牌游戏 — 363 张卡、8 命途、24 套卡组，'
+    + '打开网页就能和 AI 对战。';
+  // 手机上优先调系统分享面板；桌面浏览器基本不支持，落到复制链接
+  if (navigator.share) {
+    try { await navigator.share({ title: '崩铁 CCG', text, url }); return; }
+    catch (err) { if (err && err.name === 'AbortError') return; }   // 用户取消，不该报失败
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    toast(btn, '网址已复制 ✓');
+  } catch (err) {
+    toast(btn, url);        // 剪贴板不可用（非 https / 权限被拒）时，至少让人能看到网址
+  }
+};
+
+if (LINKS.bili) {
+  $('biliBtn').style.display = '';
+  $('biliBtn').onclick = () => window.open(LINKS.bili, '_blank', 'noopener');
+}
 
 function paint() {
   const sm = Stats.summary();

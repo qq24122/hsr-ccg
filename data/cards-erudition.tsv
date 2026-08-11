@@ -19,7 +19,7 @@ E019	黑塔	智识	随从	虹	3	2	5		0		onEnemyDamaged[ctr(观测)<1]: ctr(观�
 E020	自动机兵·甲虫	智识	随从	铜	3	3	2		0	自动机兵	onPlay: summon(机兵残骸,2)	【入场曲】：召唤2个机兵残骸	神君追击	img/E020.png
 E021	智识火漆	智识	护符	金	2				0		turnStart[ctr(解读)>=6]: draw(3), refundPP(3), destroy(self)	自己的「解读」达到6时，此护符消失，抽3张卡并回复自己的PP3点	解读演算	img/E021.png
 E022	那刻夏	智识	随从	虹	3	2	3		0		onAttack: vuln(enemyOne,1)	攻击时：使1个敌方随从获得1层【弱点】（每层使其受到的伤害+1）	弱点揭露	img/E022.png
-E023	自动机兵·雷卫	智识	随从	铜	3	2	3		0	自动机兵	onPlay: shock(enemyAll)	【入场曲】：使敌方全体随从获得【触电】	弱点揭露	
+E023	自动机兵·雷卫	智识	随从	铜	3	2	3		0	自动机兵	onPlay: shock(enemyAll)	【入场曲】：使敌方全体随从获得【触电】	弱点揭露	img/E023.svg
 E024	破晓战队•曙光	智识	随从	银	3	2	4		0	破晓战队	static: ward; onPlay: summon(机兵残骸,1), pctr(解读,+2)	【守护】。【入场曲】：召唤1个机兵残骸，并使自己的「解读」+2	神君追击/解读演算	img/E024.png
 E025	咆哮灵柩	智识	随从	银	4	3	3		0		onPlay: dmg(enemyAll,2)	【入场曲】：给予敌方全体随从2点伤害	弱点揭露	img/E025.png
 E026	咆哮灵柩·雷鸣	智识	随从	银	5	4	4		0		onPlay: dmg(enemyShocked,4)	【入场曲】：给予全部拥有【触电】的敌方随从4点伤害	弱点揭露/神君追击	img/E026.png

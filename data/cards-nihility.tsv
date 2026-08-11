@@ -1,7 +1,7 @@
 id	name	class	type	quality	cost	atk	hp	countdown	token	tag	effect	note	decks	img
 N001	虚数织叶者	虚无	随从	铜	1	1	2		0		onPlay: dot(enemyOne,1)	【入场曲】：使1个敌方随从获得1层【持续伤害】	持续侵蚀/引爆奥迹/缺陷植入	img/N001.png
 N002	埋点土	虚无	法术	铜	1				0		spell: dot(enemyOne,2)	使1个敌方随从获得2层【持续伤害】	持续侵蚀/引爆奥迹/缺陷植入	img/N002.png
-N003	腐坏之种	虚无	法术	铜	1				0		spell: dot(enemyOne,1), draw(1)	使1个敌方随从获得1层【持续伤害】，抽1张卡	持续侵蚀/引爆奥迹	
+N003	腐坏之种	虚无	法术	铜	1				0		spell: dot(enemyOne,1), draw(1)	使1个敌方随从获得1层【持续伤害】，抽1张卡	持续侵蚀/引爆奥迹	img/N003.svg
 N004	卢卡	虚无	随从	金	1	1	2		0		onAttack: dot(enemyOne,1); onDot[ctr(斗志)<4]: ctr(斗志,+1), buff(self,1,0)	攻击时：使该敌方随从获得1层【持续伤害】。每当【持续伤害】层数增加，获得1层【斗志】（+1/+0，最多4层）	持续侵蚀/缺陷植入	img/N004.png
 N005	虫群录像带	虚无	护符	铜	1			3	0		turnEnd: dot(enemyAll,1)	【倒数3】。自己的回合结束时，使敌方全体随从获得1层【持续伤害】	持续侵蚀	img/N005.png
 N006	千冶•刃之炽	虚无	随从	铜	1	2	1		0		onPlay: dmg(selfLeader,1), dot(enemyOne,1)	【入场曲】：给予自己的主战者1点伤害，使1个敌方随从获得1层【持续伤害】	持续侵蚀/缺陷植入	img/N006.png
@@ -9,18 +9,18 @@ N007	佩拉	虚无	随从	金	2	2	2		0		onPlay: destroy(enemyAmulet), flaw(enemy
 N008	桑博	虚无	随从	金	2	1	2		0		onAttack: dot(enemyRandom,1), dot(enemyRandom,1), dot(enemyRandom,1)	攻击时：使敌方随机3个目标各获得1层【持续伤害】	持续侵蚀	img/N008.png
 N009	粉红冲撞	虚无	法术	银	2				0		spell: dmg(enemyOne,3), dot(enemyOne,2)	给予1个敌方随从3点伤害，并使其获得2层【持续伤害】	持续侵蚀/引爆奥迹/缺陷植入	img/N009.png
 N010	桂乃芬	虚无	随从	金	2	2	2		0		onEnemyDamaged: vuln(enemyOne,1)	每当敌方随从受到伤害，使其获得1层【弱点】	持续侵蚀/引爆奥迹	img/N010.png
-N011	蚀月毒蛛	虚无	随从	铜	2	2	2		0		onAttack: dot(enemyOne,1)	攻击时：使该敌方随从获得1层【持续伤害】	持续侵蚀/引爆奥迹	
-N012	噬梦蛾	虚无	随从	铜	2	1	2		0		static: ward; onDeath: dot(enemyAll,1)	【守护】。【谢幕曲】：使敌方全体随从获得1层【持续伤害】	持续侵蚀	
-N013	哀伤织手	虚无	随从	铜	2	2	3		0		onPlay: flaw(enemyOne), flaw(enemyOne)	【入场曲】：使1个敌方随从获得2个随机【缺陷】	缺陷植入	
-N014	梦魇低语	虚无	法术	银	2				0		spell: flaw(enemyOne), flaw(enemyOne), draw(1)	使1个敌方随从获得2个随机【缺陷】，抽1张卡	缺陷植入	
-N015	老主顾账簿	虚无	护符	银	2			5	0		turnEnd: dmg(enemyPatron,2), patron(enemyHighestHp)	【倒数5】。自己的回合结束时，使【老主顾】受到2点伤害；然后使生命值最高的敌方随从成为【老主顾】	缺陷植入	
+N011	蚀月毒蛛	虚无	随从	铜	2	2	2		0		onAttack: dot(enemyOne,1)	攻击时：使该敌方随从获得1层【持续伤害】	持续侵蚀/引爆奥迹	img/N011.svg
+N012	噬梦蛾	虚无	随从	铜	2	1	2		0		static: ward; onDeath: dot(enemyAll,1)	【守护】。【谢幕曲】：使敌方全体随从获得1层【持续伤害】	持续侵蚀	img/N012.svg
+N013	哀伤织手	虚无	随从	铜	2	2	3		0		onPlay: flaw(enemyOne), flaw(enemyOne)	【入场曲】：使1个敌方随从获得2个随机【缺陷】	缺陷植入	img/N013.svg
+N014	梦魇低语	虚无	法术	银	2				0		spell: flaw(enemyOne), flaw(enemyOne), draw(1)	使1个敌方随从获得2个随机【缺陷】，抽1张卡	缺陷植入	img/N014.svg
+N015	老主顾账簿	虚无	护符	银	2			5	0		turnEnd: dmg(enemyPatron,2), patron(enemyHighestHp)	【倒数5】。自己的回合结束时，使【老主顾】受到2点伤害；然后使生命值最高的敌方随从成为【老主顾】	缺陷植入	img/N015.svg
 N016	瓦尔特	虚无	随从	金	3	2	3		0		onPlay: flaw(enemyOne,迟缓); onAttack: dmg(enemyFlawed,2)	【入场曲】：使1个敌方随从获得【缺陷·迟缓】。攻击时：给予全部拥有【缺陷】的敌方随从2点伤害	缺陷植入	img/N016.png
 N017	银狼	虚无	随从	虹	3	2	4		0		onAttack: flaw(enemyOne)	攻击时：使该敌方随从获得1个随机【缺陷】（迟缓：无法防御／脆弱：受到伤害+1／衰弱：攻击力-1）	缺陷植入	img/N017.png
 N018	熵的逆命题	虚无	护符	金	3				0		turnEnd[dotLayers>=4]: dmg(enemyLeader,dotLayers,10), destroy(self)	自己的回合结束时，若敌方【持续伤害】层数总和（含主战者的【侵蚀】）为4以上，此护符消失并给予敌方主战者等量伤害（最多10点）	引爆奥迹	img/N018.png
 N019	沉欢醉饮的海隅	虚无	法术	银	4				0		spell: dot(enemyAll,2)	使敌方全体随从获得2层【持续伤害】	持续侵蚀	img/N019.png
 N020	赛飞儿	虚无	随从	金	3	3	2		0		onPlay: patron(enemyHighestHp)	【入场曲】：使生命值最高的敌方随从成为【老主顾】。自己的随从攻击【老主顾】时，其攻击力+2	缺陷植入/持续侵蚀	img/N020.png
-N021	疫土蔓生	虚无	护符	银	3			3	0		turnStart: dot(enemyLeader,2)	【倒数3】。自己的回合开始时，使敌方的主战者获得2层【侵蚀】	引爆奥迹/持续侵蚀/缺陷植入	
-N022	蚀刻残响	虚无	随从	铜	3	4	3		0		onPlay[dotLayers>=1]: detonate(enemyAny,2,10); onPlay[dotLayers<1]: dot(enemyLeader,1)	【入场曲】：引爆1个敌方目标的【持续伤害】，每层造成2点伤害（最多10点）。若敌方没有任何层数，改为使敌方主战者获得1层【侵蚀】	引爆奥迹	
+N021	疫土蔓生	虚无	护符	银	3			3	0		turnStart: dot(enemyLeader,2)	【倒数3】。自己的回合开始时，使敌方的主战者获得2层【侵蚀】	引爆奥迹/持续侵蚀/缺陷植入	img/N021.svg
+N022	蚀刻残响	虚无	随从	铜	3	4	3		0		onPlay[dotLayers>=1]: detonate(enemyAny,2,10); onPlay[dotLayers<1]: dot(enemyLeader,1)	【入场曲】：引爆1个敌方目标的【持续伤害】，每层造成2点伤害（最多10点）。若敌方没有任何层数，改为使敌方主战者获得1层【侵蚀】	引爆奥迹	img/N022.svg
 N023	桑博·毒镖	虚无	随从	金	3	2	2		0		onAttack: dot(enemyAll,1)	攻击时：使敌方全体随从获得1层【持续伤害】	持续侵蚀	img/N023.png
 N024	椒丘	虚无	随从	虹	4	3	4		0		onDot: buff(self,1,0)	每当敌方场上【持续伤害】层数增加，此随从+1/+0	持续侵蚀/引爆奥迹	img/N024.png
 N025	千冶•刃	虚无	随从	虹	4	4	3		0		onPlay: dmg(selfLeader,3), dot(enemyAll,1)	【入场曲】：给予自己的主战者3点伤害，使敌方全体随从获得1层【持续伤害】	持续侵蚀/缺陷植入	img/N025.png

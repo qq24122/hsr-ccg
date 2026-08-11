@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>卡面预览（含程序化 SVG）</title>
+<style>
+  /* 复刻 play.html 的手牌卡样式，才能判断「在游戏里」实际长什么样 */
+  :root { --hw: 132px; --hh: calc(var(--hw) * 1.42); --hfs: calc(var(--hw) * 0.107); }
+  * { box-sizing: border-box }
+  body { margin: 0; padding: 16px; font: 13px/1.5 "Microsoft YaHei", sans-serif;
+         background: #14161c; color: #dde; }
+  h2 { font-size: 13px; color: #8a94a6; margin: 18px 0 8px; font-weight: normal;
+       border-bottom: 1px solid #2a2d36; padding-bottom: 5px; }
+  #grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .card { width: var(--hw); height: var(--hh); border-radius: 8px; padding: 6px; background: #242a36;
+          border: 2px solid #39404d; position: relative; display: flex; flex-direction: column;
+          overflow: hidden; }
+  .art { position: absolute; inset: 0; background-size: cover; background-position: center top;
+         opacity: .42; pointer-events: none; }
+  /* 程序化卡面自带压暗条，可以放到更高的不透明度；照片式立绘不行 */
+  .art.gen { opacity: .8; }
+  .card > *:not(.art) { position: relative; z-index: 1 }
+  .cost { position: absolute; top: -7px; left: -7px; width: 24px; height: 24px; border-radius: 50%;
+          background: #1864ab; color: #fff; font-weight: bold; text-align: center; line-height: 24px;
+          font-size: 13px; z-index: 2 }
+  .cn { font-size: var(--hfs); font-weight: bold; margin: 12px 0 3px; line-height: 1.25;
+        text-shadow: 0 1px 3px #000, 0 0 6px #000 }
+  .ct { font-size: calc(var(--hfs) * .9); color: #cbd; flex: 1; overflow: hidden; line-height: 1.35;
+        text-shadow: 0 1px 2px #000, 0 0 4px #000 }
+  .cs { display: flex; justify-content: space-between; font-weight: bold;
+        font-size: calc(var(--hfs) * 1.3); text-shadow: 0 1px 3px #000 }
+  .a { color: #ffa94d } .h { color: #ff8787 }
+  .q铜 { border-color: #6b5a3e } .q银 { border-color: #7a8390 }
+  .q金 { border-color: #b8912f } .q虹 { border-color: #a04ec8 }
+</style>
+</head>
+<body>
+<h2 id="h1">程序化 SVG 卡面（本次生成）</h2>
+<div id="grid"></div>
+<h2>对照：官方立绘卡面</h2>
+<div id="grid2"></div>
+<script type="module">
+import { loadCards } from '../src/loader.js';
+const cards = await loadCards('ALL');
+const svgCards = cards.all.filter(c => !c.isToken && /\.svg$/.test(c.img || ''));
+const pngCards = cards.all.filter(c => !c.isToken && /\.png$/.test(c.img || '')).slice(0, 8);
+const esc = t => String(t ?? '').replace(/[&<>"]/g, c =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// img 列是相对 game/ 根的，这个页面在 test/ 下，要多退一层
+const html = list => list.map(d => `<div class="card q${d.quality}">`
+  + (d.img ? `<div class="art${/\.svg$/.test(d.img) ? ' gen' : ''}"`
+             + ` style="background-image:url('../${encodeURI(d.img)}')"></div>` : '')
+  + `<div class="cost">${d.cost}</div><div class="cn">${esc(d.name)}</div>`
+  + `<div class="ct">${esc(d.note || '')}</div>`
+  + (d.type === '随从'
+      ? `<div class="cs"><span class="a">${d.atk}</span><span class="h">${d.hp}</span></div>`
+      : `<div class="cs"><span style="font-size:11px;color:#98a">${d.type}</span></div>`)
+  + '</div>').join('');
+
+document.getElementById('grid').innerHTML = html(svgCards);
+document.getElementById('grid2').innerHTML = html(pngCards);
+document.getElementById('h1').textContent =
+  `程序化 SVG 卡面（本次生成 ${svgCards.length} 张）`;
+document.title = 'ready';
+</script>
+</body>
+</html>

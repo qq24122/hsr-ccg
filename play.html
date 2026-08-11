@@ -69,6 +69,11 @@
   /* 卡图铺满卡面，文字压在上面；图缺失时自然回退成纯文字 */
   .art { position: absolute; inset: 0; background-size: cover; background-position: center top;
          opacity: .55; pointer-events: none; }
+  /* 程序化生成的 SVG 卡面（没有官方立绘的那些）要单独给一档更高的不透明度。
+   * 官方立绘是照片式的中间调，压到 .42~.55 还看得出内容；线稿不行——
+   * 乘完 .42 之后等效只剩 0.33，徽记会整片消失在暗底里，卡面看起来就是纯色的。
+   * 这些 SVG 自带上下两条压暗条，所以调高不透明度不会吃掉卡名和攻/血。 */
+  .art.gen { opacity: .82; }
   .unit > *:not(.art), .card > *:not(.art) { position: relative; z-index: 1; }
   .unit .n { font-size: var(--ufs); font-weight: bold; line-height: 1.25;
              max-height: calc(var(--ufs) * 3.2); overflow: hidden;
@@ -340,6 +345,99 @@
     100% { box-shadow: 0 0 0 22px #4dabf700, inset 0 0 0 #4dabf700 }
   }
   .animBarrier { animation: barrierRing .55s ease-out; }
+
+  /* ================= 质感打磨 =================
+     一条硬约束：.unit 的 box-shadow 已经被占满了——【守护】用 inset 蓝条，
+     受击/进化/屏障的动画用外发光。所以单位的立体感只能走背景渐变，
+     绝不能在 .unit 上加常驻 box-shadow，否则会和状态显示互相顶掉。
+     .card（手牌）的 box-shadow 是空的，可以放心用。 */
+
+  /* 纯色背景太平，给一点从上方来的环境光 */
+  body { background: radial-gradient(125% 85% at 50% 0%, #1d212a 0%, #15171d 52%, #101217 100%); }
+
+  /* 战场：中心微亮 + 内阴影，让「场地」像一个凹进去的区域而不是一块色块 */
+  .field { background: radial-gradient(125% 145% at 50% 45%, #1f232d 0%, #171a21 100%);
+           box-shadow: inset 0 0 26px #00000055; }
+  .field.dropOk { background: radial-gradient(125% 145% at 50% 45%, #223527 0%, #18201a 100%);
+                  box-shadow: inset 0 0 0 2px #51cf6688, inset 0 0 26px #00000055; }
+  .slot-empty { border-color: #262b34; background: #0000001f; }
+
+  .unit { background: linear-gradient(#272d39, #1d212a); }
+  .unit.amulet { background: linear-gradient(#342b44, #241d2f); }
+
+  .card { background: linear-gradient(#28303e, #1e2430);
+          box-shadow: 0 3px 9px #00000070, inset 0 1px 0 #ffffff12;
+          transition: transform .1s ease-out, box-shadow .1s ease-out; }
+  .card:hover { transform: translateY(-7px) scale(1.025);
+                box-shadow: 0 12px 24px #000000a8, inset 0 1px 0 #ffffff20; }
+  .card.no:hover { box-shadow: 0 3px 9px #00000070, inset 0 1px 0 #ffffff12; }
+
+  .leader { background: linear-gradient(#222631, #191d25); box-shadow: 0 2px 6px #00000045; }
+
+  .deckPile .bk { background: linear-gradient(160deg, #402f61, #26334c); border-color: #5e4d88; }
+
+  /* 按钮：渐变 + 按下的位移，纯色平面按钮点起来没有反馈 */
+  button { background: linear-gradient(#3569b8, #2a5596); box-shadow: 0 2px 5px #00000055;
+           transition: filter .12s, transform .07s; }
+  button:hover:not(:disabled) { filter: brightness(1.15); }
+  button:active:not(:disabled) { transform: translateY(1px); filter: brightness(.95); }
+  button:disabled { background: #2a3038; box-shadow: none; }
+  button.warn { background: linear-gradient(#b93a3a, #97292a); }
+
+  /* 开局界面是玩家看到的第一个画面，值得多花一点 */
+  #setup { background: linear-gradient(#1c2029, #151821); box-shadow: 0 18px 48px #000000a0; }
+  .pick b { transition: background .12s, border-color .12s, transform .07s; }
+  .pick b:hover { transform: translateY(-1px); }
+
+  /* 长效果文字在卡面上是被 overflow:hidden 直接切断的，切在半句话中间，
+     而且没有任何迹象表明「还有」——玩家会以为卡面写的就是全部。
+     底部渐隐把这件事说出来（完整文字在详情面板里）。文字短的时候
+     那块区域本来是空的，所以不会有副作用。 */
+  .card .ct, .reveal .rt {
+    -webkit-mask-image: linear-gradient(180deg, #000 76%, #0000 99%);
+            mask-image: linear-gradient(180deg, #000 76%, #0000 99%);
+  }
+
+  /* ================= 小屏与竖屏 =================
+     算过的账：战场是 5 格并排，单位宽度的下限是 86px（再小卡面文字就没法看），
+     5 格加间隙和内边距要约 482px，再加上右边 260px 的侧栏，一共需要约 742px 宽。
+     竖屏手机只有 390~430px，差得太远——这不是缩放能解决的，只能请玩家横屏。 */
+  #rotate { position: fixed; inset: 0; z-index: 40; background: #0c0e12;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            gap: 16px; padding: 28px; text-align: center; }
+  @media (orientation: portrait) and (max-width: 745px) {
+    #rotate:not(.off) { display: flex; }
+  }
+  #rotate .ph { width: 58px; height: 96px; border: 3px solid #4d7fd0; border-radius: 9px;
+                position: relative; animation: tipTurn 2.6s ease-in-out infinite; }
+  #rotate .ph::after { content: ''; position: absolute; left: 50%; bottom: 5px; width: 18px;
+                       height: 3px; border-radius: 2px; background: #4d7fd0;
+                       transform: translateX(-50%); }
+  @keyframes tipTurn { 0%,28% { transform: rotate(0) } 52%,84% { transform: rotate(-90deg) }
+                       100% { transform: rotate(0) } }
+
+  /* 手机横屏：高度只有 390~430px，而上下两排战场 + 手牌 + 两条主战者条
+     按默认下限一共要约 500px，body 又是 overflow:hidden——超出的部分是被直接裁掉，
+     不是能滚。所以下限必须跟着屏幕一起缩，否则「请横屏」把人引过去之后照样是坏的。 */
+  @media (max-height: 560px) {
+    :root {
+      --uw: clamp(58px, min(6.6vw, 12.6vh), 152px);
+      --hw: clamp(66px, min(7.4vw, 14vh), 174px);
+      --ufs: calc(var(--uw) * 0.132);
+      --hfs: calc(var(--hw) * 0.120);
+    }
+    #board { padding: 4px 6px; gap: 3px; }
+    #side { width: 176px; }
+    .leader { padding: 3px 7px; gap: 6px; }
+    .lname { min-width: 0; } .hp { font-size: 15px; min-width: 42px; }
+    #foeHand { height: 16px; } .back { width: 11px; height: 16px; }
+    #handRow { min-height: calc(var(--hh) + 4px); gap: 6px; }
+    .field { min-height: calc(var(--uh) + 6px); gap: 5px; padding: 2px; }
+    #side h3 { padding: 5px 8px; } #ctl { padding: 5px 8px; gap: 4px; }
+    #ctl button { padding: 6px; font-size: 11px; }
+    #hint { padding: 4px 8px; min-height: 24px; }
+    #detail { width: 268px; }
+  }
 </style>
 </head>
 <body>
@@ -373,6 +471,18 @@
 
 <!-- 最后一击的全屏特效 -->
 <div id="lethal"></div>
+
+<!-- 竖屏挡板。留「仍然竖屏玩」的出口：宁可让人看到挤在一起的界面，
+     也不要把人硬挡在门外——被挡住的人只会直接关掉页面。 -->
+<div id="rotate">
+  <div class="ph"></div>
+  <div style="font-size:17px;font-weight:bold">请把手机横过来</div>
+  <div style="font-size:13px;color:#8a94a6;max-width:310px;line-height:1.85">
+    战场是 5 格并排的，竖屏宽度装不下，卡面会挤成一团。<br>横过来就正常了。
+  </div>
+  <button id="btnStayPortrait" style="padding:9px 20px;background:#2a3038;font-weight:normal">
+    仍然竖屏玩</button>
+</div>
 
 <!-- 拖拽时跟着指针的卡影，与指向目标的连线 -->
 <div id="dragGhost" style="display:none"></div>
@@ -497,6 +607,41 @@ function glossFor(def, unit) {
 /* 当前选择。用普通变量 + 按钮，不依赖原生 select 的弹出行为。 */
 const CH = { me: '', meDeck: '', foe: '', foeDeck: '', first: 0 };
 
+/* 外链。bili 留空时那个按钮就不渲染——宁可少一个按钮，
+ * 也不要给玩家一个点进去 404 的链接。填法见 index.html 里的同名配置。 */
+const LINKS = {
+  bili: '',                                     // 例：https://space.bilibili.com/12345678
+  site: 'https://qq24122.github.io/hsr-ccg/',
+};
+
+const Q = new URLSearchParams(location.search);
+
+/* 结算后的「再来一局 / 换卡组」把选择写进 URL 再整页刷新，而不是在原页面里重开。
+ * 原因：上一局可能还有没跑完的动画定时器（出牌亮相、AI 回合的分步演出），
+ * 它们会作用到新建的对局对象上，导致偶发的错乱。刷新是唯一保证零残留的做法。
+ * 附带好处：这个网址本身就能分享「这个对阵」。 */
+function matchUrl(autoStart) {
+  const p = new URLSearchParams({ me: CH.me, md: CH.meDeck,
+    foe: CH.foe, fd: CH.foeDeck, first: String(CH.first) });
+  if (autoStart) p.set('go', '1');
+  return location.origin + location.pathname + '?' + p.toString();
+}
+
+/* 从 URL 读回选择。每一项都拿真实的职业/卡组列表校验过，
+ * 所以手改坏了的网址只会退回默认值，不会崩在半路。 */
+function applyUrlChoice() {
+  const names = CLASS_FILES.map(([c]) => c);
+  const pick = (k, list, fallback) => {
+    const v = Q.get(k);
+    return v && list.includes(v) ? v : fallback;
+  };
+  CH.me = pick('me', names, CH.me);
+  CH.meDeck = pick('md', DECKS[CH.me] || [], (DECKS[CH.me] || [])[0] || '');
+  CH.foe = pick('foe', names, CH.foe);
+  CH.foeDeck = pick('fd', DECKS[CH.foe] || [], (DECKS[CH.foe] || [])[0] || '');
+  CH.first = Q.get('first') === '1' ? 1 : 0;
+}
+
 (async function init() {
   try {
     CARDS = await loadCards('ALL');
@@ -507,12 +652,46 @@ const CH = { me: '', meDeck: '', foe: '', foeDeck: '', first: 0 };
     CH.foe = names[1];
     CH.meDeck = (DECKS[CH.me] || [])[0] || '';
     CH.foeDeck = (DECKS[CH.foe] || [])[0] || '';
+    applyUrlChoice();
     $('loadInfo').textContent = `已载入 ${CARDS.all.length} 张卡，${Object.values(DECKS).flat().length} 套卡组　—　点下面的按钮选择`;
     drawPicks();
+    // ?go=1 是「再来一局」带回来的，直接开打，不用再点一次开始
+    if (Q.get('go') === '1' && CH.meDeck && CH.foeDeck) startMatch();
   } catch (e) {
     $('loadInfo').innerHTML = `<span style="color:#ff8787">卡表载入失败：${e.message}</span>`;
   }
 })();
+
+$('btnStayPortrait').onclick = () => $('rotate').classList.add('off');
+
+/* ---------------- 分享 ---------------- */
+/** 临时把按钮文字换成提示，1.8 秒后换回去。比弹 alert 温和得多。 */
+function toast(btn, msg) {
+  if (!btn) return;
+  const old = btn.dataset.label || btn.textContent;
+  btn.dataset.label = old;
+  btn.textContent = msg;
+  clearTimeout(btn.__t);
+  btn.__t = setTimeout(() => { btn.textContent = btn.dataset.label; }, 1800);
+}
+
+async function shareSite(btn) {
+  const url = LINKS.site || (location.origin + location.pathname.replace(/[^/]*$/, ''));
+  const text = '崩坏：星穹铁道 同人集换式卡牌游戏 — 363 张卡、8 命途、24 套卡组，'
+    + '打开网页就能和 AI 对战。';
+  // 手机上优先用系统分享面板；桌面浏览器基本没有，落到复制链接
+  if (navigator.share) {
+    try { await navigator.share({ title: '崩铁 CCG', text, url }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }   // 用户自己取消，不该报「失败」
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    toast(btn, '网址已复制 ✓');
+  } catch (e) {
+    // 剪贴板在非 https 或权限被拒时不可用，那就把网址显示出来让人自己抄
+    toast(btn, url);
+  }
+}
 
 /** 画一排可点按钮；sel 是当前值，onPick 是点了之后干什么 */
 function picks(el, list, cur, onPick) {
@@ -552,7 +731,9 @@ function peek() {
     + `<br>${esc(pool.map(c => c.name).join('、'))}`;
 }
 
-$('btnStart').onclick = () => {
+$('btnStart').onclick = () => startMatch();
+
+function startMatch() {
   const a = CH.me, b = CH.foe, da = CH.meDeck, db = CH.foeDeck;
   if (!da || !db) return;
   const seed = ((Date.now() % 100000) | 0) || 7;   // 每局不同；引擎内部仍是可复现的 seeded RNG
@@ -569,7 +750,7 @@ $('btnStart').onclick = () => {
     first: humanFirst };
   $('veil').classList.remove('on');
   openMulligan();
-};
+}
 
 /* ---------------- 开局重抽 ----------------
  * 官方：「可选择任意张不需要的卡牌进行重新抽取。所选卡牌本身不会被再次抽取，
@@ -826,9 +1007,12 @@ function cardHTML(inst, i, myTurn) {
 const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 /** 卡图层。img 列为空时返回空串，卡面自然退回纯文字，不会出现裂图。
- *  换成你自己的图：直接用同名文件覆盖 game/img/<卡牌id>.png 即可，代码不用动。 */
+ *  换成你自己的图：直接用同名文件覆盖 game/img/<卡牌id>.png 即可，代码不用动。
+ *  .svg 是 gen-art.pl 生成的程序化卡面，需要更高的不透明度才看得见（见 CSS 里 .art.gen）。 */
 function art(def) {
-  return def.img ? `<div class="art" style="background-image:url('${encodeURI(def.img)}')"></div>` : '';
+  if (!def.img) return '';
+  const gen = /\.svg$/i.test(def.img) ? ' gen' : '';
+  return `<div class="art${gen}" style="background-image:url('${encodeURI(def.img)}')"></div>`;
 }
 
 /* ============================ 卡牌详情 ============================
@@ -1637,11 +1821,28 @@ function showResult(win) {
     + `${sm.queued ? `　·　<span style="color:#ffd43b">${sm.queued} 条战绩待上传</span>` : ''}</div>`
     + `<div class="rline" style="color:#8a94a6;font-size:12px">`
     + `本机累计 <b style="color:#dde">${sm.w} 胜 ${sm.l} 负</b>（${rate}%）</div>`
-    + '<div class="row" style="margin-top:10px">'
-    + '<button onclick="location.reload()" style="padding:11px 30px">再来一局</button>'
-    + '<button onclick="location.href=\'index.html\'" style="padding:11px 22px;background:#2a3038">回首页</button>'
+    + '<div class="row" style="margin-top:12px;flex-wrap:wrap;justify-content:center">'
+    + '<button id="rAgain" style="padding:11px 26px">再来一局（同卡组）</button>'
+    + '<button id="rDeck" style="padding:11px 22px;background:#3f4d63">换卡组</button>'
+    + '</div>'
+    + '<div class="row" style="margin-top:2px;flex-wrap:wrap;justify-content:center">'
+    + '<button id="rShare" style="padding:8px 16px;background:#2a3038;font-weight:normal">'
+    + '分享这个游戏</button>'
+    + (LINKS.bili
+        ? '<button id="rBili" style="padding:8px 16px;background:#2a3038;font-weight:normal">'
+          + '作者的 B站主页</button>'
+        : '')
+    + '<button id="rHome" style="padding:8px 16px;background:#2a3038;font-weight:normal">'
+    + '回首页</button>'
     + '</div>';
   $('veil').classList.add('on');
+
+  // innerHTML 换过了，按钮是新元素，必须重新绑事件（不能靠之前绑好的）
+  $('rAgain').onclick = () => { location.href = matchUrl(true); };
+  $('rDeck').onclick  = () => { location.href = matchUrl(false); };
+  $('rShare').onclick = e => shareSite(e.currentTarget);
+  $('rHome').onclick  = () => { location.href = 'index.html'; };
+  if ($('rBili')) $('rBili').onclick = () => window.open(LINKS.bili, '_blank', 'noopener');
 }
 </script>
 </body>
