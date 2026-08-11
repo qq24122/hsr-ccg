@@ -61,8 +61,8 @@ const html = list => list.map(d => `<div class="card q${d.quality}">`
 document.getElementById('grid').innerHTML = html(svgCards);
 document.getElementById('grid2').innerHTML = html(pngCards);
 document.getElementById('h1').textContent =
-  `程序化 SVG 卡面（本次生成 ${svgCards.length} 张）`;
-document.title = 'ready';
+  `程序化 SVG 卡面（${svgCards.length} 张没有官方立绘的卡）`;
+window.__artReady = true;      // 截图工具靠这个知道图都渲染完了
 </script>
 </body>
 </html>
