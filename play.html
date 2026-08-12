@@ -862,7 +862,7 @@ function render() {
   $('foeField').innerHTML = fieldHTML(foe, false);
   $('myField').innerHTML = fieldHTML(me, true);
   $('hand').innerHTML = me.hand.map((h, i) => cardHTML(h, i, myTurn)).join('');
-  $('myDeck').innerHTML = deckPileHTML(me);
+  $('myDeck').innerHTML = deckPileHTML(me, MATCH && MATCH.meDeck);
   $('myDeck').className = 'deckPile' + (me.deck.length <= 3 ? ' crit'
     : me.deck.length <= 8 ? ' low' : '');
 
@@ -946,13 +946,20 @@ function leaderHTML(p, cls, isMe) {
     + resourceHTML(p, isMe);
 }
 
-/** 牌库画成一叠卡背，张数越多叠得越厚 */
-function deckPileHTML(p) {
+/** 牌库画成一叠卡背，张数越多叠得越厚。
+ *  最上面那张用卡组封面图（img/decks/<卡组名>.svg），
+ *  底下几张是纯色卡背，叠在一起才像"一叠牌"。 */
+function deckPileHTML(p, deckName) {
   const n = p.deck.length;
   const layers = Math.min(5, Math.ceil(n / 8));
   let out = '';
   for (let i = layers; i >= 1; i--) {
-    out += `<div class="bk" style="transform:translate(${i * 1.6}px,${-i * 1.6}px)"></div>`;
+    const isTop = i === layers;
+    const coverStyle = isTop && deckName
+      ? `background:url('img/decks/${encodeURI(deckName)}.svg') center/cover;`
+      : '';
+    out += `<div class="bk${isTop ? ' top' : ''}"`
+      + ` style="${coverStyle}transform:translate(${i * 1.6}px,${-i * 1.6}px)"></div>`;
   }
   if (!layers) out += '<div class="bk" style="opacity:.25"></div>';
   return out + `<div class="ct">${n}<small>牌库</small></div>`;

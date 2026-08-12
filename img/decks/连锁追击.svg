@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 312" width="200" height="312">
+<defs>
+<radialGradient id="g" cx="50%" cy="38%" r="82%">
+  <stop offset="0" stop-color="#12405e"/><stop offset="1" stop-color="#08151f"/>
+</radialGradient>
+<filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+  <feGaussianBlur stdDeviation="3" result="b"/>
+  <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter>
+</defs>
+<!-- 底 -->
+<rect width="200" height="312" fill="url(#g)"/>
+<!-- 外框：卡背的镶边 -->
+<rect x="6" y="6" width="188" height="300" rx="8" fill="none"
+      stroke="#5cc9f5" stroke-width="2.4" opacity=".55"/>
+<rect x="11" y="11" width="178" height="290" rx="6" fill="none"
+      stroke="#5cc9f5" stroke-width="0.8" opacity=".28"/>
+<!-- 四角装饰 -->
+<g stroke="#5cc9f5" stroke-width="2" fill="none" opacity=".7">
+  <path d="M19 19 L34 19 L34 34"/><path d="M181 19 L166 19 L166 34"/>
+  <path d="M19 293 L34 293 L34 278"/><path d="M181 293 L166 293 L166 278"/>
+</g>
+<!-- 中心徽记 -->
+<g transform="translate(100 156) scale(1.08) translate(-50 -50)"
+   stroke="#5cc9f5" stroke-width="4" fill="none" stroke-linejoin="round"
+   stroke-linecap="round" opacity=".9" filter="url(#glow)"><circle cx="50" cy="50" r="28"/><circle cx="50" cy="50" r="5"/><path d="M19 81 L81 19"/><path d="M81 19 L63 24"/><path d="M81 19 L76 37"/><circle cx="50" cy="50" r="13"/></g>
+<!-- 命途名（徽记上方） -->
+<text x="100" y="227" text-anchor="middle"
+      fill="#5cc9f5" font-size="13" font-weight="bold"
+      opacity=".75" letter-spacing="3">巡猎</text>
+<!-- 卡组名（底部横栏） -->
+<rect x="16" y="254" width="168" height="38" rx="5"
+      fill="#0c1822" stroke="#5cc9f5" stroke-width="1.5" opacity=".85"/>
+<text x="100" y="279" text-anchor="middle"
+      fill="#5cc9f5" font-size="17" font-weight="bold"
+      opacity=".95" letter-spacing="2">连锁追击</text>
+<!-- 副标题 -->
+<text x="100" y="305" text-anchor="middle"
+      fill="#5cc9f5" font-size="9" opacity=".45" letter-spacing="1">标记多段连击</text>
+</svg>
