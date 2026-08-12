@@ -954,7 +954,7 @@ function deckPileHTML(p, deckName) {
   const layers = Math.min(5, Math.ceil(n / 8));
   let out = '';
   for (let i = layers; i >= 1; i--) {
-    const isTop = i === layers;
+    const isTop = i === 1;   // 循环从大到小，i=1 最后渲染 = 视觉最上层
     const coverStyle = isTop && deckName
       ? `background:url('img/decks/${encodeURI(deckName)}.svg') center/cover;`
       : '';
