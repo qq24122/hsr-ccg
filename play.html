@@ -1811,6 +1811,11 @@ function lungeFrom(r, html, targetRect) {
 function lungeEl(el, targetRect) {
   if (!el) return;
   lungeFrom(el.getBoundingClientRect(), el.outerHTML, targetRect);
+  // 分身飞出去的瞬间，原件变暗——否则看起来像一张卡裂成了两张
+  el.style.transition = 'opacity .10s';
+  el.style.opacity = '.3';
+  setTimeout(() => { el.style.transition = 'opacity .22s'; el.style.opacity = '1'; }, 160);
+  setTimeout(() => { el.style.transition = ''; }, 400);
 }
 
 /** 玩家自己发起攻击时用：目标取动作前的位置（那时目标可能还没死） */
