@@ -94,6 +94,7 @@ function resolveTarget(s, spec, ctx) {
       return [pool[Math.floor(s.rng() * pool.length)]];
     }
     case 'enemyMarked':  return S.minionsOf(E).filter(u => u.marks.has('标记'));
+    case 'enemyBroken':  return S.minionsOf(E).filter(u => u.marks.has('破绽'));
     case 'enemyShocked': return S.minionsOf(E).filter(u => u.shocked);
     case 'enemyDotted':  return S.minionsOf(E).filter(u => u.dots > 0);
     /* 「敌方全体的【持续伤害】」——随从加上带【侵蚀】的主战者。
@@ -277,7 +278,7 @@ function runAction(s, a, ctx) {
         if (t.__leader != null) continue;
         t.dots = 0; t.aura = 0; t.vuln = 0; t.shocked = false;
         t.flaws.clear();
-        for (const k of ['标记', '老主顾', '织线']) t.marks.delete(k);
+        for (const k of ['标记', '破绽', '老主顾', '织线']) t.marks.delete(k);
       }
       break;
     case 'maxAtk':      // 每回合攻击次数上限（与 extraAtk 不同，这个不会在回合开始时清零）
@@ -335,6 +336,9 @@ function runAction(s, a, ctx) {
       break;
     case 'mark':        // 【标记】受到的伤害 +1，持续到该随从离场
       for (const t of resolveTarget(s, A[0], ctx)) if (t.__leader == null) t.marks.add('标记');
+      break;
+    case 'break':       // 【破绽】受到的伤害 +1，持续到该随从离场（通用，非命途专属）
+      for (const t of resolveTarget(s, A[0], ctx)) if (t.__leader == null) t.marks.add('破绽');
       break;
     case 'vuln':        // 【弱点】每层使其受到的伤害 +1（标记的可叠加版）
       for (const t of resolveTarget(s, A[0], ctx)) {
@@ -592,9 +596,10 @@ export function effAtk(s, u) {
   return Math.max(0, n);
 }
 
-/** 受到伤害的加成：【标记】+1、【弱点】每层+1、【缺陷·脆弱】+1 */
+/** 受到伤害的加成：【标记】+1、【破绽】+1、【弱点】每层+1、【缺陷·脆弱】+1 */
 function dmgTakenBonus(u) {
-  return (u.marks.has('标记') ? 1 : 0) + (u.vuln || 0) + (u.flaws.has('脆弱') ? 1 : 0);
+  return (u.marks.has('标记') ? 1 : 0) + (u.marks.has('破绽') ? 1 : 0)
+    + (u.vuln || 0) + (u.flaws.has('脆弱') ? 1 : 0);
 }
 
 function reduceOf(s, u) {

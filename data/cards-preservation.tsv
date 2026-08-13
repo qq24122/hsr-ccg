@@ -10,7 +10,7 @@ P009	「药王秘传」内丹士	存护丰饶	随从	铜	2	2	3		0	药王秘传	o
 P010	三月七	存护丰饶	随从	金	2	1	3		0		static: ward; onPlay: summon(龙骨壁,1)	【守护】。【入场曲】：召唤1个龙骨壁（0/2，【守护】）	护盾壁垒/不死回响	img/P010.png
 P011	丰饶灵兽·奎木	存护丰饶	随从	铜	2	2	2		0	丰饶灵兽	onLeaderHeal[ctr(奎木)<1]: ctr(奎木,+1), buff(self,1,1); turnStart: ctr(奎木,-1)	每当自己的主战者回复生命值，此随从+1/+1（每回合限1次）	孽物增殖/不死回响	img/P011.png
 P012	太空封印站	存护丰饶	护符	银	1			4	0		onPlay: summon(星槎壁,1); turnStart: buff(allyTag(盾卫),0,1)	【倒数4】。【入场曲】：召唤1个星槎壁（0/2，【守护】）。自己的回合开始时，使自己全体盾卫+0/+1	护盾壁垒	img/P012.png
-P013	一场术后对话	存护丰饶	法术	银	1				0		spell[!mara]: heal(selfLeader,4); spell[mara]: heal(selfLeader,8)	回复自己的主战者4点生命值。若自己的生命值为10以下，改为8点	不死回响	img/P013.png
+P013	一场术后对话	存护丰饶	法术	银	1				0		spell[hp>10]: heal(selfLeader,4); spell[hp<=10]: heal(selfLeader,8)	回复自己的主战者4点生命值。若自己的生命值为10以下，改为8点	不死回响	img/P013.png
 P014	命运从未公平	存护丰饶	法术	银	2				0		spell: grant(allyOne,barrier)	使1个自己的随从获得【屏障】	不死回响	img/P014.png
 P015	入魔机巧·浓云金蟾	存护丰饶	随从	铜	2	2	2		0		onAllySummon: ctr(护盾,+1); onCtr(护盾,2): ctr(护盾,-2), buff(self,1,1)	每当2个随从进入自己的战场，此随从+1/+1	护盾壁垒/孽物增殖	img/P015.png
 P016	玲可	存护丰饶	随从	金	3	2	3		0		turnEnd: heal(selfLeader,2)	自己的回合结束时，回复自己的主战者2点生命值	不死回响/孽物增殖	img/P016.png

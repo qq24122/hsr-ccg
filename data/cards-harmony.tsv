@@ -8,7 +8,7 @@ A006	应天涉远的卜者	同谐	随从	铜	1	1	3		0		onPlay: pctr(蓄能,+2)	�
 A007	追逐风的时候	同谐	随从	铜	1	1	1		0		onDeath: extraAtk(allyOne,1)	【谢幕曲】：使1个自己的随从获得「本回合可再进行1次攻击」	额外行动	img/A007.png
 A008	艾丝妲	同谐	随从	金	2	2	2		0		onAllyAttack: pctr(蓄能,+1); turnStart: atkPlus(allyAll,ctr(蓄能)/2)	每当自己的随从攻击，使自己的「蓄能」+1。自己的回合开始时，使全体随从的攻击力额外增加「蓄能」÷2（向下取整）	军功爵位/蓄能合鸣	img/A008.png
 A009	停云	同谐	随从	金	2	1	3		0		onPlay: medal(allyOne,1); onAllyAttack: dmg(enemyLeader,1)	【入场曲】：使1个自己的随从获得【军功】。自己的随从攻击后，给予敌方的主战者1点伤害	军功爵位/额外行动	img/A009.png
-A010	寒鸦	同谐	随从	金	2	2	2		0		static: rush; onAttack: mark(enemyOne); onAllyAttack[ctr(承负)<1]: ctr(承负,+1), refundPP(1); turnStart: ctr(承负,-1)	【突进】。攻击时【标记】该敌方随从。自己的随从攻击后回复自己的PP1点（每回合限1次）	军功爵位/额外行动	img/A010.png
+A010	寒鸦	同谐	随从	金	2	2	2		0		static: rush; onAttack: break(enemyOne); onAllyAttack[ctr(承负)<1]: ctr(承负,+1), refundPP(1); turnStart: ctr(承负,-1)	【突进】。攻击时给该敌方随从打出【破绽】。自己的随从攻击后回复自己的PP1点（每回合限1次）	军功爵位/额外行动	img/A010.png
 A011	轮契	同谐	法术	铜	2				0		spell: buff(allyAll,1,1), pctr(蓄能,+2)	使自己全体随从+1/+1。使自己的「蓄能」+2	蓄能合鸣/额外行动	img/A011.png
 A012	正阳狮鹫	同谐	随从	银	2	3	2		0	狮鹫	static: rush	【突进】	额外行动	img/A012.png
 A013	齐颂	同谐	法术	银	2				0		spell: medal(allyAll,1)	使自己全体随从获得【军功】	军功爵位/蓄能合鸣/额外行动	img/A013.png

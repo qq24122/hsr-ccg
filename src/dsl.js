@@ -60,6 +60,7 @@ const ACTIONS = new Set([
   'maxAtk',    // 每回合攻击次数上限（不会在回合开始时清零）
   // 职业机制
   'mark',      // 巡猎【标记】受到的伤害 +1
+  'break',     // 通用【破绽】受到的伤害 +1（非命途专属，供毁灭/同谐等命途自洽使用）
   'vuln',      // 智识【弱点】每层受到的伤害 +1
   'dot',       // 虚无【持续伤害N层】；指向主战者时为【侵蚀】（每回合固定 1 点，层数不消耗）
   'aura',      // 虚无【奥迹】放大持续伤害
@@ -96,6 +97,7 @@ const TARGETS = new Set([
   'enemyRandomAny',   // 随机 1 个敌方目标（随从与主战者同池）
   'allyRandom',
   'enemyMarked',      // 全部被【标记】的敌方随从
+  'enemyBroken',      // 全部被【破绽】的敌方随从
   'enemyShocked',     // 全部【触电】的敌方随从
   'enemyDotted',      // 全部带【持续伤害】的敌方随从
   'enemyDottedAny',   // 同上 + 带【侵蚀】的敌方主战者（引爆类卡牌用它才能炸到脸）
@@ -227,7 +229,7 @@ export function parseEffect(src, cardName = '?') {
       }
       // 目标合法性检查（第一个参数是目标的动作）
       const needTarget = ['dmg', 'heal', 'buff', 'grant', 'destroy', 'extraAtk', 'transform', 'bounce',
-        'evolveFree', 'mark', 'vuln', 'dot', 'aura', 'flaw', 'shock', 'medal', 'title', 'patron', 'weave',
+        'evolveFree', 'mark', 'break', 'vuln', 'dot', 'aura', 'flaw', 'shock', 'medal', 'title', 'patron', 'weave',
         'atkPlus', 'reduce', 'cleanse', 'maxAtk', 'copy', 'detonate'];
       if (needTarget.includes(pc.name) && pc.args.length) {
         const t = pc.args[0].replace(/\(.*/, '');
