@@ -937,8 +937,10 @@ function leaderHTML(p, cls, isMe) {
     + `<span>${pips}</span><span class="badge">PP ${p.pp}/${cap}</span>`
     + `<span class="badge ep">EP ${p.ep}</span>`
     + (p.keywords.has('barrier') ? '<span class="badge bar">屏障</span>' : '')
-    // 【入魔】是毁灭一整套卡的开关，血量掉到 10 以下必须让人立刻看见
-    + (S.isMara(p) ? '<span class="badge mara">入魔</span>' : '')
+    // 【入魔】是毁灭一整套卡的开关，血量掉到 10 以下必须让人立刻看见。
+    // 但它是毁灭的专属机制——其他命途血量≤10 时不该出现「入魔」这个词，
+    // 否则玩家会以为自己的卡入魔后会变强，实际上只有毁灭有 mara 条件的卡。
+    + (S.isMara(p) && cls.split('·')[0] === '毁灭' ? '<span class="badge mara">入魔</span>' : '')
     /* 【侵蚀】现在是一条递进的时钟（伤害随层数成长），不显示出来玩家就是在被暗杀 */
     + (p.dots > 0 ? `<span class="badge rot" title="每回合结束时受到 ${Math.min(3, 1 + Math.floor(p.dots / 5)) + (p.aura || 0)} 点伤害，层数不消耗">`
         + `侵蚀 ${p.dots}　-${Math.min(3, 1 + Math.floor(p.dots / 5)) + (p.aura || 0)}/回合</span>` : '')
