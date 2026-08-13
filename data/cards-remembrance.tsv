@@ -3,28 +3,28 @@ M001	金血忆灵 · 犬形	记忆	随从	铜	1	1	2		0	金血忆灵	onPlay: stac
 M002	天谴猎手	记忆	随从	铜	1	2	1		0	天谴	onDeath: stackSummon(忆质,1)	【谢幕曲】：使忆质叠加1层（场上没有则先召唤）	忆灵编织/迷因回响/新蕊献祭	img/M002.png
 M003	寻爱金镖	记忆	随从	铜	1	1	1		0		onPlay: stackSummon(忆质,1)	【入场曲】：使忆质叠加1层（场上没有则先召唤）	忆灵编织	img/M003.png
 M004	忆域迷因「视线无处不在」	记忆	随从	铜	1	1	1		0	忆域迷因	onAllyEvolve: draw(1)	自己的随从进化时，抽1张卡	迷因回响/新蕊献祭	img/M004.png
-M005	焚影	记忆	法术	铜	1				0		spell: stackSummon(忆质,1)	使忆质叠加1层	忆灵编织/新蕊献祭	img/M005.png
-M006	溯忆	记忆	法术	铜	1				0		spell: evolveFree(allyOne)	使1个自己的随从进化（不消费EP）	迷因回响/新蕊献祭	img/M006.png
-M007	致长夜的星光	记忆	法术	铜	2				0		spell: buff(allyTag(忆质),1,1)	使自己的忆质与忆灵+1/+1	忆灵编织/迷因回响	img/M007.png
+M005	焚影	记忆	法术	铜	1				0		spell: stackSummon(忆质,1)	使忆质叠加1层	忆灵编织/新蕊献祭	img/M005.webp
+M006	溯忆	记忆	法术	铜	1				0		spell: evolveFree(allyOne)	使1个自己的随从进化（不消费EP）	迷因回响/新蕊献祭	img/M006.webp
+M007	致长夜的星光	记忆	法术	铜	2				0		spell: buff(allyTag(忆质),1,1)	使自己的忆质与忆灵+1/+1	忆灵编织/迷因回响	img/M007.webp
 M008	金血忆灵 · 雉形	记忆	随从	铜	2	2	2		0	金血忆灵	onAllySummon: buff(self,1,0)	每当忆质或忆灵进入自己的战场，此随从+1/+0	忆灵编织/新蕊献祭	img/M008.png
 M009	天谴斗士	记忆	随从	铜	2	1	3		0	天谴	static: ward; onPlay: stackSummon(忆质,1)	【守护】。【入场曲】：使忆质叠加1层（场上没有则先召唤）	忆灵编织/迷因回响/新蕊献祭	img/M009.png
 M010	金血忆灵·守形	记忆	随从	铜	2	1	4		0	金血忆灵	static: ward; onPlay: stackSummon(忆质,1)	【守护】。【入场曲】：使忆质叠加1层（场上没有则先召唤）	忆灵编织	img/M010.svg
 M011	忆域迷因「何物藏于镜中」	记忆	随从	铜	3	2	2		0	忆域迷因	onPlay: copy(allyOther)	【入场曲】：复制1个自己的其他随从到战场	迷因回响	img/M011.png
 M012	忆域迷因「虚荣永无餍足」	记忆	随从	铜	2	2	1		0	忆域迷因	onDeath: dmg(selfLeader,1), addHand(忆域迷因「虚荣永无餍足」,1)	【谢幕曲】：给予自己的主战者1点伤害，并将此卡加入手牌	迷因回响/新蕊献祭	img/M012.png
-M013	故事的下一页	记忆	护符	银	2			3	0		turnStart: stackSummon(忆质,1)	【倒数3】。自己的回合开始时，使忆质叠加1层（场上没有则先召唤）	忆灵编织	img/M013.png
+M013	故事的下一页	记忆	护符	银	2			3	0		turnStart: stackSummon(忆质,1)	【倒数3】。自己的回合开始时，使忆质叠加1层（场上没有则先召唤）	忆灵编织	img/M013.webp
 M014	天谴哲人	记忆	随从	铜	3	1	3		0	天谴	turnEnd: buff(allyTag(忆质),1,0)	自己的回合结束时，使自己全体忆质与忆灵+1/+0	新蕊献祭/忆灵编织	img/M014.png
-M015	天才们的问候	记忆	法术	银	2				0		spell: stackSummon(忆质,1), draw(1)	使忆质叠加1层，抽1张卡	忆灵编织	img/M015.png
-M016	多流汗，少流泪	记忆	法术	银	2				0		spell: dmg(allyAll,1), buff(allyAll,2,0)	给予自己全体随从各1点伤害，然后使其各+2/+0	新蕊献祭	img/M016.png
+M015	天才们的问候	记忆	法术	银	2				0		spell: stackSummon(忆质,1), draw(1)	使忆质叠加1层，抽1张卡	忆灵编织	img/M015.webp
+M016	多流汗，少流泪	记忆	法术	银	2				0		spell: dmg(allyAll,1), buff(allyAll,2,0)	给予自己全体随从各1点伤害，然后使其各+2/+0	新蕊献祭	img/M016.webp
 M017	长夜月	记忆	随从	虹	3	2	3		0		onPlay: dmg(selfLeader,2), summon(忆灵「长夜」,1); onLeaderDamaged: buff(allyTag(长夜),1,0)	【入场曲】：给予自己的主战者2点伤害，召唤忆灵「长夜」（2/3）。每当自己的主战者受到伤害，使「长夜」+1/+0	忆灵编织/新蕊献祭	img/M017.png
 M018	忆域迷因「我心支离破碎」	记忆	随从	铜	4	3	2		0	忆域迷因	onDeath: addHand(忆域迷因「我心支离破碎」,1)	【谢幕曲】：将此卡加入自己的手牌	迷因回响	img/M018.png
 M019	金血忆灵·翼蛇形	记忆	随从	银	3	1	3		0	金血忆灵	static: atkPlus(self,memCount)	此随从的攻击力额外增加自己战场上忆质与忆灵层数与忆灵数之和	忆灵编织	img/M019.png
-M020	飞向粉色的明天	记忆	护符	金	3			4	0		onAllyEvolve: stackSummon(忆质,1)	【倒数4】。自己的随从进化时，使忆质叠加1层	忆灵编织/迷因回响	img/M020.png
+M020	飞向粉色的明天	记忆	护符	金	3			4	0		onAllyEvolve: stackSummon(忆质,1)	【倒数4】。自己的随从进化时，使忆质叠加1层	忆灵编织/迷因回响	img/M020.webp
 M021	开拓者·记忆	记忆	随从	虹	3	2	4		0		onPlay: summon(忆灵「迷迷」,1); onLeaderHeal[ctr(迷迷)<1]: ctr(迷迷,+1), buff(allyTag(迷迷),1,1); turnStart: ctr(迷迷,-1)	【入场曲】：召唤忆灵「迷迷」（2/4、【守护】）。每当自己回复生命值，使「迷迷」+1/+1（每回合限1次）	忆灵编织	img/M021.png
 M022	天谴歌队	记忆	随从	铜	3	2	4		0	天谴	onPlay: grant(allyTag(忆质),rush)	【入场曲】：使自己全体忆质获得【突进】	忆灵编织/新蕊献祭	img/M022.png
 M023	天谴执刑者	记忆	随从	铜	3	3	2		0	天谴	onPlay: dmg(selfLeader,2), draw(1)	【入场曲】：给予自己的主战者2点伤害，抽1张卡	新蕊献祭/迷因回响	img/M023.svg
-M024	花儿不会忘记	记忆	护符	金	3				0		turnEnd[memCount>=3]: draw(1), stackSummon(忆质,1)	自己的回合结束时，若自己战场上有3个以上忆质或忆灵，抽1张卡并使忆质叠加1层（场上没有则先召唤）	忆灵编织/新蕊献祭	img/M024.png
+M024	花儿不会忘记	记忆	护符	金	3				0		turnEnd[memCount>=3]: draw(1), stackSummon(忆质,1)	自己的回合结束时，若自己战场上有3个以上忆质或忆灵，抽1张卡并使忆质叠加1层（场上没有则先召唤）	忆灵编织/新蕊献祭	img/M024.webp
 M025	天谴守望	记忆	随从	铜	3	2	3		0	天谴	onLeaderDamaged: ctr(守望,+1); onCtr(守望,1): ctr(守望,-1), stackSummon(忆质,1)	自己的主战者受到伤害后，使忆质叠加1层（场上没有则先召唤）	忆灵编织/新蕊献祭	img/M025.svg
-M026	胜利只在朝夕间	记忆	法术	银	2				0		spell: copy(allyOne)	复制1个自己的随从到战场	迷因回响	img/M026.png
+M026	胜利只在朝夕间	记忆	法术	银	2				0		spell: copy(allyOne)	复制1个自己的随从到战场	迷因回响	img/M026.webp
 M027	忆域迷因「狂怒褪去之壳」	记忆	随从	银	4	4	3		0	忆域迷因	onEvolve: evolveFree(allyOther)	进化时：使自己全体其他随从进化（不消费EP）	迷因回响	img/M027.png
 M028	遐蝶	记忆	随从	虹	4	3	4		0		static: atkPlus(self,ctr(新蕊)/2); onPlay: dmg(allyAll,1); onLeaderDamaged: ctr(新蕊,+1); onDamaged: ctr(新蕊,+1)	每当自己的随从或主战者受到伤害，此随从获得1层【新蕊】。攻击力额外增加【新蕊】÷2。【入场曲】：给予自己全体随从各1点伤害	新蕊献祭	img/M028.png
 M029	天谴先锋	记忆	随从	银	4	4	4		0	天谴	static: rush; onPlay: draw(1)	【突进】。【入场曲】：抽1张卡	迷因回响	img/M029.png

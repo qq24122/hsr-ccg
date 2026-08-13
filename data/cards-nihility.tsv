@@ -1,45 +1,45 @@
 id	name	class	type	quality	cost	atk	hp	countdown	token	tag	effect	note	decks	img
 N001	虚数织叶者	虚无	随从	铜	1	1	2		0		onPlay: dot(enemyOne,1)	【入场曲】：使1个敌方随从获得1层【持续伤害】	持续侵蚀/引爆奥迹/缺陷植入	img/N001.png
-N002	匿影	虚无	法术	铜	1				0		spell: dot(enemyOne,2)	使1个敌方随从获得2层【持续伤害】	持续侵蚀/引爆奥迹/缺陷植入	img/N002.png
-N003	渊环	虚无	法术	铜	1				0		spell: dot(enemyOne,1), draw(1)	使1个敌方随从获得1层【持续伤害】，抽1张卡	持续侵蚀/引爆奥迹	img/N003.png
+N002	匿影	虚无	法术	铜	1				0		spell: dot(enemyOne,2)	使1个敌方随从获得2层【持续伤害】	持续侵蚀/引爆奥迹/缺陷植入	img/N002.webp
+N003	渊环	虚无	法术	铜	1				0		spell: dot(enemyOne,1), draw(1)	使1个敌方随从获得1层【持续伤害】，抽1张卡	持续侵蚀/引爆奥迹	img/N003.webp
 N004	卢卡	虚无	随从	金	1	1	2		0		onAttack: dot(enemyOne,1); onDot[ctr(斗志)<4]: ctr(斗志,+1), buff(self,1,0)	攻击时：使该敌方随从获得1层【持续伤害】。每当【持续伤害】层数增加，获得1层【斗志】（+1/+0，最多4层）	持续侵蚀/缺陷植入	img/N004.png
-N005	幽邃	虚无	护符	铜	1			3	0		turnEnd: dot(enemyAll,1)	【倒数3】。自己的回合结束时，使敌方全体随从获得1层【持续伤害】	持续侵蚀	img/N005.png
+N005	幽邃	虚无	护符	铜	1			3	0		turnEnd: dot(enemyAll,1)	【倒数3】。自己的回合结束时，使敌方全体随从获得1层【持续伤害】	持续侵蚀	img/N005.webp
 N006	千冶•刃之炽	虚无	随从	铜	1	2	1		0		onPlay: dmg(selfLeader,1), dot(enemyOne,1)	【入场曲】：给予自己的主战者1点伤害，使1个敌方随从获得1层【持续伤害】	持续侵蚀/缺陷植入	img/N006.png
 N007	佩拉	虚无	随从	金	2	2	2		0		onPlay: destroy(enemyAmulet), flaw(enemyOne,衰弱)	【入场曲】：破坏敌方全部护符，并使1个敌方随从获得【缺陷·衰弱】	缺陷植入	img/N007.png
 N008	桑博	虚无	随从	金	2	1	2		0		onAttack: dot(enemyRandom,1), dot(enemyRandom,1), dot(enemyRandom,1)	攻击时：使敌方随机3个目标各获得1层【持续伤害】	持续侵蚀	img/N008.png
-N009	决心如汗珠般闪耀	虚无	法术	银	2				0		spell: dmg(enemyOne,3), dot(enemyOne,2)	给予1个敌方随从3点伤害，并使其获得2层【持续伤害】	持续侵蚀/引爆奥迹/缺陷植入	img/N009.png
+N009	决心如汗珠般闪耀	虚无	法术	银	2				0		spell: dmg(enemyOne,3), dot(enemyOne,2)	给予1个敌方随从3点伤害，并使其获得2层【持续伤害】	持续侵蚀/引爆奥迹/缺陷植入	img/N009.webp
 N010	桂乃芬	虚无	随从	金	2	2	2		0		onEnemyDamaged: vuln(enemyOne,1)	每当敌方随从受到伤害，使其获得1层【弱点】	持续侵蚀/引爆奥迹	img/N010.png
 N011	蚀月毒蛛	虚无	随从	铜	2	2	2		0		onAttack: dot(enemyOne,1)	攻击时：使该敌方随从获得1层【持续伤害】	持续侵蚀/引爆奥迹	img/N011.svg
 N012	噬梦蛾	虚无	随从	铜	2	1	2		0		static: ward; onDeath: dot(enemyAll,1)	【守护】。【谢幕曲】：使敌方全体随从获得1层【持续伤害】	持续侵蚀	img/N012.svg
 N013	哀伤织手	虚无	随从	铜	2	2	3		0		onPlay: flaw(enemyOne), flaw(enemyOne)	【入场曲】：使1个敌方随从获得2个随机【缺陷】	缺陷植入	img/N013.svg
-N014	猎物的视线	虚无	法术	银	2				0		spell: flaw(enemyOne), flaw(enemyOne), draw(1)	使1个敌方随从获得2个随机【缺陷】，抽1张卡	缺陷植入	img/N014.png
-N015	晚安与睡颜	虚无	护符	银	2			5	0		turnEnd: dmg(enemyPatron,2), patron(enemyHighestHp)	【倒数5】。自己的回合结束时，使【老主顾】受到2点伤害；然后使生命值最高的敌方随从成为【老主顾】	缺陷植入	img/N015.png
+N014	猎物的视线	虚无	法术	银	2				0		spell: flaw(enemyOne), flaw(enemyOne), draw(1)	使1个敌方随从获得2个随机【缺陷】，抽1张卡	缺陷植入	img/N014.webp
+N015	晚安与睡颜	虚无	护符	银	2			5	0		turnEnd: dmg(enemyPatron,2), patron(enemyHighestHp)	【倒数5】。自己的回合结束时，使【老主顾】受到2点伤害；然后使生命值最高的敌方随从成为【老主顾】	缺陷植入	img/N015.webp
 N016	瓦尔特	虚无	随从	金	3	2	3		0		onPlay: flaw(enemyOne,迟缓); onAttack: dmg(enemyFlawed,2)	【入场曲】：使1个敌方随从获得【缺陷·迟缓】。攻击时：给予全部拥有【缺陷】的敌方随从2点伤害	缺陷植入	img/N016.png
 N017	银狼	虚无	随从	虹	3	2	4		0		onAttack: flaw(enemyOne)	攻击时：使该敌方随从获得1个随机【缺陷】（迟缓：无法防御／脆弱：受到伤害+1／衰弱：攻击力-1）	缺陷植入	img/N017.png
-N018	假日浴场大冒险	虚无	护符	金	3				0		turnEnd[dotLayers>=4]: dmg(enemyLeader,dotLayers,10), destroy(self)	自己的回合结束时，若敌方【持续伤害】层数总和（含主战者的【侵蚀】）为4以上，此护符消失并给予敌方主战者等量伤害（最多10点）	引爆奥迹	img/N018.png
-N019	新手任务开始前	虚无	法术	银	4				0		spell: dot(enemyAll,2)	使敌方全体随从获得2层【持续伤害】	持续侵蚀	img/N019.png
+N018	假日浴场大冒险	虚无	护符	金	3				0		turnEnd[dotLayers>=4]: dmg(enemyLeader,dotLayers,10), destroy(self)	自己的回合结束时，若敌方【持续伤害】层数总和（含主战者的【侵蚀】）为4以上，此护符消失并给予敌方主战者等量伤害（最多10点）	引爆奥迹	img/N018.webp
+N019	新手任务开始前	虚无	法术	银	4				0		spell: dot(enemyAll,2)	使敌方全体随从获得2层【持续伤害】	持续侵蚀	img/N019.webp
 N020	赛飞儿	虚无	随从	金	3	3	2		0		onPlay: patron(enemyHighestHp)	【入场曲】：使生命值最高的敌方随从成为【老主顾】。自己的随从攻击【老主顾】时，其攻击力+2	缺陷植入/持续侵蚀	img/N020.png
-N021	勿忘她的火焰	虚无	护符	银	3			3	0		turnStart: dot(enemyLeader,2)	【倒数3】。自己的回合开始时，使敌方的主战者获得2层【侵蚀】	引爆奥迹/持续侵蚀/缺陷植入	img/N021.png
+N021	勿忘她的火焰	虚无	护符	银	3			3	0		turnStart: dot(enemyLeader,2)	【倒数3】。自己的回合开始时，使敌方的主战者获得2层【侵蚀】	引爆奥迹/持续侵蚀/缺陷植入	img/N021.webp
 N022	蚀刻残响	虚无	随从	铜	3	4	3		0		onPlay[dotLayers>=1]: detonate(enemyAny,2,10); onPlay[dotLayers<1]: dot(enemyLeader,1)	【入场曲】：引爆1个敌方目标的【持续伤害】，每层造成2点伤害（最多10点）。若敌方没有任何层数，改为使敌方主战者获得1层【侵蚀】	引爆奥迹	img/N022.svg
 N023	桑博·毒镖	虚无	随从	金	3	2	2		0		onAttack: dot(enemyAll,1)	攻击时：使敌方全体随从获得1层【持续伤害】	持续侵蚀	img/N023.png
 N024	椒丘	虚无	随从	虹	4	3	4		0		onDot: buff(self,1,0)	每当敌方场上【持续伤害】层数增加，此随从+1/+0	持续侵蚀/引爆奥迹	img/N024.png
 N025	千冶•刃	虚无	随从	虹	4	4	3		0		onPlay: dmg(selfLeader,3), dot(enemyAll,1)	【入场曲】：给予自己的主战者3点伤害，使敌方全体随从获得1层【持续伤害】	持续侵蚀/缺陷植入	img/N025.png
 N027	大丽花	虚无	随从	虹	4	4	4		0		onPlay: flaw(enemyAll); onEnemyDeath[flawCount>=1]: draw(1)	【入场曲】：使敌方全体随从各获得1个随机【缺陷】。每当拥有【缺陷】的敌方随从被消灭，抽1张卡	缺陷植入/持续侵蚀	img/N027.png
-N028	无边曼舞	虚无	护符	金	4				0		turnEnd[dotLayers>=5]: draw(2), dot(enemyAll,1)	自己的回合结束时，若敌方场上【持续伤害】层数总和为5以上，抽2张卡并使全体层数+1	持续侵蚀/引爆奥迹	img/N028.png
+N028	无边曼舞	虚无	护符	金	4				0		turnEnd[dotLayers>=5]: draw(2), dot(enemyAll,1)	自己的回合结束时，若敌方场上【持续伤害】层数总和为5以上，抽2张卡并使全体层数+1	持续侵蚀/引爆奥迹	img/N028.webp
 N029	黑天鹅	虚无	随从	虹	5	3	5		0		onDot: aura(enemyDotted,1)	每当敌方随从获得【持续伤害】，其额外获得1层【奥迹】。【奥迹】使该目标每层【持续伤害】造成的伤害+1	持续侵蚀/引爆奥迹	img/N029.png
-N030	好戏开演	虚无	法术	金	3				0		spell[dotLayers>=1]: detonate(enemyAny,2,8); spell[dotLayers<1]: dot(enemyAll,1), dot(enemyLeader,1)	引爆1个敌方目标的【持续伤害】，每层造成2点伤害（最多8点）。若敌方没有任何层数，改为使敌方全体随从获得1层【持续伤害】、敌方主战者获得1层【侵蚀】	引爆奥迹	img/N030.png
+N030	好戏开演	虚无	法术	金	3				0		spell[dotLayers>=1]: detonate(enemyAny,2,8); spell[dotLayers<1]: dot(enemyAll,1), dot(enemyLeader,1)	引爆1个敌方目标的【持续伤害】，每层造成2点伤害（最多8点）。若敌方没有任何层数，改为使敌方全体随从获得1层【持续伤害】、敌方主战者获得1层【侵蚀】	引爆奥迹	img/N030.webp
 N031	海瑟音	虚无	随从	虹	5	4	3		0		static: dotAura; onPlay: dot(enemyAll,1)	【入场曲】：使敌方全体随从各获得1层【持续伤害】。此随从在场时，【持续伤害】的结算数值+1（同类光环不叠加）	持续侵蚀	img/N031.png
 N032	忘归人	虚无	随从	虹	5	3	5		0		static: dotAura; onPlay: dot(enemyAll,1)	此随从在场时，敌方随从每层【持续伤害】的结算数值+1（同类光环不叠加）。【入场曲】：使敌方全体随从获得1层【持续伤害】	持续侵蚀/引爆奥迹	img/N032.png
-N033	后会有期	虚无	护符	金	5			1	0		onDeath: flaw(enemyAll), flaw(enemyAll), dot(enemyAll,3)	【倒数2】。【谢幕曲】：使敌方全体随从各获得2个随机【缺陷】与3层【持续伤害】	缺陷植入/引爆奥迹	img/N033.png
+N033	后会有期	虚无	护符	金	5			1	0		onDeath: flaw(enemyAll), flaw(enemyAll), dot(enemyAll,3)	【倒数2】。【谢幕曲】：使敌方全体随从各获得2个随机【缺陷】与3层【持续伤害】	缺陷植入/引爆奥迹	img/N033.webp
 N035	「星核猎手」卡芙卡	虚无	随从	虹	5	5	5		0		onPlay[dotLayers>=1]: detonate(enemyDottedAny); onPlay[dotLayers<1]: dot(enemyAll,1), dot(enemyLeader,1)	【入场曲】：引爆敌方全体（含主战者的【侵蚀】）的【持续伤害】。若敌方没有任何层数，改为使敌方全体随从获得1层【持续伤害】、敌方主战者获得1层【侵蚀】	引爆奥迹	img/N035.png
 N036	冥魂渡者，死龙残躯，玻吕刻斯	虚无	随从	金	6	5	4		0		onPlay: reanimate(2); onDeath: summon(残念,1)	【入场曲】：将自己墓场中随机2张随从卡召唤到战场（其攻击力与生命值视为2/2）。【谢幕曲】：召唤1个残念	缺陷植入	img/N036.png
-N037	延长记号	虚无	法术	金	4				0		spell: detonate(enemyDottedAny,2), dot(enemyAll,2)	引爆敌方全体（含主战者的【侵蚀】）的【持续伤害】，每层造成2点伤害，然后使敌方全体随从各获得2层【持续伤害】	引爆奥迹	img/N037.png
+N037	延长记号	虚无	法术	金	4				0		spell: detonate(enemyDottedAny,2), dot(enemyAll,2)	引爆敌方全体（含主战者的【侵蚀】）的【持续伤害】，每层造成2点伤害，然后使敌方全体随从各获得2层【持续伤害】	引爆奥迹	img/N037.webp
 N038	孤注一掷的赌徒	虚无	随从	金	6	5	6		0		turnStart: flaw(enemyAll), dot(enemyAll,1)	自己的回合开始时，使敌方全体随从各获得1个随机【缺陷】与1层【持续伤害】	缺陷植入/持续侵蚀	img/N038.png
 N039	卡芙卡	虚无	随从	虹	7	4	6		0		onPlay: dot(enemyAll,3); onSpell: detonate(enemyLeader)	【入场曲】：使敌方全体随从获得3层【持续伤害】。每当自己使用法术卡，引爆敌方主战者的【侵蚀】	持续侵蚀/引爆奥迹/缺陷植入	img/N039.png
 N040	黄泉	虚无	随从	虹	7	5	5		0		static: bane; onDot: ctr(残梦,+1); onCtr(残梦,5): ctr(残梦,-5), grant(self,pierce), extraAtk(self,1)	【必杀】。每当敌方随从获得【缺陷】或【持续伤害】，获得1层【残梦】。拥有5层时：消耗全部，此随从的攻击【无视守护】且本回合可再进行1次攻击	引爆奥迹/缺陷植入	img/N040.png
 N041	反造物主，流溢之恨	虚无	随从	虹	6	6	4		0		onPlay: dmg(enemyLeader,dotLayers,10)	【入场曲】：给予敌方的主战者伤害，数值等同于敌方场上【持续伤害】层数总和（最多10点）	引爆奥迹	img/N041.png
 N042	万色返空主，归寂	虚无	随从	虹	8	5	7		0		onPlay: destroy(enemyFlaw(3)), flaw(enemyAll), flaw(enemyAll)	【入场曲】：消灭全部拥有3个以上【缺陷】的敌方随从；其余敌方随从各获得2个【缺陷】	缺陷植入	img/N042.png
-N043	灼尽炼狱的新骸	虚无	法术	虹	8				0		spell[dotLayers>=1]: detonate(enemyDottedAny,2); spell[dotLayers<1]: dot(enemyAll,2), dot(enemyLeader,2)	引爆敌方全体（含主战者的【侵蚀】）的【持续伤害】，每层造成2点伤害。若敌方没有任何层数，改为使敌方全体随从获得2层【持续伤害】、敌方主战者获得2层【侵蚀】	持续侵蚀/引爆奥迹	img/N043.png
+N043	灼尽炼狱的新骸	虚无	法术	虹	8				0		spell[dotLayers>=1]: detonate(enemyDottedAny,2); spell[dotLayers<1]: dot(enemyAll,2), dot(enemyLeader,2)	引爆敌方全体（含主战者的【侵蚀】）的【持续伤害】，每层造成2点伤害。若敌方没有任何层数，改为使敌方全体随从获得2层【持续伤害】、敌方主战者获得2层【侵蚀】	持续侵蚀/引爆奥迹	img/N043.webp
 N044	万色返空主·终寂	虚无	随从	虹	9	6	8		0		onPlay: dmg(enemyLeader,enemyCount,15), destroy(enemyFlaw(2))	【入场曲】：给予敌方的主战者与敌方随从数等量的伤害，然后消灭全部拥有2个以上【缺陷】的敌方随从	缺陷植入	img/N044.png
 T401	残念	虚无	随从	衍生	0	1	1		1		onDeath: dot(enemyOne,1)	（由玻吕刻斯的效果产生）【谢幕曲】：使1个敌方随从获得1层【持续伤害】		
 N045	虚无扑满	虚无	随从	铜	1	1	2		0		onDeath: dot(enemyAll,1)	【谢幕曲】：使敌方全体随从获得1层【持续伤害】	持续侵蚀/引爆奥迹	img/N045.png
