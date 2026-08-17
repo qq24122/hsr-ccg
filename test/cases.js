@@ -613,5 +613,25 @@ export async function runAll() {
     ok(threw, '潜行尚未实现，解析时就该报错');
   });
 
+  t('onAllySummon 只对自己一方生效（对面召唤不触发我方）', () => {
+    const s = game(); turnTo(s, 9);
+    s.__tokenIndex = CARDS.byName;
+    /* 我方放一张「onAllySummon: buff(self,1,0)」的随从（金血忆灵·雉形的效果）。
+     * 对面召唤随从时，我方这张不该 +1/+0——onAllySummon 是「自己的随从进入自己的战场」。 */
+    const mk = name => ({ id: 'X', name, class: '测试', type: '随从', quality: '铜',
+      cost: 1, atk: 1, hp: 1, effect: 'onAllySummon: buff(self,1,0)' });
+    const mine = S.makeUnit(mk('守望者'), -99); s.players[0].board.push(mine);
+    const atk0 = mine.atk;
+    // 对面（player 1）召唤随从：走真实 summon 动作，我方 onAllySummon 不该触发
+    s.active = 1;
+    E.runActions(s, [{ op: 'summon', args: ['幼蛰虫', '1'] }], { ownerIdx: 1, source: null });
+    eq(mine.atk, atk0, '对面召唤时，我方 onAllySummon 不该触发');
+    // 我方（player 0）召唤时：应触发 +1/+0
+    const before = mine.atk;
+    s.active = 0;
+    E.runActions(s, [{ op: 'summon', args: ['幼蛰虫', '1'] }], { ownerIdx: 0, source: null });
+    eq(mine.atk, before + 1, '我方召唤时，onAllySummon 触发 +1/+0');
+  });
+
   return results;
 }

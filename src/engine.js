@@ -241,7 +241,7 @@ function runAction(s, a, ctx) {
           if (c.trigger === 'static') runActions(s, c.actions, { ownerIdx: me, source: u });
         }
         S.log(s, `召唤 ${u.name}`);
-        fireTrigger(s, 'onAllySummon', { ownerIdx: me, extra: u });
+        fireTrigger(s, 'onAllySummon', { ownerOnly: me, ownerIdx: me, extra: u });
       }
       break;
     }
@@ -424,7 +424,7 @@ function runAction(s, a, ctx) {
           if (c.trigger === 'static') runActions(s, c.actions, { ownerIdx: me, source: u });
         }
         S.log(s, `召唤 ${u.name}`);
-        fireTrigger(s, 'onAllySummon', { ownerIdx: me, extra: u });
+        fireTrigger(s, 'onAllySummon', { ownerOnly: me, ownerIdx: me, extra: u });
         add = n - 1;
       }
       if (add > 0) {
@@ -903,7 +903,7 @@ export function playCard(s, handIndex, opts = {}) {
       if (!evalCond(c.cond, condCtx(s, me, u, opts.target))) continue;
       runActions(s, c.actions, ctx);
     }
-    fireTrigger(s, 'onAllySummon', { ownerIdx: me, extra: u });
+    fireTrigger(s, 'onAllySummon', { ownerOnly: me, ownerIdx: me, extra: u });
     fireTrigger(s, 'onEnemySummon', { ownerOnly: S.opp(me) });
   }
   fireTrigger(s, 'onCard', { ownerOnly: me });
