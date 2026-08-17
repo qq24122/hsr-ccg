@@ -50,6 +50,7 @@
   <div class="acts">
     <button id="shareBtn">分享这个游戏</button>
     <button id="biliBtn" style="display:none">作者的 B站主页</button>
+    <button id="sndBtn">声音：音效 + 音乐</button>
   </div>
 
   <div class="stats">
@@ -130,8 +131,34 @@
 <script type="module">
 import * as Stats from './src/stats.js';
 import { BUILD } from './src/version.js';
+import * as Snd from './src/audio.js';
 
 const $ = id => document.getElementById(id);
+
+/* ---------------- 声音开关 ----------------
+ * 对局界面里的声音按钮已经删掉（手机屏幕太挤），开关挪到这里。
+ * 三档循环：音效+音乐 → 只要音效 → 静音。选择存 localStorage，对局界面沿用。
+ * 录视频时选「只要音效」关掉 BGM——B站 会对视频里的音乐做版权识别。 */
+const SND_STATES = ['音效 + 音乐', '只要音效', '静音'];
+function sndState() {
+  return Snd.isMuted() ? '静音'
+    : (Snd.volumes().bgm > 0 ? '音效 + 音乐' : '只要音效');
+}
+function applySnd(v) {
+  Snd.unlock();
+  if (v === '静音') { Snd.setMuted(true); Snd.stopBgm(0.3); }
+  else {
+    Snd.setMuted(false);
+    Snd.setBgm(v === '音效 + 音乐' ? 0.35 : 0);
+    if (v === '只要音效') Snd.stopBgm(0.3);
+  }
+  $('sndBtn').textContent = '声音：' + v;
+}
+$('sndBtn').textContent = '声音：' + sndState();
+$('sndBtn').onclick = () => {
+  const i = SND_STATES.indexOf(sndState());
+  applySnd(SND_STATES[(i + 1) % SND_STATES.length]);
+};
 
 /* ---------------- 外链与分享 ----------------
  * bili 留空时那个按钮就不显示——宁可少一个按钮，也不要给人一个点进去 404 的链接。

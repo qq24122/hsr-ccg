@@ -24,6 +24,7 @@ const K_QUEUE = 'hsr.stats.queue';    // 待上传队列
 const K_DONE  = 'hsr.stats.done';     // 已上传的本地留档（给玩家看自己的战绩）
 const K_SID   = 'hsr.stats.sid';
 const K_OFF   = 'hsr.stats.off';
+const K_ERRS  = 'hsr.stats.errors';   // 全局错误兜底留档（玩家导出战绩时一并带出）
 const MAX_KEEP = 400;                 // 本地最多留这么多局，避免 localStorage 撑爆
 
 const PAYLOAD_VERSION = 1;
@@ -140,12 +141,24 @@ export function summary() {
 }
 
 export function exportJSON() {
-  return JSON.stringify({ build: BUILD, sid: sessionId(), matches: allMatches() }, null, 1);
+  return JSON.stringify({ build: BUILD, sid: sessionId(), matches: allMatches(),
+    errors: allErrors() }, null, 1);
 }
 
 export function clearLocal() {
-  write(K_DONE, []); write(K_QUEUE, []);
+  write(K_DONE, []); write(K_QUEUE, []); write(K_ERRS, []);
 }
+
+/* ---------------- 全局错误留档 ---------------- */
+
+/** 记录一条崩溃信息（play.html 的 onerror 兜底调用）。本地留档，导出时带出。 */
+export function recordError(text) {
+  const q = read(K_ERRS, []);
+  q.push(text);
+  write(K_ERRS, q.slice(-20));
+}
+
+export function allErrors() { return read(K_ERRS, []); }
 
 /* 打开页面时先把上次没传成功的补传掉 */
 if (typeof window !== 'undefined') {

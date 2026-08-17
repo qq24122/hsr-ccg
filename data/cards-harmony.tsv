@@ -26,7 +26,7 @@ A024	美梦小镇大冒险	同谐	随从	铜	3	2	4		0		turnEnd: medal(allyOther,
 A025	夜色流光溢彩	同谐	法术	银	3				0		spell: extraAtk(allyOne,2)	使1个自己的随从获得「本回合可再进行2次攻击」	额外行动/军功爵位	img/A025.webp
 A026	缇宝	同谐	随从	虹	4	3	3		0		onAllyEvolve: dmg(enemyAll,2), pctr(蓄能,+2)	每当自己的随从进化，给予敌方全体随从2点伤害并使自己的「蓄能」+2	蓄能合鸣/额外行动	img/A026.png
 A027	黑日狮鹫	同谐	随从	银	4	4	3		0	狮鹫	static: rush; onPlay: grant(allyAll,rush)	【突进】。【入场曲】：使自己全体随从获得【突进】	额外行动	img/A027.png
-A028	镂月裁云之意	同谐	护符	金	4				0		turnStart[ctr(蓄能)>=12]: buff(allyAll,3,3), extraAtk(allyAll,1), destroy(self)	自己的「蓄能」达到12时，此护符消失，使自己全体随从+3/+3且本回合可各再进行1次攻击	蓄能合鸣	img/A028.webp
+A028	镂月裁云之意	同谐	护符	金	4				0		turnStart[ctr(蓄能)>=12]: buff(allyAll,3,3), extraAtk(allyAll,1), destroy(self)	自己的回合开始时，若「蓄能」为12以上，此护符消失，使自己全体随从+3/+3且本回合可各再进行1次攻击	蓄能合鸣	img/A028.webp
 A029	与行星相会	同谐	随从	银	4	3	5		0		onPlay: medal(allyAll,ctr(蓄能)/4)	【入场曲】：依自己「蓄能」÷4（向下取整），使自己全体随从获得等量层【军功】	蓄能合鸣/军功爵位	img/A029.png
 A030	舞！舞！舞！	同谐	法术	金	4				0		spell: extraAtk(allyAll,1)	使自己全体随从获得「本回合可再进行1次攻击」	额外行动/蓄能合鸣	img/A030.webp
 A031	知更鸟	同谐	随从	虹	5	4	5		0		turnEnd: buff(allyAll,1,1)	自己的回合结束时，使自己全体随从+1/+1	蓄能合鸣/军功爵位	img/A031.png

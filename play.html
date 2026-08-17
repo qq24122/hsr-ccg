@@ -498,6 +498,18 @@
   </div>
 </div>
 
+<!-- 全局错误兜底：玩家撞到崩溃时不再是一张白屏，能重开、也能把错误信息发回来。 -->
+<div id="errBox" style="position:fixed;inset:0;z-index:60;background:#0c0e12f2;display:none;
+     flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center">
+  <div style="font-size:18px;font-weight:bold">出错了</div>
+  <div id="errMsg" style="font-size:12px;color:#a8b6c8;max-width:420px;line-height:1.7;
+       word-break:break-all"></div>
+  <div class="row" style="flex-wrap:wrap;justify-content:center">
+    <button onclick="location.reload()" style="padding:10px 24px">重开对局</button>
+    <button id="errCopy" style="padding:10px 18px;background:#2a3038;font-weight:normal">复制错误信息</button>
+  </div>
+</div>
+
 <!-- 拖拽时跟着指针的卡影，与指向目标的连线 -->
 <div id="dragGhost" style="display:none"></div>
 <svg id="dragLine"><defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5"
@@ -553,6 +565,42 @@ let sel = null;                     // { kind:'target'|'attack'|'evolve', ... }
 let busy = false;                   // 对手回合中，锁住输入
 
 const $ = id => document.getElementById(id);
+
+/* ---------------- 全局错误兜底 ----------------
+ * 之前没有任何 onerror：某张卡在特定场面抛异常，界面就死在那一帧，
+ * 玩家看到的是个点不动的棋盘，而我永远不知道发生了什么。
+ * 现在：捕获后弹出浮层（能重开、能复制错误信息），并留一份在本机，
+ * 玩家下次打开 / 导出战绩时会带出去，方便我把真实崩溃点找出来。 */
+const K_ERRS = 'hsr.stats.errors';
+let lastErrText = '';
+function reportError(what, err) {
+  try {
+    const text = `${new Date().toISOString()} ${what}\n`
+      + (err && err.stack ? err.stack : String(err && err.message || err));
+    lastErrText = text;
+    const box = $('errBox'), msg = $('errMsg');
+    if (box && msg) {
+      msg.textContent = text;
+      box.style.display = 'flex';
+    }
+    Stats.recordError(text);   // 本地留档，导出战绩时一并带出
+  } catch (e) { /* 兜底本身不能再抛错 */ }
+}
+addEventListener('error', e => {
+  // 资源加载失败（图片 404 等）没堆栈、也不值得挡玩家，跳过
+  if (e && e.target && e.target !== window && !e.message) return;
+  reportError('未捕获异常', e);
+});
+addEventListener('unhandledrejection', e => {
+  reportError('未处理的 Promise 拒绝', e && e.reason);
+});
+$('errCopy') && ($('errCopy').onclick = () => {
+  try {
+    navigator.clipboard.writeText(lastErrText)
+      .then(() => { const b = $('errCopy'); const o = b.textContent; b.textContent = '已复制 ✓'; setTimeout(() => b.textContent = o, 1500); })
+      .catch(() => {});
+  } catch (e) {}
+});
 const KW_CN = { ward: '守护', rush: '突进', storm: '疾驰', bane: '必杀', barrier: '屏障',
   drain: '虹吸', noCounter: '不能防御', sweep: '横扫', undestroyable: '不灭',
   ignoreWard: '无视守护', leaderOnly: '只攻主战者', pierce: '无视守护', dotAura: '侵蚀强化' };

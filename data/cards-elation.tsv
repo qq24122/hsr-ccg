@@ -9,7 +9,7 @@ L007	残泪	欢愉	法术	铜	1				0		spell: summon(涂鸦,2), pctr(笑点,+1)	�
 L008	欢迎来到银河城	欢愉	法术	铜	1				0		spell: pctr(笑点,+6)	使自己的「笑点」+6	笑点狂欢	img/L008.webp
 L009	惊梦剧团的圆幕先生	欢愉	随从	铜	2	2	3		0	惊梦剧团	static: ward; onPlay: pctr(笑点,+2)	【守护】。【入场曲】：使自己的「笑点」+2	笑点狂欢/剧团登场	img/L009.png
 L010	治安忠犬	欢愉	随从	铜	2	2	3		0		static: ward; onPlay: pctr(笑点,+2)	【守护】。【入场曲】：使自己的「笑点」+2	剧团登场/笑点狂欢	img/L010.png
-L011	惊梦剧团的发条暴徒	欢愉	随从	铜	2	2	3		0	惊梦剧团	turnStart[ctr(笑点)>=6]: maxAtk(self,2)	若自己的「笑点」为6以上，此随从每回合可进行2次攻击	大吉大利	img/L011.png
+L011	惊梦剧团的发条暴徒	欢愉	随从	铜	2	2	3		0	惊梦剧团	turnStart[ctr(笑点)>=6]: maxAtk(self,2)	自己的回合开始时，若「笑点」为6以上，此随从每回合可进行2次攻击	大吉大利	img/L011.png
 L012	泡影稚子	欢愉	随从	铜	2	2	2		0		onDeath: summon(涂鸦,2)	【谢幕曲】：召唤2个涂鸦	笑点狂欢/剧团登场	img/L012.png
 L013	今日好手气	欢愉	法术	银	2				0		spell: draw(2), pctr(笑点,+2)	抽2张卡。使自己的「笑点」+2	笑点狂欢/大吉大利	img/L013.webp
 L014	助手涂鸦•赶稿	欢愉	随从	铜	2	3	3		0		static: noCounter	此随从无法进行防御	剧团登场/笑点狂欢	img/L014.png
@@ -23,7 +23,7 @@ L021	摇滚狂徒	欢愉	随从	银	3	3	4		0		static: rush; onAttack: dmg(enemyR
 L022	惊梦剧团的十七分熟	欢愉	随从	银	3	3	4		0	惊梦剧团	onAttack: pctr(笑点,+3)	攻击时：使自己的「笑点」+3	大吉大利/笑点狂欢	img/L022.png
 L023	「身陷樊笼的往昔」	欢愉	随从	银	3	3	5		0		turnStart: pctr(笑点,+3)	自己的回合开始时，使自己的「笑点」+3	笑点狂欢	img/L023.png
 L024	邂逅于下一个花季	欢愉	法术	银	3				0		spell: summon(涂鸦,2), buff(allyTag(涂鸦),1,1)	召唤2个涂鸦，并使自己全体涂鸦+1/+1	剧团登场/大吉大利	img/L024.webp
-L025	菇菇嘎嘎历险记	欢愉	护符	金	3				0		turnStart[ctr(笑点)>=15]: summon(涂鸦,2), draw(2), destroy(self)	自己的「笑点」达到15时，此护符消失，召唤2个涂鸦并抽2张卡	笑点狂欢/剧团登场	img/L025.webp
+L025	菇菇嘎嘎历险记	欢愉	护符	金	3				0		turnStart[ctr(笑点)>=15]: summon(涂鸦,2), draw(2), destroy(self)	自己的回合开始时，若「笑点」为15以上，此护符消失，召唤2个涂鸦并抽2张卡	笑点狂欢/剧团登场	img/L025.webp
 L026	绯英	欢愉	随从	虹	4	3	5		0		onCard: pctr(笑点,+1), ctr(彩排,+1); onCtr(彩排,4): ctr(彩排,-4), dmg(enemyRandomAny,2)	每当自己使用卡牌，使自己的「笑点」+1；每累积4次，给予敌方随机目标2点伤害	笑点狂欢/大吉大利	img/L026.png
 L027	惊梦剧团的甜猿泰山	欢愉	随从	银	4	4	4		0	惊梦剧团	static: maxAtk(self,2), leaderOnly	此随从每回合可攻击敌方的主战者两次	大吉大利/剧团登场	img/L027.png
 L029	魔法少女急袭剧团	欢愉	随从	铜	4	2	5		0		onPlay: buff(allyTag(涂鸦),1,1), grant(allyTag(涂鸦),rush)	【入场曲】：使自己全体涂鸦+1/+1并获得【突进】	剧团登场	img/L029.png
