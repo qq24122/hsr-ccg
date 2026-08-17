@@ -44,7 +44,8 @@
   .leader.foe { border-color: #5a3a3a; cursor: pointer; }
   .leader.foe.targetable { border-color: #ffd43b; box-shadow: 0 0 0 2px #ffd43b55; }
   .lname { font-weight: bold; min-width: 92px; }
-  .hp { font-size: 18px; font-weight: bold; color: #ff8787; min-width: 54px; }
+  /* 主战者血量。加 .leader 前缀限定范围，避免和卡面生命宝石的 .hp 类名冲突。 */
+  .leader .hp { font-size: 18px; font-weight: bold; color: #ff8787; min-width: 54px; }
   .pip { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 2px; }
   .pp-on { background: #4dabf7; } .pp-off { background: #2a3038; }
   .ep { color: #ffd43b; }
@@ -74,43 +75,110 @@
   .field.dropOk { background: #1d2a20; box-shadow: inset 0 0 0 2px #51cf6688; }
   .slot-empty { width: var(--uw); height: var(--uh); border: 1px dashed #2a2d36; border-radius: 7px; }
 
-  /* ---- 场上单位 ---- */
-  .unit { width: var(--uw); height: var(--uh); border-radius: 7px; padding: 5px; position: relative;
-          background: #232833; border: 2px solid #39404d; cursor: default; user-select: none;
-          display: flex; flex-direction: column; overflow: hidden; }
-  /* 卡图铺满卡面，文字压在上面；图缺失时自然回退成纯文字 */
-  .art { position: absolute; inset: 0; background-size: cover; background-position: center top;
-         opacity: .55; pointer-events: none; }
-  /* 程序化生成的 SVG 卡面（没有官方立绘的那些）要单独给一档更高的不透明度。
-   * 官方立绘是照片式的中间调，压到 .42~.55 还看得出内容；线稿不行——
-   * 乘完 .42 之后等效只剩 0.33，徽记会整片消失在暗底里，卡面看起来就是纯色的。
-   * 这些 SVG 自带上下两条压暗条，所以调高不透明度不会吃掉卡名和攻/血。 */
-  .art.gen { opacity: .82; }
-  .unit > *:not(.art), .card > *:not(.art) { position: relative; z-index: 1; }
-  .unit .n { font-size: var(--ufs); font-weight: bold; line-height: 1.25;
-             max-height: calc(var(--ufs) * 3.2); overflow: hidden;
-             text-shadow: 0 1px 3px #000, 0 0 6px #000; }
-  .unit .kw { font-size: calc(var(--ufs) * .88); color: #ffd43b; margin-top: auto; line-height: 1.3; }
-  .unit .st { display: flex; justify-content: space-between; font-weight: bold; margin-top: 2px;
-              font-size: calc(var(--ufs) * 1.36); }
-  .unit .a { color: #ffa94d; } .unit .h { color: #ff8787; }
-  .unit.amulet { background: #2b2436; }
-  .unit .cd { position: absolute; top: -6px; right: -6px; background: #7048e8; color: #fff;
-              width: 20px; height: 20px; border-radius: 50%; font-size: 11px; text-align: center; line-height: 20px; }
-  .unit .marks { font-size: calc(var(--ufs) * .82); color: #ff8787; line-height: 1.25; }
+  /* ---- 卡面骨架：独立插画区 + 底栏 + 费用水晶 + 攻血宝石 ----
+     以前是「整卡铺底卡图 + 所有 UI 浮在图上」，现在切成影之诗式的三段：
+       上段插画（100% 不透明）→ 中段半透明效果黑板 → 下段命途色底栏。
+     影之诗里底栏/费用水晶是「职业色」，星铁里换成「命途色」（--pc/--pcd 由 JS 内联）。 */
 
-  /* ---- 三种状态各占一个视觉通道 ----
-     以前守护、可攻击、稀有度全都改 border-color，同时只能显示一个——
-     一个金卡守护随从看起来和一个铜卡守护随从一模一样。现在分开：
-       稀有度 → border（静态身份，永远可见）
-       守护   → 顶部蓝条 + 左上盾牌角标
-       可攻击/选中/可选目标 → outline（和 border 互不干扰的独立描边）
+  /* 卡图：独立插画区，100% 不透明（图缺失时自然回退成纯色底） */
+  .art { position: absolute; background-size: cover; background-position: center top;
+         opacity: 1; pointer-events: none; }
+  /* 程序化 SVG 卡面（线稿）在暗底上偏淡，给一档略高的不透明度 */
+  .art.gen { opacity: .85; }
+  /* 随从卡图放大 1.2 倍（只放大图片，容器尺寸不变；溢出部分被 overflow:hidden 裁掉）。
+   * 只对场上单位与手牌卡生效，亮相卡（.reveal）保持全铺不放大。 */
+  .unit .art.follow, .card .art.follow { transform: scale(1.2); }
+  /* 打出/召唤时的亮相卡是全图铺底（不是标准卡面布局），保持旧的全铺做法 */
+  .reveal .art { inset: 0; opacity: .55; }
+
+  /* 费用水晶：左上圆形命途色宝石，命途符号做背景（--pi 由 JS 内联）。
+   * 符号压暗一档让白字数字更突出；降价/够费时套绿环。 */
+  .cost { position: absolute; left: 2%; top: 1.5%; width: 17%; z-index: 5;
+          aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+          border-radius: 50%;
+          background: radial-gradient(circle at 35% 30%, var(--pc), var(--pcd));
+          box-shadow: 0 0 0 2px #202020, 0 2px 4px #000a; }
+  .cost::before { content: ''; position: absolute; inset: 9%;
+                  background-image: var(--pi); background-size: contain;
+                  background-repeat: no-repeat; background-position: center; opacity: .55; }
+  .cost b { position: relative; z-index: 1; color: #f5f3e8; font-weight: 900; line-height: 1;
+            text-shadow: -1px -1px 0 #222, 1px -1px 0 #222, -1px 1px 0 #222, 1px 1px 0 #222, 0 2px 2px #000; }
+  .card .cost b { font-size: calc(var(--hw) * .115); }
+  .unit .cost b { font-size: calc(var(--uw) * .12); }
+  .cost.cut { box-shadow: 0 0 0 2px #202020, 0 0 0 4px #51cf66, 0 2px 4px #000a; }
+
+  /* 攻/血宝石：左右两个圆形水晶，压住底栏。攻击=蓝(剑)、生命=红(盾)（影之诗惯例）。
+   * 攻防图标来自崩铁 wiki 的「攻击.png」「防御.png」，形态同套、尺寸一致。 */
+  .atk, .hp { position: absolute; z-index: 4; display: flex; align-items: center; justify-content: center;
+              aspect-ratio: 1; border-radius: 50%;
+              box-shadow: 0 0 0 2px #17222b, 0 2px 5px #0009; }
+  .atk { background: radial-gradient(circle at 35% 30%, #2fbaf1, #063b8c); }
+  .hp  { background: radial-gradient(circle at 35% 30%, #ef4755, #750e17); }
+  .atk::before { content: ''; position: absolute; inset: 14%;
+                 background: url('img/icon/atk.png') center/contain no-repeat; }
+  .hp::before  { content: ''; position: absolute; inset: 14%;
+                 background: url('img/icon/def.png') center/contain no-repeat; }
+  .atk b, .hp b { position: relative; z-index: 1; color: #fff; font-weight: 900; line-height: 1;
+                  text-shadow: 0 1px 2px #000, 0 0 3px #000; }
+  .card .atk, .card .hp { width: 16%; }
+  .card .atk { left: 2.5%; bottom: 4%; } .card .hp { right: 2.5%; bottom: 4%; }
+  .card .atk b, .card .hp b { font-size: calc(var(--hw) * .13); }
+  .unit .atk, .unit .hp { width: 18%; }
+  .unit .atk { left: 1.5%; bottom: 4%; } .unit .hp { right: 1.5%; bottom: 4%; }
+  .unit .atk b, .unit .hp b { font-size: calc(var(--uw) * .15); }
+
+  /* 底栏：命途色渐变，卡名居中（白字深描边保证在亮色命途上也能读）。 */
+  .namebar { position: absolute; left: 3%; right: 3%; z-index: 3;
+             display: flex; flex-direction: column; align-items: center; justify-content: center;
+             background: linear-gradient(180deg, var(--pc), var(--pcd)); }
+  .namebar .n, .namebar .cn { color: #f3f0e6; font-weight: 700; text-align: center; line-height: 1.12;
+             text-shadow: 0 1px 1px #000, 0 0 3px rgba(0,0,0,.75); }
+  .card .ctype { font-size: calc(var(--hfs) * .6); color: rgba(255,255,255,.92);
+                 text-shadow: 0 1px 1px #000; line-height: 1.1; margin-top: 1px; }
+  /* 稀有度 = 卡的边框色（铜/银/金/虹/衍生）。边框是 2px 实色，金属内描边保留。 */
+  .q铜   { border-color: #6b5a3e; }
+  .q银   { border-color: #8a939d; }
+  .q金   { border-color: #c7a94d; }
+  .q虹   { border-color: #a87fd0; }
+  .q衍生 { border-color: #46603a; }
+
+  /* 倒数角标（护符），右上 */
+  .cd { position: absolute; top: 3%; right: 3%; z-index: 5; background: #7048e8; color: #fff;
+        width: 20px; height: 20px; border-radius: 50%; font-size: 11px; text-align: center; line-height: 20px;
+        box-shadow: 0 0 0 2px #202020; }
+
+  /* ---- 场上单位 ---- */
+  .unit { width: var(--uw); height: var(--uh); border-radius: calc(var(--uw) * .06);
+          position: relative; cursor: default; user-select: none; overflow: hidden;
+          background: linear-gradient(180deg,#34383c,#181b1e);
+          border: 2px solid #8a939d;
+          box-shadow: inset 0 0 0 calc(var(--uw) * .004) #85888a,
+                      inset 0 0 0 calc(var(--uw) * .009) #24272a; }
+  .unit .art { left: 3%; right: 3%; top: 3%; bottom: 21%; }
+  .unit .namebar { bottom: 3%; height: 19%; border-radius: 0 0 calc(var(--uw) * .03) calc(var(--uw) * .03); }
+  .unit .n { font-size: var(--ufs); max-width: 96%; padding: 0 4%; }
+  /* 场上单位的状态（关键词/标记）叠在插画上、底栏上方 */
+  .unit .status { position: absolute; left: 4%; right: 4%; bottom: 23%; z-index: 2;
+                  display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
+  .unit .kw { color: #ffd43b; font-size: calc(var(--ufs) * .82); line-height: 1.15;
+              text-shadow: 0 1px 2px #000; }
+  .unit .mk { color: #ff8787; font-size: calc(var(--ufs) * .72); line-height: 1.15;
+              text-shadow: 0 1px 2px #000; }
+  .unit .mk.ctr { color: #ffd43b; }
+  .unit.amulet { background: linear-gradient(180deg,#3a3045,#1c1826); }
+
+  /* ---- 状态各占一个视觉通道 ----
+     稀有度 → 卡边框色（.q铜/.q银/.q金/.q虹/.q衍生）
+     守护   → 顶部蓝条 + 左上盾牌角标
+     可攻击/选中/可选目标 → outline（和边框互不干扰的独立描边）
      box-shadow 留给临时特效（受击、屏障、进化）。 */
-  .unit.ward { box-shadow: inset 0 3px 0 0 #4dabf7; }
+  .unit.ward { box-shadow: inset 0 3px 0 0 #4dabf7,
+                           inset 0 0 0 calc(var(--uw) * .004) #85888a,
+                           inset 0 0 0 calc(var(--uw) * .009) #24272a; }
   .unit.ward::after { content: '🛡'; position: absolute; top: 2px; left: 3px; font-size: 11px;
-                      line-height: 1; opacity: .95; text-shadow: 0 0 4px #000, 0 0 8px #4dabf7; }
+                      line-height: 1; opacity: .95; z-index: 5; text-shadow: 0 0 4px #000, 0 0 8px #4dabf7; }
   .unit.amulet::before { content: '符'; position: absolute; top: 2px; right: 3px; font-size: 9px;
-                         color: #c8a2f0; text-shadow: 0 1px 3px #000; }
+                         color: #c8a2f0; z-index: 5; text-shadow: 0 1px 3px #000; }
   .unit.ready { outline: 2px solid #51cf66; outline-offset: 1px; cursor: grab; }
   .unit.sel { outline: 3px solid #ffd43b; outline-offset: 1px; }
   .unit.targetable { outline: 2px dashed #ffd43b; outline-offset: 2px; cursor: crosshair;
@@ -124,14 +192,30 @@
   #handRow { display: flex; align-items: center; justify-content: center; gap: 10px;
              min-height: calc(var(--hh) + 8px); }
   #hand { display: flex; gap: 6px; justify-content: center; padding: 4px; flex-wrap: wrap; }
-  .card { width: var(--hw); height: var(--hh); border-radius: 8px; padding: 6px; background: #242a36;
-          border: 2px solid #39404d; cursor: grab; position: relative; display: flex; flex-direction: column;
-          transition: transform .08s; user-select: none; }
+  .card { width: var(--hw); height: var(--hh); border-radius: calc(var(--hw) * .06);
+          cursor: grab; position: relative; overflow: hidden; user-select: none;
+          background: linear-gradient(180deg,#34383c,#181b1e);
+          border: 2px solid #8a939d;
+          box-shadow: inset 0 0 0 calc(var(--hw) * .004) #85888a,
+                      inset 0 0 0 calc(var(--hw) * .009) #24272a,
+                      0 calc(var(--hw) * .01) calc(var(--hw) * .02) rgba(0,0,0,.55);
+          transition: transform .08s; }
   .card:hover { transform: translateY(-6px); }
   .card.no { opacity: .38; cursor: not-allowed; }
   .card.no:hover { transform: none; }
   .card.sel { outline: 3px solid #ffd43b; outline-offset: 1px; }
   .card.dragging { opacity: .3; }
+  .card .art { left: 4%; right: 4%; top: 3%; bottom: 18%; }
+  .card .namebar { top: 82%; bottom: 4%; border-radius: 0 0 calc(var(--hw) * .04) calc(var(--hw) * .04); }
+  .card .cn { font-size: var(--hfs); max-width: 94%; padding: 0 5%; }
+  /* 效果文字区：底部对齐、上不封顶——文字贴底排，写不下时向上延伸覆盖插画，
+   * 而不是被固定的 top 一刀截断。bottom 固定，高度随内容伸缩（上限到卡片顶部）。 */
+  .card .effect { position: absolute; left: 4%; right: 4%; bottom: 18%; z-index: 2;
+                  max-height: 79%;
+                  display: flex; flex-direction: column; justify-content: flex-end;
+                  background: linear-gradient(180deg, rgba(13,17,22,.72), rgba(7,10,13,.9));
+                  border-top: 1px solid rgba(205,205,190,.35); padding: 3% 4%; overflow: hidden; }
+  .card .ct { font-size: calc(var(--hfs) * .78); color: #f1f1ea; line-height: 1.25; }
 
   /* ---- 牌库：显示成一叠真的卡背，抽卡就从这里飞出去 ---- */
   .deckPile { position: relative; width: calc(var(--hw) * .62); height: calc(var(--hh) * .62);
@@ -145,21 +229,6 @@
                   text-shadow: 0 2px 5px #000; }
   .deckPile .ct small { font-size: calc(var(--hw) * .085); color: #9a8ec2; font-weight: normal }
   .deckPile.low .ct { color: #ffd43b } .deckPile.crit .ct { color: #ff8787 }
-  .card .cost { position: absolute; top: -7px; left: -7px; width: 24px; height: 24px; border-radius: 50%;
-                background: #1864ab; color: #fff; font-weight: bold; text-align: center; line-height: 24px; font-size: 13px; }
-  .card .cost.cut { background: #2f9e44; }
-  .card { overflow: hidden; }
-  .card .cn { font-size: var(--hfs); font-weight: bold; margin: 12px 0 3px; line-height: 1.25;
-              text-shadow: 0 1px 3px #000, 0 0 6px #000; }
-  .card .ct { font-size: calc(var(--hfs) * .9); color: #cbd; flex: 1; overflow: hidden; line-height: 1.35;
-              text-shadow: 0 1px 2px #000, 0 0 4px #000; }
-  .card .cs { display: flex; justify-content: space-between; font-weight: bold;
-              font-size: calc(var(--hfs) * 1.3); text-shadow: 0 1px 3px #000; }
-  .card .art { opacity: .42; }
-  .q铜 { border-color: #6b5a3e; } .q银 { border-color: #7a8390; }
-  .q金 { border-color: #b8912f; } .q虹 { border-color: #a04ec8; }
-  .q衍生 { border-color: #46603a; }
-
   #foeHand { display: flex; gap: 3px; justify-content: center; height: 26px; }
   .back { width: 18px; height: 26px; border-radius: 3px; background: linear-gradient(160deg,#3b2a5a,#25324a); border: 1px solid #4a3a6a; }
 
@@ -412,11 +481,14 @@
   .pick b { transition: background .12s, border-color .12s, transform .07s; }
   .pick b:hover { transform: translateY(-1px); }
 
-  /* 长效果文字在卡面上是被 overflow:hidden 直接切断的，切在半句话中间，
-     而且没有任何迹象表明「还有」——玩家会以为卡面写的就是全部。
-     底部渐隐把这件事说出来（完整文字在详情面板里）。文字短的时候
-     那块区域本来是空的，所以不会有副作用。 */
-  .card .ct, .reveal .rt {
+  /* 长效果文字在卡面上会被切断，得让玩家知道「还有」——
+     完整文字在详情面板里。手牌卡效果文字是底部对齐、向上延伸，所以渐隐放顶部；
+     亮相卡（.reveal）还是从上往下排，渐隐留在底部。 */
+  .card .ct {
+    -webkit-mask-image: linear-gradient(180deg, #0000 0%, #000 22%);
+            mask-image: linear-gradient(180deg, #0000 0%, #000 22%);
+  }
+  .reveal .rt {
     -webkit-mask-image: linear-gradient(180deg, #000 76%, #0000 99%);
             mask-image: linear-gradient(180deg, #000 76%, #0000 99%);
   }
@@ -452,7 +524,7 @@
     #board { padding: 3px 5px; gap: 2px; }
     #side { width: 168px; }
     .leader { padding: 2px 6px; gap: 5px; }
-    .lname { min-width: 0; font-size: 11px; } .hp { font-size: 14px; min-width: 38px; }
+    .lname { min-width: 0; font-size: 11px; } .leader .hp { font-size: 14px; min-width: 38px; }
     .pip { width: 8px; height: 8px; }
     #foeHand { height: 12px; } .back { width: 9px; height: 12px; }
     #handRow { min-height: calc(var(--hh) + 2px); gap: 4px; }
@@ -876,12 +948,16 @@ function renderMulligan() {
   const hand = s.players[ME].hand;
   $('mullCards').innerHTML = hand.map((h, i) => {
     const d = h.def;
-    return `<div class="card q${d.quality}" data-mull="${i}" style="${mullPicked.has(i) ? 'opacity:.32' : ''}">`
+    const follower = d.type === '随从';
+    return `<div class="card q${d.quality}" data-mull="${i}" style="${pathStyle(d)}${mullPicked.has(i) ? 'opacity:.32' : ''}">`
       + art(d)
-      + `<div class="cost">${d.cost}</div><div class="cn">${esc(d.name)}</div>`
-      + `<div class="ct">${esc(d.note || '')}</div>`
-      + (d.type === '随从' ? `<div class="cs"><span class="a">${d.atk}</span><span class="h">${d.hp}</span></div>`
-         : `<div class="cs"><span style="font-size:11px;color:#98a">${d.type}</span></div>`)
+      + `<div class="cost"><b>${d.cost}</b></div>`
+      + `<div class="effect"><div class="ct">${esc(d.note || '')}</div></div>`
+      + `<div class="namebar"><div class="cn">${esc(d.name)}</div>`
+      +   `<div class="ctype">${follower ? '随从' : d.type} · ${esc(d.class || '')}</div></div>`
+      + (follower
+          ? `<div class="atk"><b>${d.atk}</b></div><div class="hp"><b>${d.hp}</b></div>`
+          : (d.countdown ? `<div class="cd">${d.countdown}</div>` : ''))
       + '</div>';
   }).join('');
   // 重抽阶段恰恰最需要看懂卡，所以这里也是「点开详情」，换不换在详情面板里点
@@ -1096,16 +1172,50 @@ function unitHTML(u, isMe) {
   return `<div class="unit q${u.def.quality || ''} ${amulet ? 'amulet' : ''}`
     + ` ${u.keywords.has('ward') ? 'ward' : ''}`
     + ` ${ready ? 'ready' : ''} ${selected ? 'sel' : ''} ${tgt ? 'targetable' : ''}"`
-    + ` data-uid="${u.uid}" data-side="${isMe ? 'me' : 'foe'}" title="${esc(u.def.note || '')}">`
+    + ` style="${pathStyle(u.def)}" data-uid="${u.uid}" data-side="${isMe ? 'me' : 'foe'}" title="${esc(u.def.note || '')}">`
     + art(u.def)
+    + `<div class="cost"><b>${u.def.cost}</b></div>`
     + (amulet && u.countdown != null ? `<div class="cd">${u.countdown}</div>` : '')
-    + `<div class="n">${esc(u.name)}${u.evolved ? ' ★' : ''}</div>`
-    + (marks.length ? `<div class="marks">${esc(marks.join('·'))}</div>` : '')
-    + (ctr.length ? `<div class="marks" style="color:#ffd43b">${esc(ctr.join(' '))}</div>` : '')
-    + (kws ? `<div class="kw">${esc(kws)}</div>` : '<div class="kw"></div>')
-    + (amulet ? '' : `<div class="st"><span class="a">${ea}${ea !== u.atk ? '*' : ''}</span>`
-        + `<span class="h">${u.hp}</span></div>`)
+    + `<div class="status">${[
+        kws ? `<span class="kw">${esc(kws)}</span>` : '',
+        marks.length ? `<span class="mk">${esc(marks.join('·'))}</span>` : '',
+        ctr.length ? `<span class="mk ctr">${esc(ctr.join(' '))}</span>` : '',
+      ].filter(Boolean).join('')}</div>`
+    + `<div class="namebar"><div class="n">${esc(u.name)}${u.evolved ? ' ★' : ''}</div></div>`
+    + (amulet ? '' : `<div class="atk"><b>${ea}${ea !== u.atk ? '*' : ''}</b></div>`
+        + `<div class="hp"><b>${u.hp}</b></div>`)
     + '</div>';
+}
+
+/* 命途色：卡面底栏与费用水晶的颜色。沿用 gen-deck-art.pl 的卡背配色，
+ * 亮色(--pc)打顶、暗色(--pcd)收底，文字白字深描边保证对比度。
+ * 影之诗里这里是「职业色」，换成星铁就是「命途色」——一套卡一眼认出命途。 */
+const PATH_COLORS = {
+  '毁灭':     ['#ff7a55', '#8f2f18'],
+  '存护丰饶': ['#6ee0cf', '#1f6e63'],
+  '巡猎':     ['#5cc9f5', '#1c5f88'],
+  '智识':     ['#ffd96b', '#9a7a1f'],
+  '同谐':     ['#ff9fd8', '#a2487c'],
+  '虚无':     ['#b98cff', '#5f2fa0'],
+  '欢愉':     ['#ffb85c', '#9c5f1a'],
+  '记忆':     ['#a4dcff', '#2f6b9e'],
+};
+/* 命途符号（白色版，bilibili wiki 官方素材）：印在费用水晶底上。
+ * 「存护丰饶」合并了存护与丰饶两命途，这里暂用存护(盾)符号——想要丰饶(花)符号的话换这行即可。 */
+const PATH_ICONS = {
+  '毁灭':     'img/icon/destruction.png',
+  '存护丰饶': 'img/icon/preservation.png',
+  '巡猎':     'img/icon/hunt.png',
+  '智识':     'img/icon/erudition.png',
+  '同谐':     'img/icon/harmony.png',
+  '虚无':     'img/icon/nihility.png',
+  '欢愉':     'img/icon/elation.png',
+  '记忆':     'img/icon/remembrance.png',
+};
+function pathStyle(def) {
+  const [pc, pcd] = PATH_COLORS[def.class] || ['#6a7480', '#2a2f38'];
+  const pi = PATH_ICONS[def.class] || '';
+  return `--pc:${pc};--pcd:${pcd};--pi:url('${pi}')`;
 }
 
 function cardHTML(inst, i, myTurn) {
@@ -1114,14 +1224,17 @@ function cardHTML(inst, i, myTurn) {
   const chk = E.canPlay(s, i);
   const ok = myTurn && chk.ok;
   const selected = sel && sel.kind === 'target' && sel.hand === i;
+  const follower = d.type === '随从';
   return `<div class="card q${d.quality} ${ok ? '' : 'no'} ${selected ? 'sel' : ''}" data-hand="${i}"`
-    + ` title="${esc((d.note || '') + (chk.ok ? '' : '\n【无法使用】' + chk.why))}">`
+    + ` style="${pathStyle(d)}" title="${esc((d.note || '') + (chk.ok ? '' : '\n【无法使用】' + chk.why))}">`
     + art(d)
-    + `<div class="cost ${cost < d.cost ? 'cut' : ''}">${cost}</div>`
-    + `<div class="cn">${esc(d.name)}</div>`
-    + `<div class="ct">${esc(d.note || '')}</div>`
-    + (d.type === '随从' ? `<div class="cs"><span class="a">${d.atk}</span><span class="h">${d.hp}</span></div>`
-       : `<div class="cs"><span style="font-size:11px;color:#98a">${d.type}${d.countdown ? ' 倒数' + d.countdown : ''}</span></div>`)
+    + `<div class="cost ${cost < d.cost ? 'cut' : ''}"><b>${cost}</b></div>`
+    + `<div class="effect"><div class="ct">${esc(d.note || '')}</div></div>`
+    + `<div class="namebar"><div class="cn">${esc(d.name)}</div>`
+    +   `<div class="ctype">${follower ? '随从' : d.type} · ${esc(d.class || '')}</div></div>`
+    + (follower
+        ? `<div class="atk"><b>${d.atk}</b></div><div class="hp"><b>${d.hp}</b></div>`
+        : (d.countdown ? `<div class="cd">${d.countdown}</div>` : ''))
     + '</div>';
 }
 
@@ -1133,14 +1246,27 @@ const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '
 function art(def) {
   if (!def.img) return '';
   const gen = /\.svg$/i.test(def.img) ? ' gen' : '';
-  return `<div class="art${gen}" style="background-image:url('${encodeURI(def.img)}')"></div>`;
+  const follow = def.type === '随从' ? ' follow' : '';
+  return `<div class="art${gen}${follow}" style="background-image:url('${encodeURI(def.img)}')"></div>`;
+}
+
+/** 详情面板顶部用大图（big 档），只在点开面板时才去请求 → 天然的懒加载。
+ *  场上/手牌上的 art() 用 400px 小档，覆盖 2x 屏幕绰绰有余；详情面板放大了
+ *  才需要 800px 大档。只有「随从 + webp」有 big 档：光锥（法术/护符）和
+ *  程序化 SVG 都只有一张图，直接回退用原图。 */
+function bigImg(def) {
+  if (!def.img) return '';
+  if (def.type === '随从' && /\.webp$/i.test(def.img)) {
+    return def.img.replace(/([^/]+)\.webp$/i, 'big/$1.webp');
+  }
+  return def.img;
 }
 
 /** 详情面板顶部的卡图：整张放全（contain），背后垫一张模糊放大的同图填满两侧。
  *  卡面上用的 art() 是 cover，在这个横条比例里会把图裁掉三分之二。 */
 function artHead(def) {
   if (!def.img) return '';
-  const u = encodeURI(def.img);
+  const u = encodeURI(bigImg(def));
   return `<div class="artBlur" style="background-image:url('${u}')"></div>`
     + `<div class="artFull" style="background-image:url('${u}')"></div>`;
 }

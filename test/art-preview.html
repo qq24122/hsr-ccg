@@ -43,7 +43,7 @@
 import { loadCards } from '../src/loader.js';
 const cards = await loadCards('ALL');
 const svgCards = cards.all.filter(c => !c.isToken && /\.svg$/.test(c.img || ''));
-const pngCards = cards.all.filter(c => !c.isToken && /\.png$/.test(c.img || '')).slice(0, 8);
+const pngCards = cards.all.filter(c => !c.isToken && /\.webp$/.test(c.img || '')).slice(0, 8);
 const esc = t => String(t ?? '').replace(/[&<>"]/g, c =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
