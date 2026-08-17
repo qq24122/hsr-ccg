@@ -107,17 +107,17 @@
   .cost.cut { filter: drop-shadow(0 0 0 2px #202020) drop-shadow(0 0 0 4px #51cf66)
                        drop-shadow(0 1px 3px rgba(0,0,0,.9)); }
 
-  /* 攻/血数值：压住底栏。攻击用剑图标（不套圆形底），生命值只用红色数字（不用图标）。
-   * 剑图标来自崩铁 wiki 的「攻击.png」。 */
+  /* 攻/血数值：压住底栏。攻击用剑图标、生命/防御用盾图标（都不套圆形底）。
+   * 图标来自崩铁 wiki 的「攻击.png」「防御.png」，形态同套、尺寸一致。 */
   .atk, .hp { position: absolute; z-index: 4; display: flex; align-items: center; justify-content: center;
               aspect-ratio: 1; }
   .atk { background: url('img/icon/atk.png') center/contain no-repeat;
          filter: drop-shadow(0 0 1px #000) drop-shadow(0 1px 2px rgba(0,0,0,.85)); }
-  .hp  { filter: drop-shadow(0 0 3px #000); }
+  .hp  { background: url('img/icon/def.png') center/contain no-repeat;
+         filter: drop-shadow(0 0 1px #000) drop-shadow(0 1px 2px rgba(0,0,0,.85)); }
   .atk b, .hp b { color: #fff; font-weight: 900; line-height: 1;
                   text-shadow: -1px -1px 0 #17222b, 1px -1px 0 #17222b, -1px 1px 0 #17222b, 1px 1px 0 #17222b,
                                0 0 4px #000; }
-  .hp b { color: #ff6b6b; }
   .card .atk, .card .hp { width: 17%; }
   .card .atk { left: 2%; bottom: 4%; } .card .hp { right: 2%; bottom: 4%; }
   .card .atk b, .card .hp b { font-size: calc(var(--hw) * .14); }
