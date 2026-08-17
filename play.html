@@ -107,22 +107,23 @@
   .cost.cut { filter: drop-shadow(0 0 0 2px #202020) drop-shadow(0 0 0 4px #51cf66)
                        drop-shadow(0 1px 3px rgba(0,0,0,.9)); }
 
-  /* 攻/血数值：压住底栏。攻击用剑图标、生命/防御用盾图标（都不套圆形底）。
-   * 图标来自崩铁 wiki 的「攻击.png」「防御.png」，形态同套、尺寸一致。 */
-  .atk, .hp { position: absolute; z-index: 4; display: flex; align-items: center; justify-content: center;
-              aspect-ratio: 1; }
-  .atk { background: url('img/icon/atk.png') center/contain no-repeat;
-         filter: drop-shadow(0 0 1px #000) drop-shadow(0 1px 2px rgba(0,0,0,.85)); }
-  .hp  { background: url('img/icon/def.png') center/contain no-repeat;
-         filter: drop-shadow(0 0 1px #000) drop-shadow(0 1px 2px rgba(0,0,0,.85)); }
-  .atk b, .hp b { color: #fff; font-weight: 900; line-height: 1;
-                  text-shadow: -1px -1px 0 #17222b, 1px -1px 0 #17222b, -1px 1px 0 #17222b, 1px 1px 0 #17222b,
-                               0 0 4px #000; }
-  .card .atk, .card .hp { width: 17%; }
-  .card .atk { left: 2%; bottom: 4%; } .card .hp { right: 2%; bottom: 4%; }
+  /* 攻/血数值：压住卡面底部。攻击=剑、生命/防御=盾（崩铁 wiki 属性图标），不套圆形底。
+   * 图标放大、数字不变。必须用 .card/.unit 前缀限定——否则全局的 .atk/.hp 会把
+   * 主战者条里同名的 .hp 血量也变成 absolute 定位，导致「名称与血量重叠」。 */
+  .card .atk, .card .hp, .unit .atk, .unit .hp { position: absolute; z-index: 4;
+      display: flex; align-items: center; justify-content: center; aspect-ratio: 1; }
+  .card .atk, .unit .atk { background: url('img/icon/atk.png') center/contain no-repeat;
+      filter: drop-shadow(0 0 1px #000) drop-shadow(0 1px 2px rgba(0,0,0,.85)); }
+  .card .hp, .unit .hp  { background: url('img/icon/def.png') center/contain no-repeat;
+      filter: drop-shadow(0 0 1px #000) drop-shadow(0 1px 2px rgba(0,0,0,.85)); }
+  .card .atk b, .card .hp b, .unit .atk b, .unit .hp b { color: #fff; font-weight: 900; line-height: 1;
+      text-shadow: -1px -1px 0 #17222b, 1px -1px 0 #17222b, -1px 1px 0 #17222b, 1px 1px 0 #17222b,
+                   0 0 4px #000; }
+  .card .atk, .card .hp { width: 21%; }
+  .card .atk { left: 2%; bottom: 3%; } .card .hp { right: 2%; bottom: 3%; }
   .card .atk b, .card .hp b { font-size: calc(var(--hw) * .14); }
-  .unit .atk, .unit .hp { width: 19%; }
-  .unit .atk { left: 1%; bottom: 4%; } .unit .hp { right: 1%; bottom: 4%; }
+  .unit .atk, .unit .hp { width: 23%; }
+  .unit .atk { left: 1%; bottom: 3%; } .unit .hp { right: 1%; bottom: 3%; }
   .unit .atk b, .unit .hp b { font-size: calc(var(--uw) * .16); }
 
   /* 卡名：顶部居中，叠在插画上方。缩小字号避免挤占插画；长名单行省略号。
@@ -134,14 +135,6 @@
   .card .cname { font-size: calc(var(--hfs) * .78); }
   .unit .cname { font-size: calc(var(--ufs) * .78); }
 
-  /* 底栏：命途色渐变。卡名已上移到顶部，这里只放「类型·命途」小字（场上是命途名）。 */
-  .namebar { position: absolute; left: 3%; right: 3%; z-index: 3;
-             display: flex; flex-direction: column; align-items: center; justify-content: center;
-             background: linear-gradient(180deg, var(--pc), var(--pcd)); }
-  .card .ctype { font-size: calc(var(--hfs) * .62); color: rgba(255,255,255,.95);
-                 text-shadow: 0 1px 1px #000; line-height: 1.1; }
-  .unit .ctype { font-size: calc(var(--ufs) * .66); color: rgba(255,255,255,.95);
-                 text-shadow: 0 1px 1px #000; line-height: 1.1; }
   /* 稀有度 = 卡的边框色（铜/银/金/虹/衍生）。用 .card/.unit + .q 双类选择器，
    * 优先级（0,2,0）压过 base 的 border 简写（0,1,0），否则会被后定义的 base 覆盖。 */
   .card.q铜, .unit.q铜   { border-color: #6b5a3e; }
@@ -150,8 +143,8 @@
   .card.q虹, .unit.q虹   { border-color: #a87fd0; }
   .card.q衍生, .unit.q衍生 { border-color: #46603a; }
 
-  /* 倒数角标（护符），右上。尺寸跟着卡牌走（手牌/场上分开），不用写死 20px。 */
-  .cd { position: absolute; top: 3%; right: 3%; z-index: 5; background: #7048e8; color: #fff;
+  /* 倒数角标（护符），右下角（类似随从卡血量的位置）。尺寸跟着卡牌走，不用写死。 */
+  .cd { position: absolute; bottom: 3%; right: 3%; z-index: 5; background: #7048e8; color: #fff;
         border-radius: 50%; text-align: center; font-weight: bold; box-shadow: 0 0 0 2px #202020; }
   .card .cd { width: calc(var(--hw) * .16); height: calc(var(--hw) * .16);
               font-size: calc(var(--hw) * .09); line-height: calc(var(--hw) * .16); }
@@ -165,9 +158,8 @@
           border: 2px solid #8a939d;
           box-shadow: inset 0 0 0 calc(var(--uw) * .004) #85888a,
                       inset 0 0 0 calc(var(--uw) * .009) #24272a; }
-  .unit .art { left: 3%; right: 3%; top: 3%; bottom: 18%; }
-  .unit .namebar { bottom: 3%; height: 15%; border-radius: 0 0 calc(var(--uw) * .03) calc(var(--uw) * .03); }
-  /* 场上单位的状态（关键词/标记）叠在插画上、底栏上方 */
+  .unit .art { left: 3%; right: 3%; top: 3%; bottom: 4%; }
+  /* 场上单位的状态（关键词/标记）叠在插画上、攻血图标上方 */
   .unit .status { position: absolute; left: 4%; right: 4%; bottom: 23%; z-index: 2;
                   display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
   .unit .kw { color: #ffd43b; font-size: calc(var(--ufs) * .82); line-height: 1.15;
@@ -215,12 +207,11 @@
   .card.no:hover { transform: none; }
   .card.sel { outline: 3px solid #ffd43b; outline-offset: 1px; }
   .card.dragging { opacity: .3; }
-  .card .art { left: 4%; right: 4%; top: 3%; bottom: 18%; }
-  .card .namebar { top: 84%; bottom: 4%; border-radius: 0 0 calc(var(--hw) * .04) calc(var(--hw) * .04); }
-  /* 效果文字区：底部对齐、上不封顶——文字贴底排，写不下时向上延伸覆盖插画，
-   * 而不是被固定的 top 一刀截断。bottom 固定，高度随内容伸缩（上限到卡片顶部）。 */
-  .card .effect { position: absolute; left: 4%; right: 4%; bottom: 18%; z-index: 2;
-                  max-height: 79%;
+  .card .art { left: 4%; right: 4%; top: 3%; bottom: 4%; }
+  /* 效果文字区：底部对齐、上不封顶——文字贴底排，写不下时向上延伸覆盖插画。
+   * bottom 抬到攻血图标之上，避免文字压到剑/盾图标。 */
+  .card .effect { position: absolute; left: 4%; right: 4%; bottom: 20%; z-index: 2;
+                  max-height: 72%;
                   display: flex; flex-direction: column; justify-content: flex-end;
                   background: linear-gradient(180deg, rgba(13,17,22,.72), rgba(7,10,13,.9));
                   border-top: 1px solid rgba(205,205,190,.35); padding: 3% 4%; overflow: hidden; }
@@ -490,17 +481,8 @@
   .pick b { transition: background .12s, border-color .12s, transform .07s; }
   .pick b:hover { transform: translateY(-1px); }
 
-  /* 长效果文字在卡面上会被切断，得让玩家知道「还有」——
-     完整文字在详情面板里。手牌卡效果文字是底部对齐、向上延伸，所以渐隐放顶部；
-     亮相卡（.reveal）还是从上往下排，渐隐留在底部。 */
-  .card .ct {
-    -webkit-mask-image: linear-gradient(180deg, #0000 0%, #000 22%);
-            mask-image: linear-gradient(180deg, #0000 0%, #000 22%);
-  }
-  .reveal .rt {
-    -webkit-mask-image: linear-gradient(180deg, #000 76%, #0000 99%);
-            mask-image: linear-gradient(180deg, #000 76%, #0000 99%);
-  }
+  /* 效果文字不再做渐隐（渐隐会让整段字都半透明，反而看不清）。
+     文字多时由 .effect 的 overflow:hidden 直接截断，完整描述在详情面板里。 */
 
   /* ================= 小屏与竖屏 =================
      算过的账：战场是 5 格并排，单位宽度的下限是 86px（再小卡面文字就没法看），
@@ -967,7 +949,6 @@ function renderMulligan() {
       + `<div class="cost"><b>${d.cost}</b></div>`
       + `<div class="cname">${esc(d.name)}</div>`
       + `<div class="effect"><div class="ct">${esc(d.note || '')}</div></div>`
-      + `<div class="namebar"><div class="ctype">${follower ? '随从' : d.type} · ${esc(d.class || '')}</div></div>`
       + (follower
           ? `<div class="atk"><b>${d.atk}</b></div><div class="hp"><b>${d.hp}</b></div>`
           : (d.countdown ? `<div class="cd">${d.countdown}</div>` : ''))
@@ -1195,7 +1176,6 @@ function unitHTML(u, isMe) {
         ctr.length ? `<span class="mk ctr">${esc(ctr.join(' '))}</span>` : '',
       ].filter(Boolean).join('')}</div>`
     + `<div class="cname">${esc(u.name)}${u.evolved ? ' ★' : ''}</div>`
-    + `<div class="namebar"><div class="ctype">${esc(u.def.class || '')}</div></div>`
     + (amulet ? '' : `<div class="atk"><b>${ea}${ea !== u.atk ? '*' : ''}</b></div>`
         + `<div class="hp"><b>${u.hp}</b></div>`)
     + '</div>';
@@ -1245,7 +1225,6 @@ function cardHTML(inst, i, myTurn) {
     + `<div class="cost ${cost < d.cost ? 'cut' : ''}"><b>${cost}</b></div>`
     + `<div class="cname">${esc(d.name)}</div>`
     + `<div class="effect"><div class="ct">${esc(d.note || '')}</div></div>`
-    + `<div class="namebar"><div class="ctype">${follower ? '随从' : d.type} · ${esc(d.class || '')}</div></div>`
     + (follower
         ? `<div class="atk"><b>${d.atk}</b></div><div class="hp"><b>${d.hp}</b></div>`
         : (d.countdown ? `<div class="cd">${d.countdown}</div>` : ''))
