@@ -20,10 +20,10 @@
      现在用一个变量驱动全部尺寸（含字号），同时受 vw 和 vh 约束——
      只跟 vw 走的话，宽屏矮窗口会让上下两排战场溢出屏幕。 */
   :root {
-    --uw: clamp(86px, min(7.4vw, 12.2vh), 152px);   /* 场上单位宽 */
-    --uh: calc(var(--uw) * 1.28);
-    --hw: clamp(98px, min(8.4vw, 14vh), 174px);     /* 手牌宽 */
-    --hh: calc(var(--hw) * 1.42);
+    --uw: clamp(88px, min(7.8vw, 13vh), 168px);     /* 场上单位宽 */
+    --uh: calc(var(--uw) * 1.4);
+    --hw: clamp(100px, min(8.8vw, 14.8vh), 188px);  /* 手牌宽 */
+    --hh: calc(var(--hw) * 1.4);
     --ufs: calc(var(--uw) * 0.118);                 /* 单位名字号 */
     --hfs: calc(var(--hw) * 0.107);                 /* 手牌名字号 */
   }
@@ -91,41 +91,39 @@
   /* 打出/召唤时的亮相卡是全图铺底（不是标准卡面布局），保持旧的全铺做法 */
   .reveal .art { inset: 0; opacity: .55; }
 
-  /* 费用水晶：左上圆形命途色宝石，命途符号做背景（--pi 由 JS 内联）。
-   * 符号压暗一档让白字数字更突出；降价/够费时套绿环。 */
-  .cost { position: absolute; left: 2%; top: 1.5%; width: 17%; z-index: 5;
+  /* 费用水晶：左上直接用命途符号（--pi 由 JS 内联），不套圆形色底。
+   * drop-shadow 沿符号形状描边；数字叠在符号中心，深色光晕保证可读。
+   * 降价/够费时套绿环。 */
+  .cost { position: absolute; left: 2%; top: 1.5%; width: 18%; z-index: 5;
           aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-          border-radius: 50%;
-          background: radial-gradient(circle at 35% 30%, var(--pc), var(--pcd));
-          box-shadow: 0 0 0 2px #202020, 0 2px 4px #000a; }
-  .cost::before { content: ''; position: absolute; inset: 9%;
-                  background-image: var(--pi); background-size: contain;
-                  background-repeat: no-repeat; background-position: center; opacity: .55; }
-  .cost b { position: relative; z-index: 1; color: #f5f3e8; font-weight: 900; line-height: 1;
-            text-shadow: -1px -1px 0 #222, 1px -1px 0 #222, -1px 1px 0 #222, 1px 1px 0 #222, 0 2px 2px #000; }
+          background-image: var(--pi); background-size: contain;
+          background-repeat: no-repeat; background-position: center;
+          filter: drop-shadow(0 0 1px #000) drop-shadow(0 1px 2px rgba(0,0,0,.85)); }
+  .cost b { color: #fff; font-weight: 900; line-height: 1;
+            text-shadow: -1px -1px 0 #222, 1px -1px 0 #222, -1px 1px 0 #222, 1px 1px 0 #222,
+                         0 0 4px #000, 0 0 7px #000; }
   .card .cost b { font-size: calc(var(--hw) * .115); }
   .unit .cost b { font-size: calc(var(--uw) * .12); }
-  .cost.cut { box-shadow: 0 0 0 2px #202020, 0 0 0 4px #51cf66, 0 2px 4px #000a; }
+  .cost.cut { filter: drop-shadow(0 0 0 2px #202020) drop-shadow(0 0 0 4px #51cf66)
+                       drop-shadow(0 1px 3px rgba(0,0,0,.9)); }
 
-  /* 攻/血宝石：左右两个圆形水晶，压住底栏。攻击=蓝(剑)、生命=红(盾)（影之诗惯例）。
-   * 攻防图标来自崩铁 wiki 的「攻击.png」「防御.png」，形态同套、尺寸一致。 */
+  /* 攻/血数值：压住底栏。攻击用剑图标（不套圆形底），生命值只用红色数字（不用图标）。
+   * 剑图标来自崩铁 wiki 的「攻击.png」。 */
   .atk, .hp { position: absolute; z-index: 4; display: flex; align-items: center; justify-content: center;
-              aspect-ratio: 1; border-radius: 50%;
-              box-shadow: 0 0 0 2px #17222b, 0 2px 5px #0009; }
-  .atk { background: radial-gradient(circle at 35% 30%, #2fbaf1, #063b8c); }
-  .hp  { background: radial-gradient(circle at 35% 30%, #ef4755, #750e17); }
-  .atk::before { content: ''; position: absolute; inset: 14%;
-                 background: url('img/icon/atk.png') center/contain no-repeat; }
-  .hp::before  { content: ''; position: absolute; inset: 14%;
-                 background: url('img/icon/def.png') center/contain no-repeat; }
-  .atk b, .hp b { position: relative; z-index: 1; color: #fff; font-weight: 900; line-height: 1;
-                  text-shadow: 0 1px 2px #000, 0 0 3px #000; }
-  .card .atk, .card .hp { width: 16%; }
-  .card .atk { left: 2.5%; bottom: 4%; } .card .hp { right: 2.5%; bottom: 4%; }
-  .card .atk b, .card .hp b { font-size: calc(var(--hw) * .13); }
-  .unit .atk, .unit .hp { width: 18%; }
-  .unit .atk { left: 1.5%; bottom: 4%; } .unit .hp { right: 1.5%; bottom: 4%; }
-  .unit .atk b, .unit .hp b { font-size: calc(var(--uw) * .15); }
+              aspect-ratio: 1; }
+  .atk { background: url('img/icon/atk.png') center/contain no-repeat;
+         filter: drop-shadow(0 0 1px #000) drop-shadow(0 1px 2px rgba(0,0,0,.85)); }
+  .hp  { filter: drop-shadow(0 0 3px #000); }
+  .atk b, .hp b { color: #fff; font-weight: 900; line-height: 1;
+                  text-shadow: -1px -1px 0 #17222b, 1px -1px 0 #17222b, -1px 1px 0 #17222b, 1px 1px 0 #17222b,
+                               0 0 4px #000; }
+  .hp b { color: #ff6b6b; }
+  .card .atk, .card .hp { width: 17%; }
+  .card .atk { left: 2%; bottom: 4%; } .card .hp { right: 2%; bottom: 4%; }
+  .card .atk b, .card .hp b { font-size: calc(var(--hw) * .14); }
+  .unit .atk, .unit .hp { width: 19%; }
+  .unit .atk { left: 1%; bottom: 4%; } .unit .hp { right: 1%; bottom: 4%; }
+  .unit .atk b, .unit .hp b { font-size: calc(var(--uw) * .16); }
 
   /* 底栏：命途色渐变，卡名居中（白字深描边保证在亮色命途上也能读）。 */
   .namebar { position: absolute; left: 3%; right: 3%; z-index: 3;
@@ -135,17 +133,21 @@
              text-shadow: 0 1px 1px #000, 0 0 3px rgba(0,0,0,.75); }
   .card .ctype { font-size: calc(var(--hfs) * .6); color: rgba(255,255,255,.92);
                  text-shadow: 0 1px 1px #000; line-height: 1.1; margin-top: 1px; }
-  /* 稀有度 = 卡的边框色（铜/银/金/虹/衍生）。边框是 2px 实色，金属内描边保留。 */
-  .q铜   { border-color: #6b5a3e; }
-  .q银   { border-color: #8a939d; }
-  .q金   { border-color: #c7a94d; }
-  .q虹   { border-color: #a87fd0; }
-  .q衍生 { border-color: #46603a; }
+  /* 稀有度 = 卡的边框色（铜/银/金/虹/衍生）。用 .card/.unit + .q 双类选择器，
+   * 优先级（0,2,0）压过 base 的 border 简写（0,1,0），否则会被后定义的 base 覆盖。 */
+  .card.q铜, .unit.q铜   { border-color: #6b5a3e; }
+  .card.q银, .unit.q银   { border-color: #8a939d; }
+  .card.q金, .unit.q金   { border-color: #c7a94d; }
+  .card.q虹, .unit.q虹   { border-color: #a87fd0; }
+  .card.q衍生, .unit.q衍生 { border-color: #46603a; }
 
-  /* 倒数角标（护符），右上 */
+  /* 倒数角标（护符），右上。尺寸跟着卡牌走（手牌/场上分开），不用写死 20px。 */
   .cd { position: absolute; top: 3%; right: 3%; z-index: 5; background: #7048e8; color: #fff;
-        width: 20px; height: 20px; border-radius: 50%; font-size: 11px; text-align: center; line-height: 20px;
-        box-shadow: 0 0 0 2px #202020; }
+        border-radius: 50%; text-align: center; font-weight: bold; box-shadow: 0 0 0 2px #202020; }
+  .card .cd { width: calc(var(--hw) * .16); height: calc(var(--hw) * .16);
+              font-size: calc(var(--hw) * .09); line-height: calc(var(--hw) * .16); }
+  .unit .cd { width: calc(var(--uw) * .18); height: calc(var(--uw) * .18);
+              font-size: calc(var(--uw) * .1); line-height: calc(var(--uw) * .18); }
 
   /* ---- 场上单位 ---- */
   .unit { width: var(--uw); height: var(--uh); border-radius: calc(var(--uw) * .06);
@@ -516,8 +518,8 @@
      不是能滚。所以下限必须跟着屏幕一起缩，否则「请横屏」把人引过去之后照样是坏的。 */
   @media (max-height: 560px) {
     :root {
-      --uw: clamp(58px, min(6.6vw, 12.6vh), 152px);
-      --hw: clamp(66px, min(7.4vw, 14vh), 174px);
+      --uw: clamp(58px, min(6.6vw, 12.6vh), 168px);
+      --hw: clamp(66px, min(7.4vw, 14vh), 188px);
       --ufs: calc(var(--uw) * 0.132);
       --hfs: calc(var(--hw) * 0.120);
     }
