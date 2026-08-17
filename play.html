@@ -2,7 +2,15 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- viewport-fit=cover 让内容延伸到刘海/圆角区域；user-scalable=no 防双击误缩放。
+     mobile-web-app-capable + apple-mobile-web-app-capable：iOS/Android 上「添加到主屏幕」
+     后以全屏 App 形式运行（iOS Safari 不支持 requestFullscreen，这是唯一真全屏的办法）。 -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="崩铁CCG">
+<meta name="theme-color" content="#14161c">
 <title>崩铁 CCG — 单人对战</title>
 <style>
   * { box-sizing: border-box; }
@@ -21,7 +29,9 @@
   }
 
   body { margin: 0; font: 13px/1.5 "Microsoft YaHei", sans-serif; background: #14161c; color: #dde; overflow: hidden; }
-  #app { display: flex; height: 100vh; height: 100dvh; }
+  #app { display: flex; height: 100vh; height: 100dvh;
+         padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
+         padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
   /* 手机浏览器地址栏会遮住 100vh 的一部分，导致底部内容被顶出屏幕；
      dvh（动态视口高度）在地址栏展开/收起时正确收缩。桌面浏览器不支持 dvh 时回退 100vh。 */
   #board { flex: 1; display: flex; flex-direction: column; padding: 8px 10px; gap: 6px; min-width: 0; }
@@ -154,7 +164,10 @@
   .back { width: 18px; height: 26px; border-radius: 3px; background: linear-gradient(160deg,#3b2a5a,#25324a); border: 1px solid #4a3a6a; }
 
   /* ---- 侧栏 ---- */
-  #side h3 { margin: 0; padding: 8px 10px; font-size: 12px; background: #1d2028; border-bottom: 1px solid #2a2d36; }
+  #side h3 { margin: 0; padding: 8px 10px; font-size: 12px; background: #1d2028; border-bottom: 1px solid #2a2d36;
+             display: flex; align-items: center; justify-content: space-between; }
+  #side h3 #btnFs { padding: 0 7px; height: 20px; line-height: 18px; font-size: 13px;
+                     background: #2a3038; border-radius: 4px; }
   #log { flex: 1; overflow-y: auto; padding: 6px 10px; font-size: 11px; line-height: 1.6; color: #9aa; }
   #log div { padding: 1px 0; border-bottom: 1px solid #1e2128; }
   #log div.mine { color: #8ce99a; } #log div.foe { color: #ffa8a8; }
@@ -471,7 +484,7 @@
     <div class="leader me" id="myLeader"></div>
   </div>
   <div id="side">
-    <h3>对战记录</h3>
+    <h3>对战记录<button id="btnFs" title="全屏 / 退出全屏">⛶</button></h3>
     <div id="log"></div>
     <div id="hint"></div>
     <div id="ctl">
@@ -528,7 +541,10 @@
     <div class="pickRow"><span class="pickLab">对手卡组</span><span id="pFoeDeck" class="pick"></span></div>
     <div class="pickRow"><span class="pickLab">先手</span><span id="pFirst" class="pick"></span></div>
 
-    <button id="btnStart" style="padding:12px 34px;font-size:15px;margin-top:4px">开始对战</button>
+    <div class="row" style="margin-top:4px;justify-content:center">
+      <button id="btnStart" style="padding:12px 34px;font-size:15px">开始对战</button>
+      <button id="btnFs2" style="padding:12px 20px;font-size:14px;background:#2a3038">⛶ 全屏</button>
+    </div>
   </div>
 </div>
 
@@ -733,6 +749,35 @@ addEventListener('pointerdown', e => {
   Snd.unlock();
   if (e.target.closest('button, .pick b')) Snd.play('click');
 }, true);
+
+/* ---------------- 全屏 ----------------
+ * 手机浏览器地址栏/工具栏会遮住游戏的一部分，全屏才刚好放下。
+ * Android/桌面支持 Fullscreen API；iOS Safari 不支持 requestFullscreen，
+ * 只能提示「添加到主屏幕」后以 App 形式全屏运行（靠上面的 PWA meta）。 */
+const FS_BTN = $('btnFs');
+function isFullscreen() { return document.fullscreenElement || document.webkitFullscreenElement; }
+function toggleFullscreen() {
+  if (isFullscreen()) {
+    (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+  } else if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else if (document.documentElement.webkitRequestFullscreen) {
+    document.documentElement.webkitRequestFullscreen();
+  } else {
+    // iOS Safari：不支持全屏 API，引导用户添加到主屏幕
+    alert('你的浏览器不支持直接全屏。\n请用浏览器的「添加到主屏幕」功能，\n之后就能全屏运行了。');
+  }
+}
+FS_BTN && (FS_BTN.onclick = toggleFullscreen);
+$('btnFs2') && ($('btnFs2').onclick = toggleFullscreen);
+// 全屏状态变化时同步按钮图标
+function syncFsIcons() {
+  const on = isFullscreen();
+  if (FS_BTN) FS_BTN.textContent = on ? '✕' : '⛶';
+  const b2 = $('btnFs2'); if (b2) b2.textContent = on ? '✕ 退出全屏' : '⛶ 全屏';
+}
+document.addEventListener('fullscreenchange', syncFsIcons);
+document.addEventListener('webkitfullscreenchange', syncFsIcons);
 
 /** 现在轮到人类了就敲一声，让人知道该自己动了（AI 回合可能演好几秒） */
 function chimeIfMyTurn() {
