@@ -108,6 +108,7 @@ export function makePlayer(name, deckDefs, isFirst) {
     pp: 0,
     ppMax: 0,
     ppBonus: 0,                 // 花火之类的 PP 上限加成
+    tempPP: 0,                  // 本回合临时 PP（ppUp 动作），回合开始时清零
     ep: isFirst ? RULES.EP_FIRST : RULES.EP_SECOND,
     isFirst,
     deck: deckDefs.slice(),

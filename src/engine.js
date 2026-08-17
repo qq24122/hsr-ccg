@@ -294,6 +294,11 @@ function runAction(s, a, ctx) {
     case 'refundPP': P.pp = Math.min(P.pp + num(s, A[0], ctx), P.ppMax + P.ppBonus); break;
     case 'refundEP': P.ep += num(s, A[0], ctx); break;
     case 'ppMaxUp':  P.ppBonus += num(s, A[0], ctx); break;
+    case 'ppUp': {   // 本回合临时 PP 上限 +N（回合开始时 PP 已回满，refundPP 无效；这个能突破上限）
+      const n = num(s, A[0], ctx);
+      P.tempPP += n; P.pp += n;
+      break;
+    }
     case 'extraAtk':
       for (const t of resolveTarget(s, A[0], ctx)) if (t.__leader == null) t.extraAttacks += num(s, A[1], ctx) || 1;
       break;
@@ -727,6 +732,7 @@ export function startTurn(s) {
   // PP 上限 = 该玩家自己经历的回合数（第1回合1点，每回合+1，最多10）
   p.ppMax = Math.min(turnOfPlayer(s), RULES.PP_MAX);
   p.pp = p.ppMax + p.ppBonus;
+  p.tempPP = 0;                        // 清掉上一回合的临时 PP（ppUp）
   p.cardsPlayedThisTurn = 0;
   p.spellsPlayedThisTurn = 0;
   p.evolvedThisTurn = false;

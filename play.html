@@ -21,7 +21,9 @@
   }
 
   body { margin: 0; font: 13px/1.5 "Microsoft YaHei", sans-serif; background: #14161c; color: #dde; overflow: hidden; }
-  #app { display: flex; height: 100vh; }
+  #app { display: flex; height: 100vh; height: 100dvh; }
+  /* 手机浏览器地址栏会遮住 100vh 的一部分，导致底部内容被顶出屏幕；
+     dvh（动态视口高度）在地址栏展开/收起时正确收缩。桌面浏览器不支持 dvh 时回退 100vh。 */
   #board { flex: 1; display: flex; flex-direction: column; padding: 8px 10px; gap: 6px; min-width: 0; }
   #side { width: 260px; border-left: 1px solid #2a2d36; display: flex; flex-direction: column; background: #171a21; }
 
@@ -194,14 +196,12 @@
             cursor: pointer; font-weight: normal; font-size: 12px; user-select: none; }
   .pick b:hover { border-color: #5a6478; }
   .pick b.on { background: #2f5fa8; border-color: #4d7fd0; color: #fff; font-weight: bold; }
-  #deckPeek { font-size: 11px; color: #8a94a6; margin: 10px 0 4px; line-height: 1.6;
-              background: #1d2028; padding: 8px 10px; border-radius: 6px; min-height: 34px; }
 
   /* ---- 卡牌详情 ----
      点任意一张卡（手牌 / 双方场上 / 重抽界面）都会开这个面板。
      卡面上写的是【守护】【侵蚀3】这种压缩记法，不解释根本看不懂，
      所以面板底部会把这张卡实际用到的术语逐条列出来。 */
-  #detail { position: fixed; z-index: 30; width: 320px; max-height: 88vh; overflow-y: auto;
+  #detail { position: fixed; z-index: 30; width: 320px; max-height: 88vh; max-height: 88dvh; overflow-y: auto;
             background: #1b1f28; border: 1px solid #3b4454; border-radius: 10px; padding: 0;
             box-shadow: 0 12px 40px #000a, 0 0 0 1px #0006; display: none; }
   #detail.on { display: block; animation: popIn .13s ease-out; }
@@ -436,17 +436,23 @@
       --ufs: calc(var(--uw) * 0.132);
       --hfs: calc(var(--hw) * 0.120);
     }
-    #board { padding: 4px 6px; gap: 3px; }
-    #side { width: 176px; }
-    .leader { padding: 3px 7px; gap: 6px; }
-    .lname { min-width: 0; } .hp { font-size: 15px; min-width: 42px; }
-    #foeHand { height: 16px; } .back { width: 11px; height: 16px; }
-    #handRow { min-height: calc(var(--hh) + 4px); gap: 6px; }
-    .field { min-height: calc(var(--uh) + 6px); gap: 5px; padding: 2px; }
-    #side h3 { padding: 5px 8px; } #ctl { padding: 5px 8px; gap: 4px; }
-    #ctl button { padding: 6px; font-size: 11px; }
-    #hint { padding: 4px 8px; min-height: 24px; }
-    #detail { width: 268px; }
+    #board { padding: 3px 5px; gap: 2px; }
+    #side { width: 168px; }
+    .leader { padding: 2px 6px; gap: 5px; }
+    .lname { min-width: 0; font-size: 11px; } .hp { font-size: 14px; min-width: 38px; }
+    .pip { width: 8px; height: 8px; }
+    #foeHand { height: 12px; } .back { width: 9px; height: 12px; }
+    #handRow { min-height: calc(var(--hh) + 2px); gap: 4px; }
+    .field { min-height: calc(var(--uh) + 4px); gap: 4px; padding: 1px; }
+    #side h3 { padding: 4px 7px; font-size: 11px; } #ctl { padding: 4px 7px; gap: 3px; }
+    #ctl button { padding: 5px; font-size: 11px; }
+    #hint { padding: 3px 7px; min-height: 20px; font-size: 10px; }
+    #detail { width: 244px; max-height: 92dvh; }
+    #detail .dHead { height: 118px; }
+    #detail .dBody { padding: 7px 9px 9px; }
+    #detail .dText { font-size: 11px; }
+    #detail .dGloss .g { font-size: 10px; }
+    #detail .dActs { gap: 4px; margin-top: 7px; }
   }
 </style>
 </head>
@@ -488,10 +494,8 @@
   <div class="ph"></div>
   <div style="font-size:17px;font-weight:bold">请把手机横过来</div>
   <div style="font-size:13px;color:#8a94a6;max-width:310px;line-height:1.85">
-    战场是 5 格并排的，竖屏宽度装不下，卡面会挤成一团。<br>横过来就正常了。
+    战场是 5 格并排的，竖屏宽度装不下。<br>请把手机横过来游玩。
   </div>
-  <button id="btnStayPortrait" style="padding:9px 20px;background:#2a3038;font-weight:normal">
-    仍然竖屏玩</button>
 </div>
 
 <!-- 拖拽时跟着指针的卡影，与指向目标的连线 -->
@@ -511,9 +515,7 @@
     <div class="pickRow"><span class="pickLab">对手职业</span><span id="pFoe" class="pick"></span></div>
     <div class="pickRow"><span class="pickLab">对手卡组</span><span id="pFoeDeck" class="pick"></span></div>
     <div class="pickRow"><span class="pickLab">先手</span><span id="pFirst" class="pick"></span></div>
-    <div class="pickRow"><span class="pickLab">声音</span><span id="pSnd" class="pick"></span></div>
 
-    <div id="deckPeek"></div>
     <button id="btnStart" style="padding:12px 34px;font-size:15px;margin-top:4px">开始对战</button>
   </div>
 </div>
@@ -675,8 +677,6 @@ function applyUrlChoice() {
   }
 })();
 
-$('btnStayPortrait').onclick = () => $('rotate').classList.add('off');
-
 /* ---------------- 声音 ----------------
  * 浏览器禁止在用户做出手势之前发声，所以 AudioContext 只能在第一次点击时才建。
  * 挂在捕获阶段的全局监听上，比在每个按钮里单独调可靠——漏一个入口就整局没声音。
@@ -743,33 +743,6 @@ function drawPicks() {
   picks('pFoeDeck', DECKS[CH.foe] || [], CH.foeDeck, v => { CH.foeDeck = v });
   picks('pFirst', ['我方先手', '对手先手'], CH.first ? '对手先手' : '我方先手',
     v => { CH.first = v === '对手先手' ? 1 : 0 });
-  /* 声音三档。选择存在 localStorage 里，下次打开还是这个设置。
-   * 「音效」和「音效+音乐」分开，是因为录视频时通常要关掉 BGM——
-   * B站 会对视频里的音乐做版权识别，游戏里响过的 BGM 会被一起录进去。 */
-  const sndCur = Snd.isMuted() ? '静音'
-    : (Snd.volumes().bgm > 0 ? '音效 + 音乐' : '只要音效');
-  picks('pSnd', ['音效 + 音乐', '只要音效', '静音'], sndCur, v => {
-    Snd.unlock();
-    if (v === '静音') { Snd.setMuted(true); Snd.stopBgm(0.3); }
-    else {
-      Snd.setMuted(false);
-      Snd.setBgm(v === '音效 + 音乐' ? 0.35 : 0);
-      if (v === '只要音效') Snd.stopBgm(0.3);
-    }
-  });
-  peek();
-}
-
-/** 让人在开局前看一眼这套卡组长什么样，不然选了个名字也不知道会拿到什么 */
-function peek() {
-  if (!CARDS || !CH.meDeck) return;
-  const pool = deckPool(CARDS, CH.me, CH.meDeck);
-  const cv = {};
-  for (const c of pool) cv[c.cost] = (cv[c.cost] || 0) + 1;
-  $('deckPeek').innerHTML =
-    `<b style="color:#dde">${esc(CH.me)}｜${esc(CH.meDeck)}</b>　${pool.length} 种可用卡　`
-    + `费用 ` + [1, 2, 3, 4, 5, 6, 7, 8].map(k => `${k}:${cv[k] || 0}`).join(' ')
-    + `<br>${esc(pool.map(c => c.name).join('、'))}`;
 }
 
 $('btnStart').onclick = () => startMatch();
@@ -1418,12 +1391,16 @@ function dragEnd(e) {
   if (d.spec.kind === 'unit') {
     const from = d.spec.uid;
     if (hit !== 'field' && hit.leader) {
-      if (!E.attackAllowed(s, from, 'leader')) { flash('对方有守护随从，必须先处理'); return render(); }
+      // 之前这里写死「对方有守护随从」，会掩盖真实原因——
+      // 进化当回合不能打脸、本回合已攻击过等，都会被误报成「有守护」。
+      const chk = E.checkAttack(s, from, 'leader');
+      if (!chk.ok) { flash(chk.why || '无法攻击主战者'); return render(); }
       return act(() => { const r = E.attack(s, from, 'leader'); if (!r.ok) flash(r.why); },
         { lunge: [from, 'leader'] });
     }
     if (hit !== 'field' && hit.uid != null && !hit.mine) {
-      if (!E.attackAllowed(s, from, hit.uid)) { flash('不能攻击这个目标'); return render(); }
+      const chk = E.checkAttack(s, from, hit.uid);
+      if (!chk.ok) { flash(chk.why || '不能攻击这个目标'); return render(); }
       return act(() => { const r = E.attack(s, from, hit.uid); if (!r.ok) flash(r.why); },
         { lunge: [from, hit.uid] });
     }

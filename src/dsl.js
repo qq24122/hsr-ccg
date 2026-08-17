@@ -53,7 +53,7 @@ const ACTIONS = new Set([
   'reanimate', // 从自己墓场随机召唤 N 张随从卡（视为 2/2）
   'ctr',       // 单位计数器（onCtr 阈值读的是这一种）
   'pctr',      // 玩家的职业计数器：解读 / 蓄能 / 笑点
-  'setLeaderHp', 'refundPP', 'refundEP', 'ppMaxUp', 'extraAtk', 'transform',
+  'setLeaderHp', 'refundPP', 'refundEP', 'ppMaxUp', 'ppUp', 'extraAtk', 'transform',
   'bounce', 'evolveFree', 'costDown', 'custom',
   'cleanse',   // 解除负面效果
   'buffHand',  // 强化手牌里的随从卡
