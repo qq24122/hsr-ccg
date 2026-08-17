@@ -531,6 +531,10 @@
     #foeHand { height: 12px; } .back { width: 9px; height: 12px; }
     #handRow { min-height: calc(var(--hh) + 2px); gap: 4px; }
     .field { min-height: calc(var(--uh) + 4px); gap: 4px; padding: 1px; }
+    /* 手机横屏卡太小塞不下效果文字，去掉卡面描述（插画区完整露出，
+       卡面只剩插画+名称+攻血，清爽不挤）。点卡看详情不变。
+       平板/大屏手机（高度>560px）不进这个块，效果文字照常显示。 */
+    .card .effect { display: none; }
     #side h3 { padding: 4px 7px; font-size: 11px; } #ctl { padding: 4px 7px; gap: 3px; }
     #ctl button { padding: 5px; font-size: 11px; }
     #hint { padding: 3px 7px; min-height: 20px; font-size: 10px; }
