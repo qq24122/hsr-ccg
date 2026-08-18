@@ -26,7 +26,7 @@ function condCtx(s, ownerIdx, source, chosen) {
   const mc = { ownerIdx, source };
   return {
     mara: S.isMara(p),
-    marked: chosen && chosen.marks ? chosen.marks.has('标记') : false,
+    marked: chosen && chosen.slot ? chosen.slot.marks.has('标记') : false,
     evolved: source ? source.evolved : false,
     ctr: name => (source && source.counters[name] != null)
       ? source.counters[name]
@@ -72,7 +72,7 @@ function resolveTarget(s, spec, ctx) {
   }
   // enemyFlaw(2)：拥有 2 个以上【缺陷】的敌方随从
   const fm = /^enemyFlaw\((\d+)\)$/.exec(spec);
-  if (fm) return S.minionsOf(E).filter(u => u.flaws.size >= parseInt(fm[1], 10));
+  if (fm) return S.minionsOf(E).filter(u => u.slot.flaws.size >= parseInt(fm[1], 10));
   switch (spec) {
     case 'self':        return ctx.source ? [ctx.source] : [];
     case 'selfLeader':  return [{ __leader: me }];
@@ -93,18 +93,18 @@ function resolveTarget(s, spec, ctx) {
       const pool = [...S.minionsOf(E), { __leader: you }];
       return [pool[Math.floor(s.rng() * pool.length)]];
     }
-    case 'enemyMarked':  return S.minionsOf(E).filter(u => u.marks.has('标记'));
-    case 'enemyBroken':  return S.minionsOf(E).filter(u => u.marks.has('破绽'));
-    case 'enemyShocked': return S.minionsOf(E).filter(u => u.shocked);
-    case 'enemyDotted':  return S.minionsOf(E).filter(u => u.dots > 0);
-    /* 「敌方全体的【持续伤害】」——随从加上带【侵蚀】的主战者。
-     * 引爆类卡牌用这个目标，才能把沉淀在脸上的层数一起炸掉。 */
+    case 'enemyMarked':  return S.minionsOf(E).filter(u => u.slot.marks.has('标记'));
+    case 'enemyBroken':  return S.minionsOf(E).filter(u => u.slot.marks.has('破绽'));
+    case 'enemyShocked': return S.minionsOf(E).filter(u => u.slot.shocked);
+    case 'enemyDotted':  return S.minionsOf(E).filter(u => u.slot.dots > 0);
+    /* 「敌方全体的【持续伤害】」——随从（场地）加上带【侵蚀】的主战者。
+     * 引爆类卡牌用这个目标，才能把场地上和脸上的层数一起炸掉。 */
     case 'enemyDottedAny': {
-      const arr = S.minionsOf(E).filter(u => u.dots > 0);
+      const arr = S.minionsOf(E).filter(u => u.slot.dots > 0);
       if (E.dots > 0) arr.push({ __leader: you });
       return arr;
     }
-    case 'enemyFlawed':  return S.minionsOf(E).filter(u => u.flaws.size > 0);
+    case 'enemyFlawed':  return S.minionsOf(E).filter(u => u.slot.flaws.size > 0);
     case 'enemyPatron':  return S.minionsOf(E).filter(u => u.marks.has('老主顾'));
     case 'enemyHighestHp': {
       const arr = S.minionsOf(E);
@@ -180,11 +180,10 @@ function runAction(s, a, ctx) {
         if (S.boardFull(P)) { S.log(s, `场地已满，${t.name} 复制失败`); break; }
         const c = S.makeUnit(t.def, s.turn);
         c.atk = t.atk; c.hp = t.hp; c.maxHp = t.maxHp; c.evolved = t.evolved;
-        c.keywords = new Set(t.keywords); c.marks = new Set(t.marks); c.flaws = new Set(t.flaws);
+        c.keywords = new Set(t.keywords); c.marks = new Set(t.marks);   // 只继承正面标记，负面状态属于格子不继承
         c.counters = { ...t.counters };
-        c.vuln = t.vuln; c.dots = t.dots; c.aura = t.aura; c.shocked = t.shocked;
         c.atkPlusExpr = t.atkPlusExpr; c.reduceExpr = t.reduceExpr;
-        P.board.push(c);
+        placeUnit(P, c);
         S.log(s, `复制出 ${c.name}`);
       }
       break;
@@ -233,7 +232,7 @@ function runAction(s, a, ctx) {
         const def = s.__tokenIndex && s.__tokenIndex[name];
         if (!def) { S.log(s, `找不到衍生物定义 ${name}`); break; }
         const u = S.makeUnit(def, s.turn);
-        P.board.push(u);
+        placeUnit(P, u);
         // 召唤出的单位同样要生效常驻能力（守护、必杀…）；
         // 但官方【入场曲】「从手牌或牌组直接进入战场，或是生成卡牌进入战场时不会发动」，
         // 所以这里只跑 static，绝不跑 onPlay。
@@ -276,9 +275,11 @@ function runAction(s, a, ctx) {
     case 'cleanse':     // 解除负面效果（持续伤害/触电/弱点/缺陷/标记）
       for (const t of resolveTarget(s, A[0], ctx)) {
         if (t.__leader != null) continue;
-        t.dots = 0; t.aura = 0; t.vuln = 0; t.shocked = false;
-        t.flaws.clear();
-        for (const k of ['标记', '破绽', '老主顾', '织线']) t.marks.delete(k);
+        const sl = t.slot;
+        sl.dots = 0; sl.aura = 0; sl.vuln = 0; sl.shocked = false;
+        sl.flaws.clear();
+        sl.marks.clear();                             // 标记 / 破绽（迁到格子的负面）
+        for (const k of ['老主顾', '织线']) t.marks.delete(k);
       }
       break;
     case 'maxAtk':      // 每回合攻击次数上限（与 extraAtk 不同，这个不会在回合开始时清零）
@@ -314,10 +315,11 @@ function runAction(s, a, ctx) {
         t.def = def; t.name = def.name; t.type = def.type;
         t.atk = def.atk | 0; t.hp = def.hp | 0; t.maxHp = def.hp | 0;
         t.keywords = new Set(); t.__clauses = null; t.counters = {};
-        t.marks = new Set(); t.dots = 0; t.aura = 0; t.flaws = new Set();
+        t.marks = new Set();                       // 清正面标记（军功/爵位/老主顾/织线）
         t.evolved = false; t.attacksUsed = 0; t.extraAttacks = 0;
         t.silenced = false;
-        t.vuln = 0; t.shocked = false; t.atkPlusExpr = null; t.reduceExpr = null;
+        t.atkPlusExpr = null; t.reduceExpr = null;
+        // 格子的负面效果（场地污染）保留——它跟格子绑定，不跟这张卡绑定
         t.summonedTurn = s.turn;
         t.transformedTurn = s.turn;
         t.countdown = def.countdown ?? null;
@@ -331,23 +333,23 @@ function runAction(s, a, ctx) {
         if (t.__leader != null) continue;
         const i = P.board.indexOf(t);
         if (i >= 0) {
-          spillDots(s, t, P);   // 回手也算离场，身上的层数照样沉淀成【侵蚀】
+          halfSlot(s, t);   // 回手也算离场，格子的负面效果减半残留
           P.board.splice(i, 1);
           const inst = S.makeCardInstance(t.def);
-          inst.costMod = -99;   // 费用变 0
+          // 回手后费用恢复原价——「回手 + 永久 0 费」是无限引擎，貘泽会无限标记
           if (P.hand.length < RULES.HAND_LIMIT) P.hand.push(inst);
         }
       }
       break;
-    case 'mark':        // 【标记】受到的伤害 +1，持续到该随从离场
-      for (const t of resolveTarget(s, A[0], ctx)) if (t.__leader == null) t.marks.add('标记');
+    case 'mark':        // 【标记】受到的伤害 +1，挂在该随从所在的格子上
+      for (const t of resolveTarget(s, A[0], ctx)) if (t.__leader == null) t.slot.marks.add('标记');
       break;
-    case 'break':       // 【破绽】受到的伤害 +1，持续到该随从离场（通用，非命途专属）
-      for (const t of resolveTarget(s, A[0], ctx)) if (t.__leader == null) t.marks.add('破绽');
+    case 'break':       // 【破绽】受到的伤害 +1，挂在该随从所在的格子上（通用，非命途专属）
+      for (const t of resolveTarget(s, A[0], ctx)) if (t.__leader == null) t.slot.marks.add('破绽');
       break;
-    case 'vuln':        // 【弱点】每层使其受到的伤害 +1（标记的可叠加版）
+    case 'vuln':        // 【弱点】每层使其受到的伤害 +1（标记的可叠加版），挂格子
       for (const t of resolveTarget(s, A[0], ctx)) {
-        if (t.__leader == null) t.vuln += (num(s, A[1], ctx) || 1);
+        if (t.__leader == null) t.slot.vuln += (num(s, A[1], ctx) || 1);
       }
       break;
     case 'dot': {       // 【持续伤害N层】自己的回合结束时结算；指向主战者时是【侵蚀】
@@ -360,7 +362,7 @@ function runAction(s, a, ctx) {
           S.log(s, `${lp.name} 的主战者获得 ${n} 层侵蚀（共 ${lp.dots} 层）`);
           continue;
         }
-        t.dots += n; any = true;
+        t.slot.dots += n; any = true;
         /* 这里原本会把场上 dotAura 随从的加成「刻」进 t.aura。那是重复计算：
          * settleDots / detonate 已经用 dotAuraBonus 动态算了一遍，
          * 于是海瑟音在场时 1 层持续伤害结算成 3 点。dotAura 是在场光环，
@@ -385,10 +387,10 @@ function runAction(s, a, ctx) {
           dealDamage(s, { __leader: t.__leader }, n, ctx.source);
           continue;
         }
-        if (t.dots <= 0) continue;
-        let n = t.dots * mult * (1 + (t.aura || 0) + dotAuraBonus(s, t));
+        if (t.slot.dots <= 0) continue;
+        let n = t.slot.dots * mult * (1 + (t.slot.aura || 0) + dotAuraBonus(s, t));
         if (cap > 0) n = Math.min(n, cap);
-        t.dots = 0;
+        t.slot.dots = 0;
         /* 溢出穿透：超过目标剩余生命值的部分打到它主人的主战者身上。
          * 【持续伤害】原本只能打随从，虚无因此清得掉场面却完全没有获胜手段
          * （自对弈里两套侵蚀卡组 15% / 21%）。让引爆能溢出到脸，
@@ -419,7 +421,7 @@ function runAction(s, a, ctx) {
         if (S.boardFull(P)) { S.log(s, `场地已满，${name} 召唤失败`); break; }
         u = S.makeUnit(def, s.turn);
         S.addUnitCtr(u, '层数', 1);
-        P.board.push(u);
+        placeUnit(P, u);
         for (const c of clausesOf(u)) {
           if (c.trigger === 'static') runActions(s, c.actions, { ownerIdx: me, source: u });
         }
@@ -442,7 +444,7 @@ function runAction(s, a, ctx) {
         const def = pool.splice(Math.floor(s.rng() * pool.length), 1)[0];
         const u = S.makeUnit(def, s.turn);
         u.atk = 2; u.hp = 2; u.maxHp = 2;
-        P.board.push(u);
+        placeUnit(P, u);
         for (const c of clausesOf(u)) {
           if (c.trigger === 'static') runActions(s, c.actions, { ownerIdx: me, source: u });
         }
@@ -452,11 +454,11 @@ function runAction(s, a, ctx) {
     }
     case 'aura':        // 【奥迹】使该目标每层持续伤害的结算值 +1
       for (const t of resolveTarget(s, A[0], ctx)) {
-        if (t.__leader == null) t.aura += (num(s, A[1], ctx) || 1);
+        if (t.__leader == null) t.slot.aura += (num(s, A[1], ctx) || 1);
       }
       break;
     case 'shock':       // 【触电】自己的回合结束时受固定 2 点
-      for (const t of resolveTarget(s, A[0], ctx)) if (t.__leader == null) t.shocked = true;
+      for (const t of resolveTarget(s, A[0], ctx)) if (t.__leader == null) t.slot.shocked = true;
       break;
     case 'flaw': {      // 【缺陷】迟缓 / 脆弱 / 衰弱；不指定种类则随机三选一
       const KINDS = ['迟缓', '脆弱', '衰弱'];
@@ -464,7 +466,7 @@ function runAction(s, a, ctx) {
         if (t.__leader != null) continue;
         const k = (!A[1] || A[1] === 'random') ? KINDS[Math.floor(s.rng() * KINDS.length)] : A[1];
         if (!KINDS.includes(k)) { S.log(s, `未知缺陷种类 ${k}`); continue; }
-        t.flaws.add(k);
+        t.slot.flaws.add(k);
         S.log(s, `${t.name} 获得【缺陷·${k}】`);
       }
       break;
@@ -540,10 +542,10 @@ export function metricOf(s, name, ctx) {
     case 'lostHp':      return Math.max(0, P.maxHp - P.hp);   // 自己主战者已损失生命值
     case 'enemyLostHp': return Math.max(0, E.maxHp - E.hp);
     case 'selfHp':      return P.hp;
-    case 'sumVuln':     return S.minionsOf(E).reduce((a, u) => a + u.vuln, 0);
-    case 'flawCount':   return S.minionsOf(E).reduce((a, u) => a + u.flaws.size, 0);
-    // 敌方全部【持续伤害】层数：场上随从的 + 已沉淀到敌方主战者身上的【侵蚀】
-    case 'dotLayers':   return S.minionsOf(E).reduce((a, u) => a + u.dots, 0) + (E.dots || 0);
+    case 'sumVuln':     return S.minionsOf(E).reduce((a, u) => a + u.slot.vuln, 0);
+    case 'flawCount':   return S.minionsOf(E).reduce((a, u) => a + u.slot.flaws.size, 0);
+    // 敌方全部【持续伤害】层数：场上格子的 + 已沉淀到敌方主战者身上的【侵蚀】
+    case 'dotLayers':   return S.minionsOf(E).reduce((a, u) => a + u.slot.dots, 0) + (E.dots || 0);
     case 'leaderDots':  return E.dots || 0;
     case 'tokenCount':  return P.board.filter(u => u.def && u.def.isToken).length;
     case 'allyCount':   return S.minionsOf(P).length;
@@ -561,7 +563,7 @@ export function metricOf(s, name, ctx) {
       }
       return n;
     }
-    case 'markedCount': return S.minionsOf(E).filter(u => u.marks.has('标记')).length;
+    case 'markedCount': return S.minionsOf(E).filter(u => u.slot.marks.has('标记')).length;
     case 'selfAtk':     return ctx.source ? effAtk(s, ctx.source) : 0;
     case 'myAttacks':   return ctx.source ? ctx.source.attacksUsed : 0;
     case 'targetAtk':   return (ctx.chosen && ctx.chosen.__leader == null) ? effAtk(s, ctx.chosen) : 0;
@@ -597,14 +599,14 @@ export function effAtk(s, u) {
     const pi = S.ownerOf(s, u.uid);
     n += num(s, u.atkPlusExpr, { ownerIdx: pi < 0 ? 0 : pi, source: u });
   }
-  if (u.flaws.has('衰弱')) n -= 1;
+  if (u.slot.flaws.has('衰弱')) n -= 1;
   return Math.max(0, n);
 }
 
-/** 受到伤害的加成：【标记】+1、【破绽】+1、【弱点】每层+1、【缺陷·脆弱】+1 */
+/** 受到伤害的加成：【标记】+1、【破绽】+1、【弱点】每层+1、【缺陷·脆弱】+1（都读格子） */
 function dmgTakenBonus(u) {
-  return (u.marks.has('标记') ? 1 : 0) + (u.marks.has('破绽') ? 1 : 0)
-    + (u.vuln || 0) + (u.flaws.has('脆弱') ? 1 : 0);
+  return (u.slot.marks.has('标记') ? 1 : 0) + (u.slot.marks.has('破绽') ? 1 : 0)
+    + (u.slot.vuln || 0) + (u.slot.flaws.has('脆弱') ? 1 : 0);
 }
 
 function reduceOf(s, u) {
@@ -633,6 +635,7 @@ export function dealDamage(s, target, n, source, opts = {}) {
       S.log(s, `${p.name} 的屏障吸收了 ${n} 点伤害`);
       return 0;
     }
+    n += p.vuln || 0;                                  // 【易伤】：主战者受到的伤害 +N
     p.hp -= n;
     afterLeaderDamage(s, target.__leader, n);
     return n;
@@ -707,19 +710,41 @@ export function killUnit(s, u) {
 function removeUnit(s, u) {
   for (const p of s.players) {
     const i = p.board.indexOf(u);
-    if (i >= 0) { spillDots(s, u, p); p.board.splice(i, 1); p.graveyard.push(u.def); return; }
+    if (i >= 0) { halfSlot(s, u); p.board.splice(i, 1); p.graveyard.push(u.def); return; }
   }
 }
 
-/* 随从离场时，它身上还没结算完的【持续伤害】沉淀到它主人的主战者身上，成为【侵蚀】。
- * 这是虚无的核心修复：场面来去太快，层数原本随随从一起蒸发，
- * 攒层数的卡组因此永远攒不到能赢的量（引爆卡组自对弈只有 26%）。 */
-function spillDots(s, u, p) {
-  if (!u || u.type !== '随从' || !(u.dots > 0)) return;
-  p.dots += u.dots;
-  if ((u.aura || 0) > p.aura) p.aura = u.aura;   // 【奥迹】取较高的一份，不逐个累加
-  S.log(s, `${u.name} 的 ${u.dots} 层持续伤害沉淀为侵蚀（共 ${p.dots} 层）`);
-  u.dots = 0;
+/* 把单位放进某个场地格子。slotIdx 为空时自动找第一个空位。
+ * board 保持「非空单位数组」但按格位排序，所以 minionsOf 等 filter 照常工作。 */
+export function placeUnit(p, u, slotIdx) {
+  if (slotIdx == null) {
+    const used = new Set(p.board.map(x => x.slot.idx));
+    slotIdx = [0, 1, 2, 3, 4].find(i => !used.has(i));
+    if (slotIdx == null) return false;
+  }
+  u.slot = p.slots[slotIdx];
+  p.board.push(u);
+  p.board.sort((a, b) => a.slot.idx - b.slot.idx);
+  return true;
+}
+
+/* 随从离场时，它所在格子的负面效果减半残留（不再转移、也不再沉淀）。
+ * 「延迟爆发/非直接伤害」的效果挂在场地上：卡走了，污染还留在格子里，
+ * 新随从站进来就吃到残留——所以换掉带 debuff 的随从不再是白赚。
+ * 减半规则：数字层数 floor/ceil 各 50%（7→3或4）；集合/布尔 50% 概率保留。
+ * 用 s.rng()，自对弈同一 seed 可复现。 */
+function halfSlot(s, u) {
+  if (!u || !u.slot || u.type !== '随从') return;
+  const sl = u.slot;
+  const half = n => (s.rng() < 0.5 ? Math.floor(n / 2) : Math.ceil(n / 2));
+  const keep = () => s.rng() < 0.5;
+
+  if (sl.dots > 0) { const o = sl.dots; sl.dots = half(o); if (sl.dots !== o) S.log(s, `${u.name} 离场，格子的持续伤害 ${o}→${sl.dots}`); }
+  if (sl.vuln > 0) { const o = sl.vuln; sl.vuln = half(o); if (sl.vuln !== o) S.log(s, `${u.name} 离场，格子的弱点 ${o}→${sl.vuln}`); }
+  if (sl.aura > 0 && !keep()) { sl.aura = 0; S.log(s, `${u.name} 离场，格子的奥迹消散`); }
+  for (const m of [...sl.marks]) if (!keep()) { sl.marks.delete(m); S.log(s, `${u.name} 离场，格子的「${m}」消散`); }
+  for (const f of [...sl.flaws]) if (!keep()) { sl.flaws.delete(f); S.log(s, `${u.name} 离场，格子的「${f}」消散`); }
+  if (sl.shocked && !keep()) { sl.shocked = false; S.log(s, `${u.name} 离场，格子的触电消散`); }
 }
 
 /* ---------------- 回合与行动 ---------------- */
@@ -771,8 +796,9 @@ function dotAuraBonus(s, victim) {
  * 每层持续伤害的结算值受【奥迹】与场上的 dotAura 随从加成。 */
 function settleDots(s, pi) {
   for (const u of s.players[pi].board.slice()) {
-    if (u.dots > 0) dealDamage(s, u, u.dots * (1 + (u.aura || 0) + dotAuraBonus(s, u)), null);
-    if (u.shocked) dealDamage(s, u, RULES.SHOCK_DMG, null);
+    const sl = u.slot;
+    if (sl.dots > 0) dealDamage(s, u, sl.dots * (1 + (sl.aura || 0) + dotAuraBonus(s, u)), null);
+    if (sl.shocked) dealDamage(s, u, RULES.SHOCK_DMG, null);
   }
   /* 主战者身上的【侵蚀】：每回合结算，层数不消耗，伤害随层数成长。
    *
@@ -893,7 +919,7 @@ export function playCard(s, handIndex, opts = {}) {
     // 在手牌里拿到的增益要带进场
     if (inst.atkMod) u.atk += inst.atkMod;
     if (inst.hpMod) { u.hp += inst.hpMod; u.maxHp += inst.hpMod; }
-    p.board.push(u);
+    placeUnit(p, u, opts.slot);
     for (const c of clausesOf(u)) {
       if (c.trigger === 'static') runActions(s, c.actions, { ...ctx, source: u });
     }
@@ -965,7 +991,7 @@ export function checkAttack(s, attackerUid, targetUid) {
   if (t.type !== '随从') return { ok: false, why: '护符不会被攻击' };
   // pierce 无条件无视守护；ignoreWard 只对【标记】过的目标生效（丹恒）
   const canPierce = a.keywords.has('pierce')
-    || (a.keywords.has('ignoreWard') && t.marks.has('标记'));
+    || (a.keywords.has('ignoreWard') && t.slot.marks.has('标记'));
   if (taunts.length && !taunts.includes(t) && !canPierce) return { ok: false, why: '必须先攻击守护随从' };
   return { ok: true, a, t, wantLeader: false, taunts };
 }
@@ -1000,7 +1026,7 @@ export function attack(s, attackerUid, targetUid) {
   const bonus = (t.marks.has('老主顾') || t.marks.has('织线')) ? RULES.PATRON_BONUS : 0;
   const myAtk = effAtk(s, a) + bonus;
   // 「无法进行防御」与【缺陷·迟缓】的随从被攻击时不反击
-  const hisAtk = (t.keywords.has('noCounter') || t.flaws.has('迟缓')) ? 0 : effAtk(s, t);
+  const hisAtk = (t.keywords.has('noCounter') || t.slot.flaws.has('迟缓')) ? 0 : effAtk(s, t);
 
   let dealt = dealDamage(s, t, myAtk, a, { combat: true });
   if (a.keywords.has('sweep')) {          // 「攻击时同时攻击敌方全体随从」

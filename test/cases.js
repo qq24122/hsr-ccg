@@ -38,7 +38,7 @@ function hand(s, pi, name) {
 /** 直接把一个单位放到场上。默认 summonedTurn 设为很早，即「已在场一回合」可攻击 */
 function board(s, pi, name, opts = {}) {
   const u = S.makeUnit(CARDS.byName[name], opts.fresh ? s.turn : -99);
-  s.players[pi].board.push(u);
+  E.placeUnit(s.players[pi], u);
   for (const c of (u.def.clauses || [])) {
     if (c.trigger === 'static') E.runActions(s, c.actions, { ownerIdx: pi, source: u });
   }
@@ -384,7 +384,7 @@ export async function runAll() {
     const s = game(); turnTo(s, 5);
     const v = board(s, 1, '承露天人');            // 2/5
     act(s, 0, { op: 'mark', args: ['enemyOne'] });
-    ok(v.marks.has('标记'), '应被标记');
+    ok(v.slot.marks.has('标记'), '应被标记');
     E.dealDamage(s, v, 2, null);
     eq(v.hp, 2, '2点应变成3点（5-3=2）');
   });
@@ -393,7 +393,7 @@ export async function runAll() {
     const s = game(); turnTo(s, 5);
     const v = board(s, 1, '承露天人');            // 2/5
     act(s, 0, { op: 'vuln', args: ['enemyOne', '2'] });
-    eq(v.vuln, 2, '应有2层弱点');
+    eq(v.slot.vuln, 2, '应有2层弱点');
     E.dealDamage(s, v, 1, null);
     eq(v.hp, 2, '1点应变成3点');
   });
@@ -406,7 +406,7 @@ export async function runAll() {
     eq(v.hp, 3, '脆弱应使伤害+1');
     const w = board(s, 1, '丰饶扑满');             // 1/2
     act(s, 0, { op: 'flaw', args: ['enemyLowestHp', '衰弱'] });
-    ok(w.flaws.has('衰弱'), '生命值最低者应获得衰弱');
+    ok(w.slot.flaws.has('衰弱'), '生命值最低者应获得衰弱');
     eq(E.effAtk(s, w), 0, '1攻减1应为0且不小于0');
   });
 
@@ -425,7 +425,7 @@ export async function runAll() {
     const s = game(); turnTo(s, 5);               // active = P0
     const v = board(s, 1, '承露天人');            // 2/5
     act(s, 0, { op: 'shock', args: ['enemyOne'] });
-    ok(v.shocked, '应触电');
+    ok(v.slot.shocked, '应触电');
     E.endTurn(s);
     eq(v.hp, 3, '应受2点');
   });
@@ -434,8 +434,8 @@ export async function runAll() {
     const s = game(); turnTo(s, 5);
     const v = board(s, 1, '承露天人');            // 2/5
     act(s, 0, { op: 'dot', args: ['enemyOne', '2'] }, { op: 'aura', args: ['enemyOne', '1'] });
-    eq(v.dots, 2, '2层持续伤害');
-    eq(v.aura, 1, '1层奥迹');
+    eq(v.slot.dots, 2, '2层持续伤害');
+    eq(v.slot.aura, 1, '1层奥迹');
     E.endTurn(s);
     eq(v.hp, 1, '2层×(1+1) = 4点，5-4=1');
   });
@@ -542,14 +542,14 @@ export async function runAll() {
     eq(u.atk, 4, '攻击力照常叠到 4');
   });
 
-  t('侵蚀：带持续伤害的随从离场，层数沉淀到它主人的主战者身上', () => {
+  t('场地效果：带持续伤害的随从离场，格子上的层数减半残留', () => {
     const s = game(); turnTo(s, 9);
     const v = board(s, 1, '幼蛰虫');            // 敌方随从
     E.runActions(s, [{ op: 'dot', args: ['enemyOne', '3'] }], { ownerIdx: 0, source: null });
-    eq(v.dots, 3, '随从身上 3 层');
-    eq(s.players[1].dots, 0, '还没离场，脸上是 0');
+    eq(v.slot.dots, 3, '格子 3 层');
     E.killUnit(s, v);
-    eq(s.players[1].dots, 3, '离场后 3 层沉淀成【侵蚀】');
+    // 3 层减半：floor(1.5)=1 或 ceil(1.5)=2（各 50%，取决于 rng）
+    ok(v.slot.dots === 1 || v.slot.dots === 2, `离场后格子层数减半为 1 或 2（实际 ${v.slot.dots}）`);
   });
 
   t('侵蚀：每回合伤害随层数成长、层数不消耗，引爆按层数一次性结算', () => {
@@ -584,7 +584,7 @@ export async function runAll() {
     board(s, 0, '三月七').keywords.add('dotAura');   // 海瑟音/忘归人的在场光环
     const v = board(s, 1, '幼蛰虫'); v.hp = 9; v.maxHp = 9;
     E.runActions(s, [{ op: 'dot', args: ['enemyOne', '1'] }], { ownerIdx: 0, source: null });
-    eq(v.aura, 0, 'dotAura 不该把加成刻进随从身上');
+    eq(v.slot.aura, 0, 'dotAura 不该把加成刻进随从身上');
     s.active = 0; E.endTurn(s);
     eq(v.hp, 7, '1 层 ×（1+海瑟音1）= 2 点，不是 3 点');
   });
@@ -596,8 +596,8 @@ export async function runAll() {
     // 注意：引擎是从 def.effect 现解析的（clausesOf），预设 clauses 不起作用
     const mk = name => ({ id: 'X', name, class: '测试', type: '随从', quality: '铜',
       cost: 1, atk: 1, hp: 1, effect: 'onDeath: dmg(enemyAll,5)' });
-    const a = S.makeUnit(mk('回响甲'), -99); s.players[0].board.push(a);
-    const b = S.makeUnit(mk('回响乙'), -99); s.players[1].board.push(b);
+    const a = S.makeUnit(mk('回响甲'), -99); E.placeUnit(s.players[0], a);
+    const b = S.makeUnit(mk('回响乙'), -99); E.placeUnit(s.players[1], b);
     let threw = null;
     try { E.dealDamage(s, a, 5, null); } catch (e) { threw = e.message; }
     eq(threw, null, '不该抛异常（以前是 Maximum call stack size exceeded）');
@@ -620,7 +620,7 @@ export async function runAll() {
      * 对面召唤随从时，我方这张不该 +1/+0——onAllySummon 是「自己的随从进入自己的战场」。 */
     const mk = name => ({ id: 'X', name, class: '测试', type: '随从', quality: '铜',
       cost: 1, atk: 1, hp: 1, effect: 'onAllySummon: buff(self,1,0)' });
-    const mine = S.makeUnit(mk('守望者'), -99); s.players[0].board.push(mine);
+    const mine = S.makeUnit(mk('守望者'), -99); E.placeUnit(s.players[0], mine);
     const atk0 = mine.atk;
     // 对面（player 1）召唤随从：走真实 summon 动作，我方 onAllySummon 不该触发
     s.active = 1;

@@ -74,6 +74,9 @@
            transition: background .15s; }
   .field.dropOk { background: #1d2a20; box-shadow: inset 0 0 0 2px #51cf6688; }
   .slot-empty { width: var(--uw); height: var(--uh); border: 1px dashed #2a2d36; border-radius: 7px; }
+  .slot-empty.placeable { border: 2px dashed #51cf66; background: #16251a; cursor: pointer;
+                          animation: slotPulse 1.1s ease-in-out infinite; }
+  @keyframes slotPulse { 0%,100% { box-shadow: inset 0 0 0 0 #51cf6600 } 50% { box-shadow: inset 0 0 0 3px #51cf6644 } }
 
   /* ---- 卡面骨架：独立插画区 + 底栏 + 费用水晶 + 攻血宝石 ----
      以前是「整卡铺底卡图 + 所有 UI 浮在图上」，现在切成影之诗式的三段：
@@ -137,11 +140,11 @@
 
   /* 稀有度 = 卡的边框色（铜/银/金/虹/衍生）。用 .card/.unit + .q 双类选择器，
    * 优先级（0,2,0）压过 base 的 border 简写（0,1,0），否则会被后定义的 base 覆盖。 */
-  .card.q铜, .unit.q铜   { border-color: #6b5a3e; }
-  .card.q银, .unit.q银   { border-color: #8a939d; }
-  .card.q金, .unit.q金   { border-color: #c7a94d; }
-  .card.q虹, .unit.q虹   { border-color: #a87fd0; }
-  .card.q衍生, .unit.q衍生 { border-color: #46603a; }
+  .card.q铜, .unit.q铜   { border-color: #a06a3c; }
+  .card.q银, .unit.q银   { border-color: #aeb8c2; }
+  .card.q金, .unit.q金   { border-color: #e6c15a; }
+  .card.q虹, .unit.q虹   { border-color: #c882f0; }
+  .card.q衍生, .unit.q衍生 { border-color: #6a9a52; }
 
   /* 倒数角标（护符），右下角（类似随从卡血量的位置）。尺寸跟着卡牌走，不用写死。 */
   .cd { position: absolute; bottom: 3%; right: 3%; z-index: 5; background: #7048e8; color: #fff;
@@ -155,9 +158,8 @@
   .unit { width: var(--uw); height: var(--uh); border-radius: calc(var(--uw) * .06);
           position: relative; cursor: default; user-select: none; overflow: hidden;
           background: linear-gradient(180deg,#34383c,#181b1e);
-          border: 2px solid #8a939d;
-          box-shadow: inset 0 0 0 calc(var(--uw) * .004) #85888a,
-                      inset 0 0 0 calc(var(--uw) * .009) #24272a; }
+          border: 3px solid #3a3f46;
+          box-shadow: inset 0 0 0 1px #202327; }
   .unit .art { left: 3%; right: 3%; top: 3%; bottom: 4%; }
   /* 场上单位的状态（关键词/标记）叠在插画上、攻血图标上方 */
   .unit .status { position: absolute; left: 4%; right: 4%; bottom: 23%; z-index: 2;
@@ -179,8 +181,10 @@
                            inset 0 0 0 calc(var(--uw) * .009) #24272a; }
   .unit.ward::after { content: '🛡'; position: absolute; top: 2px; left: 3px; font-size: 11px;
                       line-height: 1; opacity: .95; z-index: 5; text-shadow: 0 0 4px #000, 0 0 8px #4dabf7; }
-  .unit.amulet::before { content: '符'; position: absolute; top: 2px; right: 3px; font-size: 9px;
-                         color: #c8a2f0; z-index: 5; text-shadow: 0 1px 3px #000; }
+  .unit.amulet::before { content: ''; position: absolute; top: 3px; right: 3px;
+                         width: calc(var(--uw) * .16); height: calc(var(--uw) * .16);
+                         background: url('img/icon/amulet.png') center/contain no-repeat;
+                         z-index: 5; filter: drop-shadow(0 1px 2px #000); }
   .unit.ready { outline: 2px solid #51cf66; outline-offset: 1px; cursor: grab; }
   .unit.sel { outline: 3px solid #ffd43b; outline-offset: 1px; }
   .unit.targetable { outline: 2px dashed #ffd43b; outline-offset: 2px; cursor: crosshair;
@@ -197,9 +201,8 @@
   .card { width: var(--hw); height: var(--hh); border-radius: calc(var(--hw) * .06);
           cursor: grab; position: relative; overflow: hidden; user-select: none;
           background: linear-gradient(180deg,#34383c,#181b1e);
-          border: 2px solid #8a939d;
-          box-shadow: inset 0 0 0 calc(var(--hw) * .004) #85888a,
-                      inset 0 0 0 calc(var(--hw) * .009) #24272a,
+          border: 3px solid #3a3f46;
+          box-shadow: inset 0 0 0 1px #202327,
                       0 calc(var(--hw) * .01) calc(var(--hw) * .02) rgba(0,0,0,.55);
           transition: transform .08s; }
   .card:hover { transform: translateY(-6px); }
@@ -213,7 +216,7 @@
   .card .effect { position: absolute; left: 4%; right: 4%; bottom: 20%; z-index: 2;
                   max-height: 72%;
                   display: flex; flex-direction: column; justify-content: flex-end;
-                  background: linear-gradient(180deg, rgba(13,17,22,.72), rgba(7,10,13,.9));
+                  background: linear-gradient(180deg, rgba(13,17,22,.88), rgba(7,10,13,.97));
                   border-top: 1px solid rgba(205,205,190,.35); padding: 3% 4%; overflow: hidden; }
   .card .ct { font-size: calc(var(--hfs) * .78); color: #f1f1ea; line-height: 1.25; }
 
@@ -1120,8 +1123,15 @@ function linkCards(line) {
 }
 
 function fieldHTML(p, isMe) {
-  const cells = p.board.map(u => unitHTML(u, isMe));
-  for (let i = p.board.length; i < S.RULES.BOARD_LIMIT; i++) cells.push('<div class="slot-empty"></div>');
+  const cells = [];
+  for (let i = 0; i < S.RULES.BOARD_LIMIT; i++) {
+    const u = p.board.find(x => x.slot.idx === i);
+    if (u) cells.push(unitHTML(u, isMe));
+    else {
+      const placeable = isMe && sel && sel.kind === 'place' ? ' placeable' : '';
+      cells.push(`<div class="slot-empty${placeable}" data-slot="${i}"></div>`);
+    }
+  }
   return cells.join('');
 }
 
@@ -1132,16 +1142,16 @@ function unitHTML(u, isMe) {
   const tgt = sel && isTargetable(u);
   const kws = [...u.keywords].map(k => KW_CN[k] || k).join('·');
   const marks = [];
-  if (u.marks.has('标记')) marks.push('标记');
-  if (u.marks.has('破绽')) marks.push('破绽');
+  if (u.slot.marks.has('标记')) marks.push('标记');
+  if (u.slot.marks.has('破绽')) marks.push('破绽');
   if (u.marks.has('军功')) marks.push('军功');
   if (u.marks.has('爵位')) marks.push('爵位');
   if (u.marks.has('老主顾')) marks.push('老主顾');
   if (u.marks.has('织线')) marks.push('织线');
-  if (u.vuln) marks.push(`弱点${u.vuln}`);
-  if (u.dots) marks.push(`侵蚀${u.dots}${u.aura ? `+奥迹${u.aura}` : ''}`);
-  if (u.shocked) marks.push('触电');
-  for (const f of u.flaws) marks.push(f);
+  if (u.slot.vuln) marks.push(`弱点${u.slot.vuln}`);
+  if (u.slot.dots) marks.push(`侵蚀${u.slot.dots}${u.slot.aura ? `+奥迹${u.slot.aura}` : ''}`);
+  if (u.slot.shocked) marks.push('触电');
+  for (const f of u.slot.flaws) marks.push(f);
   /* 计数器分两种，只显示玩家真正需要盯的那种：
    *   进度型 —— 攒到 N 触发（火种、充能、残影…），必须看得见进度
    *   限次型 —— 「每回合限1次」的内部记账，卡自己在 turnStart 里清掉它
@@ -1166,7 +1176,7 @@ function unitHTML(u, isMe) {
   return `<div class="unit q${u.def.quality || ''} ${amulet ? 'amulet' : ''}`
     + ` ${u.keywords.has('ward') ? 'ward' : ''}`
     + ` ${ready ? 'ready' : ''} ${selected ? 'sel' : ''} ${tgt ? 'targetable' : ''}"`
-    + ` style="${pathStyle(u.def)}" data-uid="${u.uid}" data-side="${isMe ? 'me' : 'foe'}" title="${esc(u.def.note || '')}">`
+    + ` style="${pathStyle(u.def)}" data-uid="${u.uid}" data-slot="${u.slot.idx}" data-side="${isMe ? 'me' : 'foe'}" title="${esc(u.def.note || '')}">`
     + art(u.def)
     + `<div class="cost"><b>${u.def.cost}</b></div>`
     + (amulet && u.countdown != null ? `<div class="cd">${u.countdown}</div>` : '')
@@ -1413,6 +1423,11 @@ function detailAct(a) {
       sel = { kind: 'target', hand: spec.hand, need };
       return render();
     }
+    // 随从/护符（非法术）无需指定目标 → 进入「选位置」，点/拖空格放置
+    if (inst.def.type !== '法术' && !need) {
+      sel = { kind: 'place', hand: spec.hand };
+      return render();
+    }
     doPlay(spec.hand, {});
     // 没目标也照样打出，但要说清楚为什么那部分效果没发生
     if (need) flash('场上没有可选目标，指定目标的那部分效果未发动');
@@ -1462,6 +1477,7 @@ function canHitLeader() {
 function hintFor(x) {
   if (x.kind === 'evolve') return '选择要进化的随从（+2/+2，当回合可攻击随从）';
   if (x.kind === 'attack') return '选择攻击目标（黄框可选）；对方有守护时必须先打守护';
+  if (x.kind === 'place') return '点一个绿色空格放置，或拖拽手牌到具体格子';
   return x.need === 'allyOne' ? '为这张卡选择 1 个自己的随从'
     : x.need === 'enemyAny' ? '选择敌方主战者或 1 个敌方随从'
     : '选择 1 个敌方随从';
@@ -1481,8 +1497,19 @@ function bind() {
       el.onpointerdown = e => dragStart(e, { kind: 'unit', uid: +el.dataset.uid }, el);
     }
   }
+  for (const el of document.querySelectorAll('.slot-empty[data-slot]')) {
+    el.onclick = () => onSlot(+el.dataset.slot);
+  }
   $('foeLeader').onclick = onFoeLeader;
   markInspected();
+}
+
+/* 点空格：正在「选位置」时，把选中的手牌放到这个格子 */
+function onSlot(slot) {
+  if (!sel || sel.kind !== 'place') return;
+  const h = sel.hand;
+  sel = null;
+  doPlay(h, { slot });
 }
 
 /* ============================ 拖拽 ============================
@@ -1550,6 +1577,8 @@ function dropTargetAt(x, y) {
     if (el.id === 'dragGhost') continue;
     const unit = el.closest?.('.unit[data-uid]');
     if (unit) return { el: unit, uid: +unit.dataset.uid, mine: unit.dataset.side === 'me' };
+    const slot = el.closest?.('.slot-empty[data-slot]');
+    if (slot) return { el: slot, slot: +slot.dataset.slot };
     const ld = el.closest?.('#foeLeader');
     if (ld) return { el: ld, leader: true };
     if (el.closest?.('#myField')) return 'field';
@@ -1578,13 +1607,13 @@ function dragEnd(e) {
     const inst = s.players[ME].hand[d.spec.hand];
     if (!inst) return render();
     const need = E.needsTarget(inst.def);
-    if (!need) return doPlay(d.spec.hand, {});
+    if (!need) return doPlay(d.spec.hand, hit.slot != null ? { slot: hit.slot } : {});
     // 拖到具体目标上 = 直接指定它
     if (hit !== 'field' && hit.uid != null) {
       const u = S.findUnit(s, hit.uid);
       const wantAlly = need === 'allyOne';
       if (u && wantAlly === !!hit.mine) {
-        return doPlay(d.spec.hand, wantAlly ? { ally: u } : { target: u });
+        return doPlay(d.spec.hand, wantAlly ? { ally: u, slot: hit.slot } : { target: u, slot: hit.slot });
       }
       flash(wantAlly ? '这张卡要指定自己的随从' : '这张卡要指定敌方随从');
       return render();

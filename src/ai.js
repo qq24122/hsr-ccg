@@ -83,13 +83,13 @@ function evaluate(s, me) {
    * 所以 1 层 ≈ 1 点伤害 ≈ 2.2 分。估低了 AI 会拿 4 层去换 4 点伤害（白亏一半），
    * 峰值层数永远停在 4 上下、攒资源型卡组因此测不出真实强度。 */
   v += F.dots * (2.0 + (F.aura || 0) * 0.6);
-  // 敌方身上的负面状态是我方资产（侵蚀层数、标记、弱点、缺陷）
+  // 敌方场上的负面状态（格子污染）是我方资产（侵蚀层数、标记、弱点、缺陷）
   for (const u of F.board) {
-    v += u.dots * (1.1 + (u.aura || 0) * 0.5);
-    v += u.shocked ? 1.2 : 0;
-    v += u.vuln * 0.8;
-    v += u.flaws.size * 0.7;
-    v += u.marks.has('标记') ? 0.6 : 0;
+    v += u.slot.dots * (1.1 + (u.slot.aura || 0) * 0.5);
+    v += u.slot.shocked ? 1.2 : 0;
+    v += u.slot.vuln * 0.8;
+    v += u.slot.flaws.size * 0.7;
+    v += u.slot.marks.has('标记') ? 0.6 : 0;
   }
   // 牌库见底是输，别为了过牌把自己抽死
   if (P.deck.length <= 4) v -= (5 - P.deck.length) * 6;
@@ -255,8 +255,8 @@ function targetOptions(s, handIndex, me) {
   const opts = [];
   if (foes.length) {
     opts.push({ target: foes[0] });
-    const dotty = foes.slice().sort((a, b) => b.dots - a.dots)[0];
-    if (dotty !== foes[0] && dotty.dots > 0) opts.push({ target: dotty });
+    const dotty = foes.slice().sort((a, b) => b.slot.dots - a.slot.dots)[0];
+    if (dotty !== foes[0] && dotty.slot.dots > 0) opts.push({ target: dotty });
   }
   if (need === 'enemyAny') opts.push({ target: { __leader: S.opp(s.active) } });
   return opts.length ? opts : [{}];

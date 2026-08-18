@@ -74,12 +74,8 @@ export function makeUnit(def, turn) {
     maxHp: def.hp | 0,
     keywords: new Set(),
     counters: {},                   // 火种/朔望/兴致…
-    marks: new Set(),               // 标记 / 军功 / 爵位 / 老主顾 / 织线
-    dots: 0,                        // 【持续伤害】层数
-    aura: 0,                        // 【奥迹】层数（放大 dots 每层的结算值）
-    flaws: new Set(),               // 【缺陷】迟缓 / 脆弱 / 衰弱
-    vuln: 0,                        // 【弱点】层数，每层使其受到的伤害 +1
-    shocked: false,                 // 【触电】自己的回合结束时受 2 点
+    marks: new Set(),               // 正面标记：军功 / 爵位 / 老主顾 / 织线（负面标记迁到 slot）
+    slot: null,                     // 所在场地格子（slot 对象引用；负面状态存在这里）
     atkPlusExpr: null,              // 动态攻击力加成表达式（如 lostHp/2）
     reduceExpr: null,               // 动态伤害减免表达式（如 lostHp/4）
     attacksUsed: 0,
@@ -94,6 +90,21 @@ export function makeUnit(def, turn) {
   return u;
 }
 
+/* 场地格子：负面状态（延迟爆发/非直接伤害）挂在格子上，而不是随从身上。
+ * 随从站到哪一格，就受哪一格的负面效果影响；随从死亡时格子效果减半残留，
+ * 新随从放进这个格子会吃到残留。这样「标记/弱点/脆弱/持续伤害」不再随目标死亡而蒸发。 */
+export function makeSlot(idx) {
+  return {
+    idx,                            // 0-4
+    marks: new Set(),               // 负面标记：标记 / 破绽
+    vuln: 0,                        // 【弱点】层数，每层使站此格的随从受伤 +1
+    flaws: new Set(),               // 【缺陷】迟缓 / 脆弱 / 衰弱
+    dots: 0,                        // 【持续伤害】层数
+    aura: 0,                        // 【奥迹】层数（放大 dots 每层结算值）
+    shocked: false,                 // 【触电】站此格的随从回合结束受 2 点
+  };
+}
+
 export function makePlayer(name, deckDefs, isFirst) {
   return {
     name,
@@ -105,6 +116,7 @@ export function makePlayer(name, deckDefs, isFirst) {
      * 虚无因此攒不起任何东西；沉淀到脸上之后「引爆」才是一条稳定的终结路线。 */
     dots: 0,
     aura: 0,                    // 主战者身上的【奥迹】（放大侵蚀每层的引爆值）
+    vuln: 0,                    // 主战者身上的【易伤】：受到的伤害 +N（随从死亡时增伤效果概率转移而来）
     pp: 0,
     ppMax: 0,
     ppBonus: 0,                 // 花火之类的 PP 上限加成
@@ -114,6 +126,7 @@ export function makePlayer(name, deckDefs, isFirst) {
     deck: deckDefs.slice(),
     hand: [],
     board: [],
+    slots: Array.from({ length: RULES.BOARD_LIMIT }, (_, i) => makeSlot(i)),
     graveyard: [],
     counters: {},               // 解读/蓄能/笑点/腐化…
     cardsPlayedThisTurn: 0,
@@ -180,13 +193,18 @@ export function drawCard(s, pi) {
  * structuredClone 会在 rng 上直接失败，所以只能手写。
  * def 是不可变的卡定义，共享引用即可；log 不复制（试算不需要，且很占内存）。 */
 function cloneUnit(u) {
-  return { ...u, keywords: new Set(u.keywords), marks: new Set(u.marks),
-    flaws: new Set(u.flaws), counters: { ...u.counters } };
+  return { ...u, keywords: new Set(u.keywords), marks: new Set(u.marks), counters: { ...u.counters } };
 }
 function clonePlayer(p) {
+  const slots = p.slots.map(sl => ({ ...sl, marks: new Set(sl.marks), flaws: new Set(sl.flaws) }));
+  const board = p.board.map(u => {
+    const nu = cloneUnit(u);
+    if (nu.slot) nu.slot = slots[nu.slot.idx];   // 重新绑定到副本的格子
+    return nu;
+  });
   return { ...p, keywords: new Set(p.keywords), counters: { ...p.counters },
     deck: p.deck.slice(), graveyard: p.graveyard.slice(),
-    hand: p.hand.map(h => ({ ...h })), board: p.board.map(cloneUnit) };
+    hand: p.hand.map(h => ({ ...h })), board, slots };
 }
 export function cloneForSim(s) {
   return {

@@ -8,7 +8,7 @@ M006	溯忆	记忆	法术	铜	1				0		spell: evolveFree(allyOne)	使1个自己�
 M007	致长夜的星光	记忆	法术	铜	2				0		spell: buff(allyTag(忆质),1,1)	使自己的忆质与忆灵+1/+1	忆灵编织/迷因回响	img/M007.webp
 M008	金血忆灵 · 雉形	记忆	随从	铜	2	2	2		0	金血忆灵	onAllySummon: buff(self,1,0)	每当忆质或忆灵进入自己的战场，此随从+1/+0	忆灵编织/新蕊献祭	img/M008.webp
 M009	天谴斗士	记忆	随从	铜	2	1	3		0	天谴	static: ward; onPlay: stackSummon(忆质,1)	【守护】。【入场曲】：使忆质叠加1层（场上没有则先召唤）	忆灵编织/迷因回响/新蕊献祭	img/M009.webp
-M010	金血忆灵·守形	记忆	随从	铜	2	1	4		0	金血忆灵	static: ward; onPlay: stackSummon(忆质,1)	【守护】。【入场曲】：使忆质叠加1层（场上没有则先召唤）	忆灵编织	img/M010.svg
+M010	金血忆灵·犬形	记忆	随从	铜	2	1	4		0	金血忆灵	static: ward; onPlay: stackSummon(忆质,1)	【守护】。【入场曲】：使忆质叠加1层（场上没有则先召唤）	忆灵编织	img/M010.webp
 M011	忆域迷因「何物藏于镜中」	记忆	随从	铜	3	2	2		0	忆域迷因	onPlay: copy(allyOther)	【入场曲】：复制1个自己的其他随从到战场	迷因回响	img/M011.webp
 M012	忆域迷因「虚荣永无餍足」	记忆	随从	铜	2	2	1		0	忆域迷因	onDeath: dmg(selfLeader,1), addHand(忆域迷因「虚荣永无餍足」,1)	【谢幕曲】：给予自己的主战者1点伤害，并将此卡加入手牌	迷因回响/新蕊献祭	img/M012.webp
 M013	故事的下一页	记忆	护符	银	2			3	0		turnStart: stackSummon(忆质,1)	【倒数3】。自己的回合开始时，使忆质叠加1层（场上没有则先召唤）	忆灵编织	img/M013.webp
@@ -21,9 +21,9 @@ M019	金血忆灵·翼蛇形	记忆	随从	银	3	1	3		0	金血忆灵	static: atk
 M020	飞向粉色的明天	记忆	护符	金	3			4	0		onAllyEvolve: stackSummon(忆质,1)	【倒数4】。自己的随从进化时，使忆质叠加1层	忆灵编织/迷因回响	img/M020.webp
 M021	开拓者·记忆	记忆	随从	虹	3	2	4		0		onPlay: summon(忆灵「迷迷」,1); onLeaderHeal[ctr(迷迷)<1]: ctr(迷迷,+1), buff(allyTag(迷迷),1,1); turnStart: ctr(迷迷,-1)	【入场曲】：召唤忆灵「迷迷」（2/4、【守护】）。每当自己回复生命值，使「迷迷」+1/+1（每回合限1次）	忆灵编织	img/M021.webp
 M022	天谴歌队	记忆	随从	铜	3	2	4		0	天谴	onPlay: grant(allyTag(忆质),rush)	【入场曲】：使自己全体忆质获得【突进】	忆灵编织/新蕊献祭	img/M022.webp
-M023	天谴执刑者	记忆	随从	铜	3	3	2		0	天谴	onPlay: dmg(selfLeader,2), draw(1)	【入场曲】：给予自己的主战者2点伤害，抽1张卡	新蕊献祭/迷因回响	img/M023.svg
+M023	颁赐者，千军首，天谴之矛	记忆	随从	铜	3	3	2		0	天谴	onPlay: dmg(selfLeader,2), draw(1)	【入场曲】：给予自己的主战者2点伤害，抽1张卡	新蕊献祭/迷因回响	img/M023.webp
 M024	花儿不会忘记	记忆	护符	金	3				0		turnEnd[memCount>=3]: draw(1), stackSummon(忆质,1)	自己的回合结束时，若自己战场上有3个以上忆质或忆灵，抽1张卡并使忆质叠加1层（场上没有则先召唤）	忆灵编织/新蕊献祭	img/M024.webp
-M025	天谴守望	记忆	随从	铜	3	2	3		0	天谴	onLeaderDamaged: ctr(守望,+1); onCtr(守望,1): ctr(守望,-1), stackSummon(忆质,1)	自己的主战者受到伤害后，使忆质叠加1层（场上没有则先召唤）	忆灵编织/新蕊献祭	img/M025.svg
+M025	迷惘之渊的裁定者	记忆	随从	铜	3	2	3		0		onLeaderDamaged: ctr(守望,+1); onCtr(守望,1): ctr(守望,-1), stackSummon(忆质,1)	自己的主战者受到伤害后，使忆质叠加1层（场上没有则先召唤）	忆灵编织/新蕊献祭	img/M025.webp
 M026	胜利只在朝夕间	记忆	法术	银	2				0		spell: copy(allyOne)	复制1个自己的随从到战场	迷因回响	img/M026.webp
 M027	忆域迷因「狂怒褪去之壳」	记忆	随从	银	4	4	3		0	忆域迷因	onEvolve: evolveFree(allyOther)	进化时：使自己全体其他随从进化（不消费EP）	迷因回响	img/M027.webp
 M028	遐蝶	记忆	随从	虹	4	3	4		0		static: atkPlus(self,ctr(新蕊)/2); onPlay: dmg(allyAll,1); onLeaderDamaged: ctr(新蕊,+1); onDamaged: ctr(新蕊,+1)	每当自己的随从或主战者受到伤害，此随从获得1层【新蕊】。攻击力额外增加【新蕊】÷2。【入场曲】：给予自己全体随从各1点伤害	新蕊献祭	img/M028.webp
@@ -40,7 +40,7 @@ M039	知更鸟•晴歌	记忆	随从	虹	7	4	6		0		turnEnd: dmg(selfLeader,2), 
 M040	「飞霄」之影	记忆	随从	虹	8	5	5		0		static: storm, atkPlus(self,memCount)	【疾驰】。此随从的攻击力额外增加自己战场上忆质与忆灵的数量	忆灵编织/新蕊献祭	img/M040.webp
 M041	碎星王虫·斯喀拉卡巴兹（拟造）	记忆	随从	虹	8	5	7		0		onPlay: stackSummon(忆质,1), buff(allyTag(忆质),2,2)	【入场曲】：使忆质叠加1层并使自己全体忆质+2/+2	忆灵编织	img/M041.webp
 T601	忆质	记忆	随从	衍生	0	1	1		1	忆质		（由多数记忆卡牌的效果产生）唯一叠加：一方场上只存在1个忆质。再次召唤时改为使其层数+1并+1/+1。「按忆质数量计算」的效果读它的层数		
-T602	忆灵「长夜」	记忆	随从	衍生	0	2	3		1	忆质/长夜		（由长夜月的效果产生）		
+T602	忆灵「长夜」	记忆	随从	衍生	0	2	3		1	忆质/长夜		（由长夜月的效果产生）		img/T602.webp
 T603	忆灵「迷迷」	记忆	随从	衍生	0	2	4		1	忆质/迷迷	static: ward	（由开拓者·记忆的效果产生）【守护】		
 T604	忆灵「小伊卡」	记忆	随从	衍生	0	3	3		1	忆质/小伊卡		（由风堇的效果产生）		
 T605	忆灵「衣匠」	记忆	随从	衍生	0	3	4		1	忆质/衣匠	onAttack: weave(enemyOne)	（由阿格莱雅的效果产生）攻击时：使该敌方随从获得【间隙织线】		

@@ -43,5 +43,5 @@ D042	末日兽	毁灭	随从	虹	8	6	6		0		static: undestroyable; onPlay: dmg(en
 D043	可可利亚，虚妄之母	毁灭	随从	虹	8	7	7		0		onPlay: setLeaderHp(1), dmg(enemyLeader,lostHp,15)	【入场曲】：将自己主战者的生命值转变为1，然后给予敌方的主战者与已损失生命值等量的伤害（最多15点）	血仇变身/反击回响	img/D043.webp
 T001	卡厄斯兰那	毁灭	随从	衍生	0	8	8		1		static: storm, bane	（由白厄变身产生）【疾驰】、【必杀】。注意：官方【变身】规定变身当回合无法攻击，【疾驰】只对下次入场生效		
 T002	蚀刻残焰	毁灭	随从	衍生	1	1	1		1	黑潮	static: storm	（由黑潮蚀魔的效果产生）【疾驰】		
-T003	星核碎屑	毁灭	护符	衍生	0			1	1		onDeath: dmg(enemyLeader,2)	（由末日兽的效果产生）【倒数1】。【谢幕曲】：给予敌方的主战者2点伤害		
+T003	星核碎屑	毁灭	护符	衍生	0			1	1		onDeath: dmg(enemyLeader,2)	（由末日兽的效果产生）【倒数1】。【谢幕曲】：给予敌方的主战者2点伤害		img/T003.webp
 D044	外宇宙之炎	毁灭	随从	金	3	3	3		0		static: drain; onPlay: dmg(selfLeader,1)	【虹吸】（攻击造成伤害时回复自己等量生命值）。【入场曲】：给予自己的主战者1点伤害	地狱变/血仇变身	img/D044.webp
