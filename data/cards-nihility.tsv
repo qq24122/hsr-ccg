@@ -2,7 +2,7 @@ id	name	class	type	quality	cost	atk	hp	countdown	token	tag	effect	note	decks	img
 N001	虚数织叶者	虚无	随从	铜	1	1	2		0		onPlay: dot(enemyOne,1)	【入场曲】：使1个敌方随从获得1层【持续伤害】	持续侵蚀/引爆奥迹/缺陷植入	img/N001.webp
 N002	匿影	虚无	法术	铜	1				0		spell: dot(enemyOne,2)	使1个敌方随从获得2层【持续伤害】	持续侵蚀/引爆奥迹/缺陷植入	img/N002.webp
 N003	渊环	虚无	法术	铜	1				0		spell: dot(enemyOne,1), draw(1)	使1个敌方随从获得1层【持续伤害】，抽1张卡	持续侵蚀/引爆奥迹	img/N003.webp
-N004	卢卡	虚无	随从	金	1	1	2		0		onAttack: dot(enemyOne,1); onDot[ctr(斗志)<4]: ctr(斗志,+1), buff(self,1,0)	攻击时：使该敌方随从获得1层【持续伤害】。每当【持续伤害】层数增加，获得1层【斗志】（+1/+0，最多4层）	持续侵蚀/缺陷植入	img/N004.webp
+N004	卢卡	虚无	随从	金	1	2	2		0		onAttack: dot(enemyOne,1); onDot[ctr(斗志)<4]: ctr(斗志,+1), buff(self,1,0)	攻击时：使该敌方随从获得1层【持续伤害】。每当【持续伤害】层数增加，获得1层【斗志】（+1/+0，最多4层）	持续侵蚀/缺陷植入	img/N004.webp
 N005	幽邃	虚无	护符	铜	1			3	0		turnEnd: dot(enemyAll,1)	【倒数3】。自己的回合结束时，使敌方全体随从获得1层【持续伤害】	持续侵蚀	img/N005.webp
 N006	千冶•刃之炽	虚无	随从	铜	1	2	1		0		onPlay: dmg(selfLeader,1), dot(enemyOne,1)	【入场曲】：给予自己的主战者1点伤害，使1个敌方随从获得1层【持续伤害】	持续侵蚀/缺陷植入	img/N006.webp
 N007	佩拉	虚无	随从	金	2	2	2		0		onPlay: destroy(enemyAmulet), flaw(enemyOne,衰弱)	【入场曲】：破坏敌方全部护符，并使1个敌方随从获得【缺陷·衰弱】	缺陷植入	img/N007.webp

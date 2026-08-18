@@ -6,7 +6,7 @@ M004	忆域迷因「视线无处不在」	记忆	随从	铜	1	1	1		0	忆域迷�
 M005	焚影	记忆	法术	铜	1				0		spell: stackSummon(忆质,1)	使忆质叠加1层	忆灵编织/新蕊献祭	img/M005.webp
 M006	溯忆	记忆	法术	铜	1				0		spell: evolveFree(allyOne)	使1个自己的随从进化（不消费EP）	迷因回响/新蕊献祭	img/M006.webp
 M007	致长夜的星光	记忆	法术	铜	2				0		spell: buff(allyTag(忆质),1,1)	使自己的忆质与忆灵+1/+1	忆灵编织/迷因回响	img/M007.webp
-M008	金血忆灵 · 雉形	记忆	随从	铜	2	2	2		0	金血忆灵	onAllySummon: buff(self,1,0)	每当忆质或忆灵进入自己的战场，此随从+1/+0	忆灵编织/新蕊献祭	img/M008.webp
+M008	金血忆灵 · 雉形	记忆	随从	铜	2	2	3		0	金血忆灵	onAllySummon: buff(self,1,0)	每当忆质或忆灵进入自己的战场，此随从+1/+0	忆灵编织/新蕊献祭	img/M008.webp
 M009	天谴斗士	记忆	随从	铜	2	1	3		0	天谴	static: ward; onPlay: stackSummon(忆质,1)	【守护】。【入场曲】：使忆质叠加1层（场上没有则先召唤）	忆灵编织/迷因回响/新蕊献祭	img/M009.webp
 M010	金血忆灵·犬形	记忆	随从	铜	2	1	4		0	金血忆灵	static: ward; onPlay: stackSummon(忆质,1)	【守护】。【入场曲】：使忆质叠加1层（场上没有则先召唤）	忆灵编织	img/M010.webp
 M011	忆域迷因「何物藏于镜中」	记忆	随从	铜	3	2	2		0	忆域迷因	onPlay: copy(allyOther)	【入场曲】：复制1个自己的其他随从到战场	迷因回响	img/M011.webp

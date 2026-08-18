@@ -8,13 +8,13 @@ D006	俱殁	毁灭	护符	铜	1			5	0		onLeaderDamaged: dmg(enemyLeader,1)	【�
 D007	天倾	毁灭	法术	铜	1				0		spell[!mara]: buff(allyOne,2,0), grant(allyOne,rush); spell[mara]: buff(allyOne,3,0), grant(allyOne,rush)	给予1个自己的随从+2/+0与【突进】。若已入魔，改为+3/+0	反击回响	img/D007.webp
 D008	重子	毁灭	随从	铜	2	1	4		0		static: ward; onPlay[!mara]: dmg(selfLeader,1)	【守护】。【入场曲】：若入魔未发动，给予自己的主战者1点伤害	地狱变/反击回响/血仇变身	img/D008.webp
 D009	虚卒·抹消者	毁灭	随从	铜	2	2	2		0	虚卒	onPlay[!mara]: dmg(selfLeader,2); onPlay[mara]: dmg(enemyLeader,2)	【入场曲】：若入魔未发动则自伤2点；已发动则改为给予敌方主战者2点	地狱变/血仇变身	img/D009.webp
-D010	黑潮蚀刃	毁灭	随从	铜	2	2	2		0	黑潮	onAttack: dmg(selfLeader,1), buff(self,1,0); onEvolve: grant(selfLeader,barrier)	攻击时：自伤1点，此随从+1/+0。进化时：使自己的主战者获得【屏障】	地狱变/反击回响	img/D010.webp
+D010	黑潮蚀刃	毁灭	随从	铜	2	2	3		0	黑潮	onAttack: dmg(selfLeader,1), buff(self,1,0); onEvolve: grant(selfLeader,barrier)	攻击时：自伤1点，此随从+1/+0。进化时：使自己的主战者获得【屏障】	地狱变/反击回响	img/D010.webp
 D011	忍事录•音律狩猎	毁灭	法术	银	2				0		spell: dmg(selfLeader,2), dmg(enemyAny,3)	给予自己的主战者2点伤害，并给予敌方的主战者或1个敌方随从3点伤害	地狱变/反击回响/血仇变身	img/D011.webp
 D012	铭记于心的约定	毁灭	法术	银	2				0		spell: draw(2), dmg(selfLeader,1)	抽2张卡，给予自己的主战者1点伤害	地狱变/血仇变身	img/D012.webp
 D013	浪花侍女	毁灭	随从	铜	2	1	3		0		onDamaged: heal(selfLeader,2)	此随从受到伤害后，回复自己的主战者2点生命值	反击回响	img/D013.webp
 D014	巽风造物	毁灭	随从	铜	2	3	2		0		onPlay: maxHpDown(3), buff(self,2,0)	【入场曲】：使自己的主战者生命上限-3，此随从+2/+0	血仇变身	img/D014.webp
 D015	无处可逃	毁灭	法术	银	2				0		spell: setLeaderHp(12), draw(1)	给予自己的主战者伤害使其生命值转变为12。抽1张卡	地狱变/血仇变身	img/D015.webp
-D016	阿兰	毁灭	随从	金	3	2	3		0		static: drain; onPlay: dmg(selfLeader,2); onLeaderDamaged: buff(self,1,0)	【虹吸】。【入场曲】：给予自己的主战者2点伤害。每当自己的主战者受到伤害，此随从+1/+0	反击回响/血仇变身	img/D016.webp
+D016	阿兰	毁灭	随从	金	3	2	3		0		static: drain; onPlay: dmg(selfLeader,2); onLeaderDamaged: buff(self,1,0); onEvolve: buff(self,1,1)	【虹吸】。【入场曲】：给予自己的主战者2点伤害。每当自己的主战者受到伤害，此随从+1/+0。进化时：此随从+1/+1	反击回响/血仇变身	img/D016.webp
 D017	虎克	毁灭	随从	金	3	3	3		0		onPlay: dmg(selfLeader,2), shock(enemyOne)	【入场曲】：自伤2点，并使1个敌方随从获得【灼烧】（自己的回合结束时受到2点伤害）	地狱变/反击回响	img/D017.webp
 D018	在火的远处	毁灭	护符	金	3			5	0		onPlay[ppMax>=7]: refundEP(1); onAllyEvolve: heal(selfLeader,8), destroy(self)	【入场曲】：若自己的PP上限≥7，回复1点进化点。自己的随从进化时，回复自己的主战者8点生命值并使此护符消失。【倒数5】	地狱变/反击回响/血仇变身	img/D018.webp
 D019	黑潮蚀魔	毁灭	随从	银	3	3	3		0	黑潮	onDeath: dmg(enemyAll,2), summon(蚀刻残焰,1)	【谢幕曲】：给予敌方全体随从2点伤害，并召唤1个蚀刻残焰	地狱变	img/D019.webp

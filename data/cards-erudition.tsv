@@ -7,7 +7,7 @@ E006	智库	智识	法术	铜	2				0		spell: dmg(enemyAll,1), pctr(解读,+1)	�
 E007	基层员工·外勤	智识	随从	铜	1	2	2		0	基层员工	onPlay: pctr(解读,+2)	【入场曲】：使自己的「解读」+2	解读演算	img/E007.webp
 E008	天才们的休憩	智识	法术	铜	1				0		spell: shock(enemyOne), pctr(解读,+2)	使1个敌方随从获得【触电】，并使自己的「解读」+2	解读演算/弱点揭露	img/E008.webp
 E009	自动机兵·战犬	智识	随从	铜	2	2	2		0	自动机兵	onPlay: summon(机兵残骸,1)	【入场曲】：召唤1个机兵残骸	神君追击	img/E009.webp
-E011	基层员工·安保	智识	随从	铜	2	2	3		0	基层员工	onSpell: buff(self,1,0)	每当自己使用法术卡，此随从+1/+0	解读演算/神君追击	img/E011.webp
+E011	基层员工·安保	智识	随从	铜	2	2	3		0	基层员工	onSpell: buff(self,1,0); onPlay: buffHand(1,1)	每当自己使用法术卡，此随从+1/+0。【入场曲】：强化手牌里的随机1个随从+1/+1	解读演算/神君追击	img/E011.webp
 E012	银河沦陷日	智识	法术	银	3				0		spell: dmg(enemyShocked,4), vuln(enemyAll,1), pctr(解读,+2)	给予全部【触电】的敌方随从4点伤害，并使敌方全体获得1层【弱点】。使自己的「解读」+2	解读演算/弱点揭露	img/E012.webp
 E013	今日亦是和平的一日	智识	法术	银	3				0		spell: draw(2), pctr(解读,+2)	抽2张卡。使自己的「解读」+2	解读演算/神君追击	img/E013.webp
 E014	早餐的仪式感	智识	护符	银	3			3	0		turnStart: dmg(enemyOne,1), draw(1)	【倒数3】。自己的回合开始时，给予1个敌方随从1点伤害并抽1张卡	弱点揭露	img/E014.webp
@@ -25,7 +25,7 @@ E025	咆哮灵柩	智识	随从	银	4	3	3		0		onPlay: dmg(enemyAll,2)	【入场�
 E026	咆哮灵柩·雷鸣	智识	随从	银	5	4	4		0		onPlay: dmg(enemyShocked,4)	【入场曲】：给予全部拥有【触电】的敌方随从4点伤害	弱点揭露	img/E026.webp
 E027	姬子•启行	智识	随从	虹	5	3	5		0		turnStart: extraAtk(allyAll,1), pctr(解读,+2)	自己的回合开始时，使自己全体随从获得「本回合可再进行1次攻击」，然后使自己的「解读」+2	解读演算/神君追击	img/E027.webp
 E028	破晓战队•赤焰	智识	随从	银	4	4	2		0	破晓战队	static: rush; onPlay: buff(allyTag(机兵残骸),1,1)	【突进】。【入场曲】：使自己战场上全体机兵残骸+1/+1	神君追击	img/E028.webp
-E029	银枝·观测	智识	随从	虹	4	2	5		0		onAttack[ctr(观测枝)<10]: ctr(观测枝,+1), buff(self,1,0)	每当此随从攻击，其永久+1/+0（最多10次）	解读演算/弱点揭露	img/E029.webp
+E029	银枝·观测	智识	随从	虹	4	2	5		0		onAttack[ctr(观测枝)<10]: ctr(观测枝,+1), buff(self,1,0); onEvolve: buff(self,2,0)	每当此随从攻击，其永久+1/+0（最多10次）。进化时：此随从+2/+0	解读演算/弱点揭露	img/E029.webp
 E030	宇宙大生意	智识	法术	金	5				0		spell: dmg(enemyAll,3), pctr(解读,+2)	给予敌方全体随从3点伤害。使自己的「解读」+2	弱点揭露/解读演算	img/E030.webp
 E031	谐乐静默之后	智识	法术	金	4				0		spell: dmg(enemyShocked,5), dmg(enemyLeader,3), pctr(解读,+3)	给予全部【触电】的敌方随从5点伤害，给予敌方的主战者3点伤害，使自己的「解读」+3	解读演算	img/E031.webp
 E032	破晓战队•苍翼	智识	随从	银	5	3	5		0	破晓战队	static: ward; turnEnd: summon(机兵残骸,1)	【守护】。自己的回合结束时，召唤1个机兵残骸	神君追击	img/E032.webp

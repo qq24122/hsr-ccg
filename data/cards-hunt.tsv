@@ -7,8 +7,8 @@ H005	虚卒·篡改者	巡猎	随从	铜	1	1	2		0	虚卒	onPlay: mark(enemyOne)	
 H006	魔阴身士卒	巡猎	随从	铜	2	2	3		0	魔阴身	static: rush	【突进】	饲饵猎杀/连锁追击	img/H006.webp
 H007	幽府武弁	巡猎	随从	铜	2	1	3		0		static: ward; onPlay: draw(1)	【守护】。【入场曲】：抽1张卡	饲饵猎杀/绝命对峙	img/H007.webp
 H008	银鬃炮手	巡猎	随从	铜	2	2	3		0	银鬃	onAttack: dmg(enemyLeader,2)	攻击时：给予敌方的主战者2点伤害	连锁追击	img/H008.webp
-H009	丹恒	巡猎	随从	金	2	2	2		0		static: rush; onAttack[marked]: buff(self,2,0)	【突进】。攻击时：若目标被【标记】，此随从+2/+0	饲饵猎杀/连锁追击/绝命对峙	img/H009.webp
-H010	素裳	巡猎	随从	金	2	2	3		0		onEnemyDeath[markedCount>=1]: buff(self,1,1)	每当1个被【标记】的敌方随从被消灭，此随从+1/+1	连锁追击/绝命对峙	img/H010.webp
+H009	丹恒	巡猎	随从	金	2	2	3		0		static: rush; onAttack[marked]: buff(self,2,0)	【突进】。攻击时：若目标被【标记】，此随从+2/+0	饲饵猎杀/连锁追击/绝命对峙	img/H009.webp
+H010	素裳	巡猎	随从	金	2	2	3		0		onEnemyDeath[markedCount>=1]: buff(self,1,1); onEvolve: buff(self,1,1)	每当1个被【标记】的敌方随从被消灭，此随从+1/+1。进化时：此随从+1/+1	连锁追击/绝命对峙	img/H010.webp
 H011	魔阴武弁	巡猎	随从	铜	2	1	4		0	魔阴身	static: ward; turnStart: mark(enemyOne)	【守护】。自己的回合开始时，【标记】1个敌方随从	饲饵猎杀	img/H011.webp
 H012	云骑巡防士卒	巡猎	随从	铜	2	1	4		0	云骑	static: ward; onPlay: mark(enemyOne)	【守护】。【入场曲】：【标记】1个敌方随从	饲饵猎杀/绝命对峙	img/H012.webp
 H013	黑潮朽弓	巡猎	随从	铜	2	2	3		0	黑潮	onAttack: mark(enemyOne)	攻击时：【标记】该敌方随从	连锁追击	img/H013.webp
