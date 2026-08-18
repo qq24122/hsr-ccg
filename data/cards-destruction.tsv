@@ -1,47 +1,47 @@
 id	name	class	type	quality	cost	atk	hp	countdown	token	tag	effect	note	decks	img
 D001	虚卒·掠夺者	毁灭	随从	铜	1	1	2		0	虚卒	onPlay[!mara]: dmg(bothLeader,1); onPlay[mara]: dmg(enemyLeader,2)	【入场曲】：给予双方主战者各1点伤害。入魔时：改为给予敌方主战者2点伤害	地狱变/反击回响/血仇变身	img/D001.webp
 D002	毁灭扑满	毁灭	随从	铜	1	1	1		0		onAttack: dmg(selfLeader,1), draw(1)	攻击时：给予自己的主战者1点伤害，抽1张卡	地狱变/血仇变身	img/D002.webp
-D003	黑潮蚀斧	毁灭	随从	铜	1	2	1		0	黑潮	static: noCounter; onDeath: dmg(enemyLeader,1)	此随从无法进行防御。【谢幕曲】：给予敌方的主战者1点伤害	地狱变	img/D003.webp
-D004	反重子	毁灭	随从	铜	1	1	1		0		onDeath: maxHpDown(2), draw(1)	【谢幕曲】：使自己的主战者生命上限-2，并抽1张卡	血仇变身/地狱变	img/D004.webp
-D005	无想面具	毁灭	随从	铜	1	0	3		0		static: ward; onDamaged: dmg(dmgSource,1)	【守护】。此随从受到伤害后，给予攻击者1点伤害	反击回响	img/D005.webp
-D006	俱殁	毁灭	护符	铜	1			5	0		onLeaderDamaged: dmg(enemyLeader,1)	【倒数5】。每当自己的主战者受到伤害，给予敌方的主战者1点伤害	地狱变/血仇变身	img/D006.webp
+D003	黑潮蚀斧	毁灭	随从	铜	1	2	1		0	黑潮	static: noCounter; onDeath: dmg(enemyLeader,1); onPlay[mara]: grant(self,storm)	无法防御。【谢幕曲】：给予敌方主战者1点伤害。复仇时：获得【疾驰】	地狱变	img/D003.webp
+D004	反重子	毁灭	随从	铜	1	1	1		0		onDeath: maxHpDown(2), draw(1); onPlay[mara]: draw(1)	【谢幕曲】：使自己的主战者生命上限-2，抽1张卡。复仇时：入场额外抽1张	血仇变身/地狱变	img/D004.webp
+D005	无想面具	毁灭	随从	铜	1	0	3		0		static: ward; onDamaged: dmg(dmgSource,1); onPlay[mara]: grant(self,barrier)	【守护】。受到伤害时给予伤害来源1点伤害。复仇时：获得【屏障】	反击回响	img/D005.webp
+D006	俱殁	毁灭	护符	铜	1			5	0		onLeaderDamaged: dmg(enemyLeader,1); onLeaderDamaged[mara]: dmg(enemyLeader,2)	每当自己的主战者受到伤害，给予敌方主战者1点伤害。复仇时：改为2点	地狱变/血仇变身	img/D006.webp
 D007	天倾	毁灭	法术	铜	1				0		spell[!mara]: buff(allyOne,2,0), grant(allyOne,rush); spell[mara]: buff(allyOne,3,0), grant(allyOne,rush)	给予1个自己的随从+2/+0与【突进】。若已入魔，改为+3/+0	反击回响	img/D007.webp
 D008	重子	毁灭	随从	铜	2	1	4		0		static: ward; onPlay[!mara]: dmg(selfLeader,1)	【守护】。【入场曲】：若入魔未发动，给予自己的主战者1点伤害	地狱变/反击回响/血仇变身	img/D008.webp
 D009	虚卒·抹消者	毁灭	随从	铜	2	2	2		0	虚卒	onPlay[!mara]: dmg(selfLeader,2); onPlay[mara]: dmg(enemyLeader,2)	【入场曲】：若入魔未发动则自伤2点；已发动则改为给予敌方主战者2点	地狱变/血仇变身	img/D009.webp
 D010	黑潮蚀刃	毁灭	随从	铜	2	2	3		0	黑潮	onAttack[!mara]: dmg(selfLeader,1), buff(self,1,0); onAttack[mara]: buff(self,2,0); onEvolve: grant(selfLeader,barrier)	攻击时：自伤1点，此随从+1/+0。入魔时：不受伤，此随从+2/+0。进化时：使自己的主战者获得【屏障】	地狱变/反击回响	img/D010.webp
 D011	忍事录•音律狩猎	毁灭	法术	银	2				0		spell[!mara]: dmg(selfLeader,2), dmg(enemyAny,3); spell[mara]: dmg(enemyAny,5)	给予1个敌方目标3点伤害，自伤2点。入魔时：不自伤，改为5点伤害	地狱变/反击回响/血仇变身	img/D011.webp
-D012	铭记于心的约定	毁灭	法术	银	2				0		spell: draw(2), dmg(selfLeader,1)	抽2张卡，给予自己的主战者1点伤害	地狱变/血仇变身	img/D012.webp
-D013	浪花侍女	毁灭	随从	铜	2	1	3		0		onDamaged: heal(selfLeader,2)	此随从受到伤害后，回复自己的主战者2点生命值	反击回响	img/D013.webp
+D012	铭记于心的约定	毁灭	法术	银	2				0		spell[!mara]: draw(2), dmg(selfLeader,1); spell[mara]: draw(3)	抽2张卡，自伤1点。复仇时：抽3张且不自伤	地狱变/血仇变身	img/D012.webp
+D013	浪花侍女	毁灭	随从	铜	2	1	3		0		onDamaged: heal(selfLeader,2); onPlay[mara]: heal(selfLeader,3)	受到伤害时回复主战者2点生命。复仇时：入场回复3点	反击回响	img/D013.webp
 D014	巽风造物	毁灭	随从	铜	2	3	2		0		onPlay[!mara]: maxHpDown(3), buff(self,2,0); onPlay[mara]: buff(self,3,1)	【入场曲】：使自己的主战者生命上限-3，此随从+2/+0。入魔时：不减上限，改为+3/+1	血仇变身	img/D014.webp
-D015	无处可逃	毁灭	法术	银	2				0		spell: setLeaderHp(12), draw(1)	给予自己的主战者伤害使其生命值转变为12。抽1张卡	地狱变/血仇变身	img/D015.webp
+D015	无处可逃	毁灭	法术	银	2				0		spell: setLeaderHp(10), draw(1)	使自己的主战者生命值变为10（主动进入复仇），抽1张卡	地狱变/血仇变身	img/D015.webp
 D016	阿兰	毁灭	随从	金	3	2	3		0		static: drain; onPlay: dmg(selfLeader,2); onLeaderDamaged: buff(self,1,0); onEvolve: buff(self,1,1)	【虹吸】。【入场曲】：给予自己的主战者2点伤害。每当自己的主战者受到伤害，此随从+1/+0。进化时：此随从+1/+1	反击回响/血仇变身	img/D016.webp
-D017	虎克	毁灭	随从	金	3	3	3		0		onPlay: dmg(selfLeader,2), shock(enemyOne)	【入场曲】：自伤2点，并使1个敌方随从获得【灼烧】（自己的回合结束时受到2点伤害）	地狱变/反击回响	img/D017.webp
+D017	虎克	毁灭	随从	金	3	3	3		0		onPlay[!mara]: dmg(selfLeader,2), shock(enemyOne); onPlay[mara]: shock(enemyAll)	【入场曲】：自伤2点，使1个敌方随从触电。复仇时：不自伤，使敌方全体触电	地狱变/反击回响	img/D017.webp
 D018	在火的远处	毁灭	护符	金	3			5	0		onPlay[ppMax>=7]: refundEP(1); onAllyEvolve: heal(selfLeader,8), destroy(self)	【入场曲】：若自己的PP上限≥7，回复1点进化点。自己的随从进化时，回复自己的主战者8点生命值并使此护符消失。【倒数5】	地狱变/反击回响/血仇变身	img/D018.webp
-D019	黑潮蚀魔	毁灭	随从	银	3	3	3		0	黑潮	onDeath: dmg(enemyAll,2), summon(蚀刻残焰,1)	【谢幕曲】：给予敌方全体随从2点伤害，并召唤1个蚀刻残焰	地狱变	img/D019.webp
+D019	黑潮蚀魔	毁灭	随从	银	3	3	3		0	黑潮	onDeath: dmg(enemyAll,2), summon(蚀刻残焰,1); onDeath[mara]: dmg(enemyAll,3)	【谢幕曲】：给予敌方全体随从2点伤害，召唤1个蚀刻残焰。复仇时：改为3点	地狱变	img/D019.webp
 D020	炽燃徘徊者	毁灭	随从	银	3	4	3		0		onPlay[!mara]: dmg(selfLeader,3), buff(self,3,0); onPlay[mara]: buff(self,4,1)	【入场曲】：自伤3点，此随从+3/+0。入魔时：不自伤，改为+4/+1	血仇变身	img/D020.webp
-D021	开拓者·毁灭	毁灭	随从	虹	3	3	3		0		onEnemyDeath[ctr(战功)<2]: ctr(战功,+1), buff(self,1,1)	每当1个敌方随从被消灭，此随从永久+1/+1（最多2次）	地狱变/反击回响	img/D021.webp
-D022	永冬灾影	毁灭	随从	铜	3	2	5		0		static: ward; onDamaged: dmg(selfLeader,1), draw(1)	【守护】。此随从受到伤害后，给予自己的主战者1点伤害并抽1张卡	地狱变/反击回响	img/D022.webp
-D023	雪衣	毁灭	随从	金	4	3	5		0		static: ward; onLeaderDamaged: heal(self,1)	【守护】。每当自己的主战者受到伤害，回复此随从1点生命值	反击回响	img/D023.webp
+D021	开拓者·毁灭	毁灭	随从	虹	3	3	3		0		onEnemyDeath[ctr(战功)<2]: ctr(战功,+1), buff(self,1,1); onPlay[mara]: buff(self,1,1)	每当敌方随从被消灭，此随从+1/+1（最多2次）。复仇时：入场额外+1/+1	地狱变/反击回响	img/D021.webp
+D022	永冬灾影	毁灭	随从	铜	3	2	5		0		static: ward; onDamaged: dmg(selfLeader,1), draw(1); onPlay[mara]: grant(self,barrier)	【守护】。受到伤害时自伤1点并抽1张卡。复仇时：获得【屏障】	地狱变/反击回响	img/D022.webp
+D023	雪衣	毁灭	随从	金	4	3	5		0		static: ward; onLeaderDamaged: heal(self,1); onLeaderDamaged[mara]: heal(selfLeader,2)	【守护】。每当主战者受伤，此随从+0/+1。复仇时：改为回复主战者2点	反击回响	img/D023.webp
 D024	虚卒·践踏者	毁灭	随从	银	4	4	4		0	虚卒	onPlay: draw(2); onPlay[!mara]: setLeaderHp(10)	【入场曲】：抽2张卡。随后，若入魔未发动，则给予自己的主战者伤害使其生命值转变为10	地狱变/反击回响/血仇变身	img/D024.webp
 D025	米沙	毁灭	随从	金	4	2	5		0		turnEnd: dmg(enemyAll,1); turnEnd[!mara]: dmg(selfLeader,1)	自己的回合结束时，给予敌方全体随从1点伤害。入魔时：不自伤	地狱变	img/D025.webp
-D026	云璃	毁灭	随从	虹	4	3	4		0		onDamaged: dmg(dmgSourceOrLeader,selfAtk)	此随从受到伤害后，给予造成该伤害的敌方随从与此随从攻击力等量的伤害（若无则改为给予敌方主战者）	反击回响	img/D026.webp
-D027	吉尔伽美什	毁灭	随从	虹	4	3	5		0		onEnemySummon: ctr(兴致,+1); onCtr(兴致,3): ctr(兴致,-3), buff(self,3,0), extraAtk(self,1)	每当敌方随从进入战场，获得1层【兴致】。拥有3层时：消耗全部，此随从+3/+0且本回合可再进行1次攻击	血仇变身	img/D027.webp
+D026	云璃	毁灭	随从	虹	4	3	4		0		onDamaged: dmg(dmgSourceOrLeader,selfAtk); onDamaged[mara]: dmg(dmgSourceOrLeader,selfAtk), dmg(enemyLeader,2)	受到伤害时给予来源等同于自身攻击力的伤害。复仇时：额外给予敌方主战者2点伤害	反击回响	img/D026.webp
+D027	吉尔伽美什	毁灭	随从	虹	4	3	5		0		onEnemySummon: ctr(兴致,+1); onCtr(兴致,3): ctr(兴致,-3), buff(self,3,0), extraAtk(self,1); onPlay[mara]: ctr(兴致,+1)	每当敌方随从进入战场，获得1层兴致。3层时+3/+0并可再攻击1次。复仇时：入场额外获得1层兴致	血仇变身	img/D027.webp
 D028	一行往日的血	毁灭	法术	金	5				0		costIf(4)[mara]; spell: dmg(enemyOne,4), heal(selfLeader,2)	给予1个敌方随从4点伤害，并回复自己的主战者2点生命值。若已入魔，此牌在手牌中的费用-4	地狱变/反击回响/血仇变身	img/D028.webp
-D029	克拉拉	毁灭	随从	虹	5	2	6		0		static: ward; onDamaged: break(dmgSource); turnStart: dmg(enemyBroken,3)	【守护】。敌方随从攻击此随从后被打出【破绽】；自己的回合开始时，给予全部有【破绽】的敌方随从3点伤害	反击回响	img/D029.webp
-D030	流萤	毁灭	随从	虹	5	4	5		0		static: reduce(self,lostHp/4)	此随从受到的伤害减少「自己主战者已损失生命值÷4（向下取整）」点	地狱变/血仇变身	img/D030.webp
+D029	克拉拉	毁灭	随从	虹	5	2	6		0		static: ward; onDamaged: break(dmgSource); turnStart: dmg(enemyBroken,3); turnStart[mara]: dmg(enemyBroken,4)	【守护】。受到伤害时给来源【破绽】。回合开始时给破绽目标3点伤害。复仇时：4点	反击回响	img/D029.webp
+D030	流萤	毁灭	随从	虹	5	4	5		0		static: reduce(self,lostHp/4); onPlay[mara]: grant(self,ward)	受到的伤害减少 lostHp/4。复仇时：获得【守护】	地狱变/血仇变身	img/D030.webp
 D031	兴风者	毁灭	随从	银	5	4	3		0		static: storm; onPlay[!mara]: dmg(selfLeader,3)	【疾驰】。【入场曲】：自伤3点。入魔时：不自伤	地狱变	img/D031.webp
-D032	白厄	毁灭	随从	虹	5	3	6		0		onLeaderDamaged: ctr(火种,+1); onCtr(火种,3): ctr(火种,-3), transform(self,卡厄斯兰那)	每当自己的主战者受到伤害，获得1层【火种】。拥有3层时：消耗全部，变身为卡厄斯兰那（8/8、【必杀】）	血仇变身/反击回响	img/D032.webp
+D032	白厄	毁灭	随从	虹	5	3	6		0		onLeaderDamaged: ctr(火种,+1); onCtr(火种,3): ctr(火种,-3), transform(self,卡厄斯兰那); onPlay[mara]: ctr(火种,+1)	每当主战者受伤获得火种，3层变身。复仇时：入场额外获得1层火种	血仇变身/反击回响	img/D032.webp
 D033	Saber	毁灭	随从	虹	6	4	5		0		onPlay: refundEP(1); onEvolve: dmg(enemyRandomAny,1), dmg(enemyRandomAny,1), dmg(enemyRandomAny,1), dmg(enemyRandomAny,1), dmg(enemyRandomAny,1)	【入场曲】：回复自己的进化点1点。进化时：给予敌方随机目标5次1点伤害	反击回响/血仇变身	img/D033.webp
-D034	刃	毁灭	随从	虹	6	4	5		0		onLeaderDamaged: ctr(充能,+1); onCtr(充能,5): ctr(充能,-5), dmg(enemyAll,4), heal(selfLeader,5)	每当自己的主战者受到伤害，获得1层充能。拥有5层时：消耗全部，给予敌方全体随从4点伤害并回复自己的主战者5点生命值	地狱变/反击回响/血仇变身	img/D034.webp
+D034	刃	毁灭	随从	虹	6	4	5		0		onLeaderDamaged: ctr(充能,+1); onCtr(充能,5): ctr(充能,-5), dmg(enemyAll,4), heal(selfLeader,5); onPlay[mara]: ctr(充能,+1)	每当主战者受伤获得充能，5层全场4点+回5血。复仇时：入场额外获得1层充能	地狱变/反击回响/血仇变身	img/D034.webp
 D035	黑潮斗将	毁灭	随从	银	6	5	5		0	黑潮	onPlay[!mara]: dmg(selfLeader,2), destroy(enemyOne); onPlay[mara]: destroy(enemyOne), dmg(enemyLeader,2)	【入场曲】：自伤2点，破坏1个敌方随从。入魔时：不自伤，额外给予敌方主战者2点伤害	地狱变	img/D035.webp
-D036	至黑之剑，盗火行者	毁灭	随从	金	6	5	5		0		static: atkPlus(self,lostHp/2); onPlay: dmg(selfLeader,3)	【入场曲】：给予自己的主战者3点伤害。此随从的攻击力额外增加自己主战者已损失的生命值÷2（向下取整）	血仇变身	img/D036.webp
-D037	镜流	毁灭	随从	虹	7	4	5		0		static: bane; onSpell: ctr(朔望,+1); onCtr(朔望,2): ctr(朔望,-2), evolveFree(self), extraAtk(self,1)	【必杀】。每当自己使用法术卡，获得1层【朔望】。拥有2层时：消耗全部，此随从进化（不消费EP）且本回合可再进行1次攻击	地狱变/反击回响	img/D037.webp
+D036	至黑之剑，盗火行者	毁灭	随从	金	6	5	5		0		static: atkPlus(self,lostHp/2); onPlay[!mara]: dmg(selfLeader,3)	攻击力增加 lostHp/2。【入场曲】：自伤3点。复仇时：不自伤	血仇变身	img/D036.webp
+D037	镜流	毁灭	随从	虹	7	4	5		0		static: bane; onSpell: ctr(朔望,+1); onCtr(朔望,2): ctr(朔望,-2), evolveFree(self), extraAtk(self,1); onPlay[mara]: ctr(朔望,+1)	【必杀】。每用法术获得朔望，2层免费进化+再攻击。复仇时：入场额外获得1层朔望	地狱变/反击回响	img/D037.webp
 D038	万敌	毁灭	随从	虹	6	5	6		0		static: ward, atkPlus(self,lostHp/2); onPlay: halveHp()	【守护】。【入场曲】：将自己主战者的生命值减半（向上取整）。此随从的攻击力额外增加自己主战者已损失的生命值÷2（向下取整）	血仇变身	img/D038.webp
 D040	记一位星神的陨落	毁灭	法术	虹	8				0		costIf(4)[mara]; spell: dmg(enemyLeader,12)	给予敌方的主战者12点伤害。若已入魔，此牌在手牌中的费用-4	地狱变/血仇变身	img/D040.webp
-D041	丹恒•饮月	毁灭	随从	虹	7	5	5		0		onAttack[myAttacks<3]: buff(self,2,0), extraAtk(self,1)	此随从每次攻击后+2/+0，且本回合可再进行1次攻击（每回合最多3次）	反击回响/地狱变	img/D041.webp
-D042	末日兽	毁灭	随从	虹	8	6	6		0		static: undestroyable; onPlay: dmg(enemyAll,5), summon(星核碎屑,1)	此随从不会受到「消灭」与「破坏」效果影响。【入场曲】：给予敌方全体随从5点伤害，并召唤1个星核碎屑	地狱变/血仇变身	img/D042.webp
+D041	丹恒•饮月	毁灭	随从	虹	7	5	5		0		onAttack[myAttacks<3]: buff(self,2,0), extraAtk(self,1); onPlay[mara]: extraAtk(self,1)	每次攻击后+2/+0且可再攻击（每回合最多3次）。复仇时：入场本回合可再攻击1次	反击回响/地狱变	img/D041.webp
+D042	末日兽	毁灭	随从	虹	8	6	6		0		static: undestroyable; onPlay: dmg(enemyAll,5), summon(星核碎屑,1); onPlay[mara]: dmg(enemyLeader,3)	无法破坏。【入场曲】：给予敌方全体5点伤害，召唤星核碎屑。复仇时：额外打脸3点	地狱变/血仇变身	img/D042.webp
 D043	可可利亚，虚妄之母	毁灭	随从	虹	8	7	7		0		onPlay: setLeaderHp(1), dmg(enemyLeader,lostHp,15)	【入场曲】：将自己主战者的生命值转变为1，然后给予敌方的主战者与已损失生命值等量的伤害（最多15点）	血仇变身/反击回响	img/D043.webp
 T001	卡厄斯兰那	毁灭	随从	衍生	0	8	8		1		static: storm, bane	（由白厄变身产生）【疾驰】、【必杀】。注意：官方【变身】规定变身当回合无法攻击，【疾驰】只对下次入场生效		
 T002	蚀刻残焰	毁灭	随从	衍生	1	1	1		1	黑潮	static: storm	（由黑潮蚀魔的效果产生）【疾驰】		
 T003	星核碎屑	毁灭	护符	衍生	0			1	1		onDeath: dmg(enemyLeader,2)	（由末日兽的效果产生）【倒数1】。【谢幕曲】：给予敌方的主战者2点伤害		img/T003.webp
-D044	外宇宙之炎	毁灭	随从	金	3	3	3		0		static: drain; onPlay: dmg(selfLeader,1)	【虹吸】（攻击造成伤害时回复自己等量生命值）。【入场曲】：给予自己的主战者1点伤害	地狱变/血仇变身	img/D044.webp
+D044	外宇宙之炎	毁灭	随从	金	3	3	3		0		static: drain; onPlay: dmg(selfLeader,1); onPlay[mara]: heal(selfLeader,3)	【虹吸】。【入场曲】：自伤1点。复仇时：改为回复主战者3点	地狱变/血仇变身	img/D044.webp

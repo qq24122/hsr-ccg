@@ -14,12 +14,12 @@ L012	泡影稚子	欢愉	随从	铜	2	2	2		0		onDeath: summon(涂鸦,2)	【谢�
 L013	今日好手气	欢愉	法术	银	2				0		spell: draw(2), pctr(笑点,+2)	抽2张卡。使自己的「笑点」+2	笑点狂欢/大吉大利	img/L013.webp
 L014	助手涂鸦•赶稿	欢愉	随从	铜	2	3	3		0		static: noCounter	此随从无法进行防御	剧团登场/笑点狂欢	img/L014.webp
 L015	喜剧学家	欢愉	随从	铜	2	2	3		0		onSpell: pctr(笑点,+2)	每当自己使用法术卡，使自己的「笑点」+2	笑点狂欢/大吉大利	img/L015.webp
-L016	未来，有我们一起	欢愉	护符	银	2			4	0		turnEnd: dmg(enemyRandomAny,1), dmg(enemyRandomAny,1), dmg(enemyRandomAny,1)	【倒数3】。自己的回合结束时，给予敌方随机3个目标各1点伤害	大吉大利	img/L016.webp
+L016	未来，有我们一起	欢愉	护符	银	2			4	0		turnEnd: dmg(enemyRandomAny,1), dmg(enemyRandomAny,1), dmg(enemyRandomAny,1); onPlay[cardsPlayed>=3]: dmg(enemyLeader,2)	自己的回合结束时，给予敌方随机3个目标各1点伤害。连击3（本回合第3张）：入场时给予敌方主战者2点伤害	大吉大利	img/L016.webp
 L017	开拓者·欢愉	欢愉	随从	虹	3	3	4		0		onAttack: pctr(笑点,+3)	攻击时：使自己的「笑点」+3	笑点狂欢/大吉大利	img/L017.webp
 L018	惊梦剧团的舞鸫假面	欢愉	随从	银	3	2	4		0	惊梦剧团	static: atkPlus(self,ctr(笑点)/3)	此随从的攻击力额外增加自己「笑点」÷3（向下取整）	笑点狂欢/大吉大利	img/L018.webp
 L019	画板孔雀	欢愉	随从	银	3	2	4		0		turnEnd: summon(涂鸦,1)	自己的回合结束时，召唤1个涂鸦	剧团登场	img/L019.webp
 L020	当她决定看见	欢愉	法术	银	2				0		spell: costDown(1), pctr(笑点,+2)	本回合中，自己使用的卡片费用-1。使自己的「笑点」+2	笑点狂欢	img/L020.webp
-L021	摇滚狂徒	欢愉	随从	银	3	3	4		0		static: rush; onAttack: dmg(enemyRandomAny,1)	【突进】。攻击时：给予敌方随机1个目标1点伤害	大吉大利	img/L021.webp
+L021	摇滚狂徒	欢愉	随从	银	3	3	4		0		static: rush; onAttack: dmg(enemyRandomAny,1); onPlay[cardsPlayed>=2]: extraAtk(self,1)	【突进】。攻击时：给予敌方随机1个目标1点伤害。连击2（本回合第2张）：此随从本回合可再进行1次攻击	大吉大利	img/L021.webp
 L022	惊梦剧团的十七分熟	欢愉	随从	银	3	3	4		0	惊梦剧团	onAttack: pctr(笑点,+3)	攻击时：使自己的「笑点」+3	大吉大利/笑点狂欢	img/L022.webp
 L023	「身陷樊笼的往昔」	欢愉	随从	银	3	3	5		0		turnStart: pctr(笑点,+3)	自己的回合开始时，使自己的「笑点」+3	笑点狂欢	img/L023.webp
 L024	邂逅于下一个花季	欢愉	法术	银	3				0		spell: summon(涂鸦,2), buff(allyTag(涂鸦),1,1)	召唤2个涂鸦，并使自己全体涂鸦+1/+1	剧团登场/大吉大利	img/L024.webp
@@ -29,7 +29,7 @@ L027	惊梦剧团的甜猿泰山	欢愉	随从	银	4	4	4		0	惊梦剧团	static:
 L029	魔法少女急袭剧团	欢愉	随从	铜	4	2	5		0		onPlay: buff(allyTag(涂鸦),1,1), grant(allyTag(涂鸦),rush)	【入场曲】：使自己全体涂鸦+1/+1并获得【突进】	剧团登场	img/L029.webp
 L030	「醉于盛会的此刻」	欢愉	随从	银	4	4	5		0		costIf(1)[ctr(笑点)>=5]; costIf(1)[ctr(笑点)>=10]; costIf(1)[ctr(笑点)>=15]	此牌在手牌中的费用，依自己「笑点」每5点减少1（最多-3）	笑点狂欢	img/L030.webp
 L031	爻光	欢愉	随从	虹	5	4	6		0		onAllyAttack: dmg(enemyRandomAny,1)	自己的随从攻击后，给予敌方随机1个目标1点伤害	大吉大利/笑点狂欢	img/L031.webp
-L032	乐变化天人	欢愉	随从	金	5	5	5		0		static: maxAtk(self,2)	此随从每回合可进行2次攻击	大吉大利	img/L032.webp
+L032	乐变化天人	欢愉	随从	金	5	5	5		0		static: maxAtk(self,2); onPlay[cardsPlayed>=2]: grant(self,storm)	此随从每回合可进行2次攻击。连击2（本回合第2张）：获得【疾驰】	大吉大利	img/L032.webp
 L033	「同音共律的来日」	欢愉	随从	银	5	4	5		0		turnEnd[ctr(笑点)>=8]: draw(2)	自己的回合结束时，若自己的「笑点」为8以上，抽2张卡	剧团登场/笑点狂欢	img/L033.webp
 L034	奇想林中的蕉研组	欢愉	随从	金	5	4	4		0		onPlay: summon(涂鸦,2); onAllyAttack[ctr(取材)<1]: ctr(取材,+1), draw(1); turnStart: ctr(取材,-1)	【入场曲】：召唤2个涂鸦。每当自己的随从攻击，抽1张卡（每回合限1次）	剧团登场	img/L034.webp
 L035	火花大会@Official	欢愉	随从	虹	5	4	5		0		turnStart: pctr(笑点,+5)	自己的回合开始时，使自己的「笑点」+5	笑点狂欢/大吉大利	img/L035.webp

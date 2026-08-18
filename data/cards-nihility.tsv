@@ -5,13 +5,13 @@ N003	渊环	虚无	法术	铜	1				0		spell: dot(enemyOne,1), draw(1)	使1个敌
 N004	卢卡	虚无	随从	金	1	2	2		0		onAttack: dot(enemyOne,1); onDot[ctr(斗志)<4]: ctr(斗志,+1), buff(self,1,0)	攻击时：使该敌方随从获得1层【持续伤害】。每当【持续伤害】层数增加，获得1层【斗志】（+1/+0，最多4层）	持续侵蚀/缺陷植入	img/N004.webp
 N005	幽邃	虚无	护符	铜	1			3	0		turnEnd: dot(enemyAll,1)	【倒数3】。自己的回合结束时，使敌方全体随从获得1层【持续伤害】	持续侵蚀	img/N005.webp
 N006	千冶•刃之炽	虚无	随从	铜	1	2	1		0		onPlay: dmg(selfLeader,1), dot(enemyOne,1)	【入场曲】：给予自己的主战者1点伤害，使1个敌方随从获得1层【持续伤害】	持续侵蚀/缺陷植入	img/N006.webp
-N007	佩拉	虚无	随从	金	2	2	2		0		onPlay: destroy(enemyAmulet), flaw(enemyOne,衰弱)	【入场曲】：破坏敌方全部护符，并使1个敌方随从获得【缺陷·衰弱】	缺陷植入	img/N007.webp
+N007	佩拉	虚无	随从	金	2	2	2		0		onPlay: destroy(enemyAmulet), flaw(enemyOne,衰弱); onDeath: reanimate(1)	【入场曲】：破坏1个敌方护符，给予1个敌方随从【衰弱】。【谢幕曲】：从自己墓场随机召还1张随从卡	缺陷植入	img/N007.webp
 N008	桑博	虚无	随从	金	2	1	2		0		onAttack: dot(enemyRandom,1), dot(enemyRandom,1), dot(enemyRandom,1)	攻击时：使敌方随机3个目标各获得1层【持续伤害】	持续侵蚀	img/N008.webp
 N009	决心如汗珠般闪耀	虚无	法术	银	2				0		spell: dmg(enemyOne,3), dot(enemyOne,2)	给予1个敌方随从3点伤害，并使其获得2层【持续伤害】	持续侵蚀/引爆奥迹/缺陷植入	img/N009.webp
 N010	桂乃芬	虚无	随从	金	2	2	2		0		onEnemyDamaged: vuln(enemyOne,1)	每当敌方随从受到伤害，使其获得1层【弱点】	持续侵蚀/引爆奥迹	img/N010.webp
 N011	遮天蔽日的噬星蠹	虚无	随从	铜	2	2	2		0	虫群	onAttack: dot(enemyOne,1)	攻击时：使该敌方随从获得1层【持续伤害】	持续侵蚀/引爆奥迹	img/N011.webp
 N012	无望冽风的幻灭者	虚无	随从	铜	2	1	2		0		static: ward; onDeath: dot(enemyAll,1)	【守护】。【谢幕曲】：使敌方全体随从获得1层【持续伤害】	持续侵蚀	img/N012.webp
-N013	深寒徘徊者	虚无	随从	铜	2	2	3		0		onPlay: flaw(enemyOne), flaw(enemyOne)	【入场曲】：使1个敌方随从获得2个随机【缺陷】	缺陷植入	img/N013.webp
+N013	深寒徘徊者	虚无	随从	铜	2	2	3		0		onPlay: flaw(enemyOne), flaw(enemyOne); onPlay[graveCount>=4]: reanimate(1)	【入场曲】：给予1个敌方随从2个缺陷。墓场4张以上：额外从墓场随机召还1张随从卡	缺陷植入	img/N013.webp
 N014	猎物的视线	虚无	法术	银	2				0		spell: flaw(enemyOne), flaw(enemyOne), draw(1)	使1个敌方随从获得2个随机【缺陷】，抽1张卡	缺陷植入	img/N014.webp
 N015	晚安与睡颜	虚无	护符	银	2			5	0		turnEnd: dmg(enemyPatron,2), patron(enemyHighestHp)	【倒数5】。自己的回合结束时，使【老主顾】受到2点伤害；然后使生命值最高的敌方随从成为【老主顾】	缺陷植入	img/N015.webp
 N016	瓦尔特	虚无	随从	金	3	2	3		0		onPlay: flaw(enemyOne,迟缓); onAttack: dmg(enemyFlawed,2)	【入场曲】：使1个敌方随从获得【缺陷·迟缓】。攻击时：给予全部拥有【缺陷】的敌方随从2点伤害	缺陷植入	img/N016.webp
@@ -38,7 +38,7 @@ N038	孤注一掷的赌徒	虚无	随从	金	6	5	6		0		turnStart: flaw(enemyAll)
 N039	卡芙卡	虚无	随从	虹	7	4	6		0		onPlay: dot(enemyAll,3); onSpell: detonate(enemyLeader)	【入场曲】：使敌方全体随从获得3层【持续伤害】。每当自己使用法术卡，引爆敌方主战者的【侵蚀】	持续侵蚀/引爆奥迹/缺陷植入	img/N039.webp
 N040	黄泉	虚无	随从	虹	7	5	5		0		static: bane; onDot: ctr(残梦,+1); onCtr(残梦,5): ctr(残梦,-5), grant(self,pierce), extraAtk(self,1)	【必杀】。每当敌方随从获得【缺陷】或【持续伤害】，获得1层【残梦】。拥有5层时：消耗全部，此随从的攻击【无视守护】且本回合可再进行1次攻击	引爆奥迹/缺陷植入	img/N040.webp
 N041	反造物主，流溢之恨	虚无	随从	虹	6	6	4		0		onPlay: dmg(enemyLeader,dotLayers,10)	【入场曲】：给予敌方的主战者伤害，数值等同于敌方场上【持续伤害】层数总和（最多10点）	引爆奥迹	img/N041.webp
-N042	万色返空主，归寂	虚无	随从	虹	8	5	7		0		onPlay: destroy(enemyFlaw(3)), flaw(enemyAll), flaw(enemyAll)	【入场曲】：消灭全部拥有3个以上【缺陷】的敌方随从；其余敌方随从各获得2个【缺陷】	缺陷植入	img/N042.webp
+N042	万色返空主，归寂	虚无	随从	虹	8	5	7		0		costIf(2)[graveCount>=6]; onPlay: destroy(enemyFlaw(3)), flaw(enemyAll), flaw(enemyAll)	【入场曲】：破坏1个拥有3个以上缺陷的敌方随从，给予敌方全体随从2个缺陷。墓场6张以上：费用-2	缺陷植入	img/N042.webp
 N043	灼尽炼狱的新骸	虚无	法术	虹	8				0		spell[dotLayers>=1]: detonate(enemyDottedAny,2); spell[dotLayers<1]: dot(enemyAll,2), dot(enemyLeader,2)	引爆敌方全体（含主战者的【侵蚀】）的【持续伤害】，每层造成2点伤害。若敌方没有任何层数，改为使敌方全体随从获得2层【持续伤害】、敌方主战者获得2层【侵蚀】	持续侵蚀/引爆奥迹	img/N043.webp
 N044	万色返空主·终寂	虚无	随从	虹	9	6	8		0		onPlay: dmg(enemyLeader,enemyCount,15), destroy(enemyFlaw(2))	【入场曲】：给予敌方的主战者与敌方随从数等量的伤害，然后消灭全部拥有2个以上【缺陷】的敌方随从	缺陷植入	img/N044.webp
 T401	残念	虚无	随从	衍生	0	1	1		1		onDeath: dot(enemyOne,1)	（由玻吕刻斯的效果产生）【谢幕曲】：使1个敌方随从获得1层【持续伤害】		
