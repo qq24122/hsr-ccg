@@ -1,45 +1,45 @@
 id	name	class	type	quality	cost	atk	hp	countdown	token	tag	effect	note	decks	img
-A001	王下一桶	同谐	随从	铜	1	2	2		0	指挥官	onPlay: buff(allyTag(士兵),1,1), drawTag(士兵,1)	指挥官入场：使己方士兵+1/+1，并从牌库抽1张士兵。	军功爵位	img/A001.webp
-A002	流星铁鹰	同谐	随从	铜	1	1	1		0	士兵	onPlay: summon(帝国士兵,1)	入场曲：召唤1个帝国士兵。	蓄能合鸣	img/A002.webp
-A003	次元扑满	同谐	随从	铜	1	1	1		0	指挥官	static: rush; onEvolve: draw(1)	突进。进化时抽1张。	额外行动	img/A003.webp
-A004	调和	同谐	法术	铜	1				0		spell: summon(帝国士兵,1), buff(allyTag(士兵),1,0)	召唤帝国士兵，并使己方士兵+1/+0。	军功爵位	img/A004.webp
-A005	为了明日的旅途	同谐	法术	铜	1				0		spell: summon(帝国士兵,2)	召唤2个帝国士兵。	蓄能合鸣	img/A005.webp
-A006	应天涉远的卜者	同谐	随从	铜	1	1	3		0	士兵	static: rush; onEvolve: draw(1)	突进。进化时抽1张。	额外行动	img/A006.webp
-A007	追逐风的时候	同谐	随从	铜	1	1	1		0	指挥官	onPlay: buff(allyTag(士兵),1,1), drawTag(士兵,1)	指挥官入场：使己方士兵+1/+1，并从牌库抽1张士兵。	军功爵位	img/A007.webp
-A008	艾丝妲	同谐	随从	金	2	2	2		0	士兵	onPlay: summon(帝国士兵,1)	入场曲：召唤1个帝国士兵。	蓄能合鸣	img/A008.webp
-A009	停云	同谐	随从	金	2	1	3		0	士兵	static: rush; onEvolve: draw(1)	突进。进化时抽1张。	额外行动	img/A009.webp
-A010	寒鸦	同谐	随从	金	2	2	2		0	士兵	onPlay[tagCount(指挥官)>=1]: buff(self,1,1), grant(self,rush)	若己方有指挥官，入场+1/+1并获得突进。	军功爵位	img/A010.webp
-A011	轮契	同谐	法术	铜	2				0		spell: summon(帝国士兵,2)	召唤2个帝国士兵。	蓄能合鸣	img/A011.webp
-A012	正阳狮鹫	同谐	随从	银	2	3	2		0	士兵	static: rush; onEvolve: draw(1)	突进。进化时抽1张。	额外行动	img/A012.webp
-A013	齐颂	同谐	法术	银	2				0		spell: summon(帝国士兵,1), buff(allyTag(士兵),1,0)	召唤帝国士兵，并使己方士兵+1/+0。	军功爵位	img/A013.webp
-A014	哀歌覆国的诗人	同谐	随从	银	2	2	2		0	士兵	onPlay: summon(帝国士兵,1)	入场曲：召唤1个帝国士兵。	蓄能合鸣	img/A014.webp
-A015	野穗伴行的快枪手	同谐	随从	铜	2	2	2		0	指挥官	static: rush; onEvolve: draw(1)	突进。进化时抽1张。	额外行动	img/A015.webp
-A016	但战斗还未结束	同谐	法术	银	2				0		spell: summon(帝国士兵,1), buff(allyTag(士兵),1,0)	召唤帝国士兵，并使己方士兵+1/+0。	军功爵位	img/A016.webp
-A017	记忆中的模样	同谐	护符	银	2			3	0		turnEnd: summon(帝国士兵,1)	每回合结束召唤1个帝国士兵。	蓄能合鸣	img/A017.webp
-A018	驭空	同谐	随从	金	3	2	3		0	士兵	static: rush; onEvolve: draw(1)	突进。进化时抽1张。	额外行动	img/A018.webp
-A019	布洛妮娅	同谐	随从	虹	3	2	3		0	指挥官	onPlay: buff(allyTag(士兵),1,1), drawTag(士兵,1)	指挥官入场：使己方士兵+1/+1，并从牌库抽1张士兵。	军功爵位	img/A019.webp
-A020	月夜天马	同谐	随从	银	3	2	4		0	士兵	onPlay: summon(帝国士兵,1)	入场曲：召唤1个帝国士兵。	蓄能合鸣	img/A020.webp
+A001	王下一桶	同谐	随从	铜	1	2	2		0	领航者	onPlay: buff(allyTag(战斗员),1,1), drawTag(战斗员,1)	领航者入场：使己方战斗员+1/+1，并从牌库抽1张战斗员。	军功爵位	img/A001.webp
+A002	流星铁鹰	同谐	随从	铜	1	1	1		0	战斗员	onPlay: summon(云骑新兵,1)	入场曲：召唤1个云骑新兵。	蓄能合鸣	img/A002.webp
+A003	次元扑满	同谐	随从	铜	1	1	1		0	领航者	static: rush; onEvolve: draw(1)	突进。进化时抽1张。	额外行动	img/A003.webp
+A004	调和	同谐	法术	铜	1				0		spell: summon(云骑新兵,1), buff(allyTag(战斗员),1,0)	召唤云骑新兵，并使己方战斗员+1/+0。	军功爵位	img/A004.webp
+A005	为了明日的旅途	同谐	法术	铜	1				0		spell: summon(云骑新兵,2)	召唤2个云骑新兵。	蓄能合鸣	img/A005.webp
+A006	应天涉远的卜者	同谐	随从	铜	1	1	3		0	战斗员	static: rush; onEvolve: draw(1)	突进。进化时抽1张。	额外行动	img/A006.webp
+A007	追逐风的时候	同谐	随从	铜	1	1	1		0	领航者	onPlay: buff(allyTag(战斗员),1,1), drawTag(战斗员,1)	领航者入场：使己方战斗员+1/+1，并从牌库抽1张战斗员。	军功爵位	img/A007.webp
+A008	艾丝妲	同谐	随从	金	2	2	2		0	战斗员	onPlay: summon(云骑新兵,1)	入场曲：召唤1个云骑新兵。	蓄能合鸣	img/A008.webp
+A009	停云	同谐	随从	金	2	1	3		0	战斗员	static: rush; onEvolve: draw(1)	突进。进化时抽1张。	额外行动	img/A009.webp
+A010	寒鸦	同谐	随从	金	2	2	2		0	战斗员	onPlay[tagCount(领航者)>=1]: buff(self,1,1), grant(self,rush)	若己方有领航者，入场+1/+1并获得突进。	军功爵位	img/A010.webp
+A011	轮契	同谐	法术	铜	2				0		spell: summon(云骑新兵,2)	召唤2个云骑新兵。	蓄能合鸣	img/A011.webp
+A012	正阳狮鹫	同谐	随从	银	2	3	2		0	战斗员	static: rush; onEvolve: draw(1)	突进。进化时抽1张。	额外行动	img/A012.webp
+A013	齐颂	同谐	法术	银	2				0		spell: summon(云骑新兵,1), buff(allyTag(战斗员),1,0)	召唤云骑新兵，并使己方战斗员+1/+0。	军功爵位	img/A013.webp
+A014	哀歌覆国的诗人	同谐	随从	银	2	2	2		0	战斗员	onPlay: summon(云骑新兵,1)	入场曲：召唤1个云骑新兵。	蓄能合鸣	img/A014.webp
+A015	野穗伴行的快枪手	同谐	随从	铜	2	2	2		0	领航者	static: rush; onEvolve: draw(1)	突进。进化时抽1张。	额外行动	img/A015.webp
+A016	但战斗还未结束	同谐	法术	银	2				0		spell: summon(云骑新兵,1), buff(allyTag(战斗员),1,0)	召唤云骑新兵，并使己方战斗员+1/+0。	军功爵位	img/A016.webp
+A017	记忆中的模样	同谐	护符	银	2			3	0		turnEnd: summon(云骑新兵,1)	每回合结束召唤1个云骑新兵。	蓄能合鸣	img/A017.webp
+A018	驭空	同谐	随从	金	3	2	3		0	战斗员	static: rush; onEvolve: draw(1)	突进。进化时抽1张。	额外行动	img/A018.webp
+A019	布洛妮娅	同谐	随从	虹	3	2	2		0	领航者	onPlay: buff(allyTag(战斗员),1,1), drawTag(战斗员,1)	领航者入场：使己方战斗员+1/+1，并从牌库抽1张战斗员。	军功爵位	img/A019.webp
+A020	月夜天马	同谐	随从	银	3	2	4		0	战斗员	onPlay: summon(云骑新兵,1)	入场曲：召唤1个云骑新兵。	蓄能合鸣	img/A020.webp
 A021	永远的迷境饭	同谐	护符	金	1			3	0		onAllyEvolve: buff(allyAll,1,1)	每当己方随从进化，使己方全体+1/+1。	额外行动	img/A021.webp
-A022	开拓者·同谐	同谐	随从	虹	3	3	4		0	士兵	onPlay[tagCount(指挥官)>=1]: buff(self,1,1), grant(self,rush)	若己方有指挥官，入场+1/+1并获得突进。	军功爵位	img/A022.webp
-A023	芳华待灼	同谐	护符	金	3			4	0		turnEnd: summon(帝国士兵,1)	每回合结束召唤1个帝国士兵。	蓄能合鸣	img/A023.webp
-A024	美梦小镇大冒险	同谐	随从	铜	3	2	4		0	士兵	static: rush; onEvolve: draw(1)	突进。进化时抽1张。	额外行动	img/A024.webp
-A025	夜色流光溢彩	同谐	法术	银	3				0		spell: summon(帝国士兵,1), buff(allyTag(士兵),1,0)	召唤帝国士兵，并使己方士兵+1/+0。	军功爵位	img/A025.webp
-A026	缇宝	同谐	随从	虹	4	3	3		0	士兵	onPlay[allyCount>=3]: buff(allyAll,1,1)	己方已有3个随从时，入场使全体+1/+1。	蓄能合鸣	img/A026.webp
-A027	黑日狮鹫	同谐	随从	银	4	4	3		0	指挥官	static: ward; onPlay: dmg(enemyRandom,2)	守护。入场随机给予敌方随从2点。	额外行动	img/A027.webp
-A028	镂月裁云之意	同谐	护符	金	4				0		turnStart: buff(allyTag(士兵),1,0)	每回合开始，使己方士兵+1/+0。	军功爵位	img/A028.webp
-A029	与行星相会	同谐	随从	银	4	3	5		0	士兵	onPlay[allyCount>=3]: buff(allyAll,1,1)	己方已有3个随从时，入场使全体+1/+1。	蓄能合鸣	img/A029.webp
+A022	开拓者·同谐	同谐	随从	虹	3	2	3		0	战斗员	onPlay[tagCount(领航者)>=1]: buff(self,1,1), grant(self,rush)	若己方有领航者，入场+1/+1并获得突进。	军功爵位	img/A022.webp
+A023	芳华待灼	同谐	护符	金	3			4	0		turnEnd: summon(云骑新兵,1)	每回合结束召唤1个云骑新兵。	蓄能合鸣	img/A023.webp
+A024	美梦小镇大冒险	同谐	随从	铜	3	2	3		0	战斗员	static: rush; onEvolve: draw(1)	突进。进化时抽1张。	额外行动	img/A024.webp
+A025	夜色流光溢彩	同谐	法术	银	3				0		spell: summon(云骑新兵,1), buff(allyTag(战斗员),1,0)	召唤云骑新兵，并使己方战斗员+1/+0。	军功爵位	img/A025.webp
+A026	缇宝	同谐	随从	虹	4	3	3		0	战斗员	onPlay[allyCount>=3]: buff(allyAll,1,1)	己方已有3个随从时，入场使全体+1/+1。	蓄能合鸣	img/A026.webp
+A027	黑日狮鹫	同谐	随从	银	4	3	3		0	领航者	static: ward; onPlay: dmg(enemyRandom,2)	守护。入场随机给予敌方随从2点。	额外行动	img/A027.webp
+A028	镂月裁云之意	同谐	护符	金	4				0		turnStart: buff(allyTag(战斗员),1,0)	每回合开始，使己方战斗员+1/+0。	军功爵位	img/A028.webp
+A029	与行星相会	同谐	随从	银	4	3	5		0	战斗员	onPlay[allyCount>=3]: buff(allyAll,1,1)	己方已有3个随从时，入场使全体+1/+1。	蓄能合鸣	img/A029.webp
 A030	舞！舞！舞！	同谐	法术	金	4				0		spell: dmg(enemyAll,2), buff(allyAll,1,1)	敌方全体2点，己方全体+1/+1。	额外行动	img/A030.webp
-A031	知更鸟	同谐	随从	虹	5	4	5		0	指挥官	onPlay: buff(allyTag(士兵),1,1), drawTag(士兵,1)	指挥官入场：使己方士兵+1/+1，并从牌库抽1张士兵。	军功爵位	img/A031.webp
-A032	刻律德菈	同谐	随从	虹	5	4	4		0	士兵	onPlay[allyCount>=3]: buff(allyAll,1,1)	己方已有3个随从时，入场使全体+1/+1。	蓄能合鸣	img/A032.webp
-A033	示死祸源：深魇蝗灾	同谐	随从	金	5	3	4		0	士兵	static: ward; onPlay: dmg(enemyRandom,2)	守护。入场随机给予敌方随从2点。	额外行动	img/A033.webp
-A034	「齐响诗班」神主日	同谐	随从	金	5	3	5		0	士兵	onPlay[tagCount(指挥官)>=1]: buff(self,1,1), grant(self,rush)	若己方有指挥官，入场+1/+1并获得突进。	军功爵位	img/A034.webp
-A035	阮•梅	同谐	随从	虹	6	4	5		0	士兵	onPlay[allyCount>=3]: buff(allyAll,1,1)	己方已有3个随从时，入场使全体+1/+1。	蓄能合鸣	img/A035.webp
-A036	「石心十人」诡弈砂金	同谐	随从	金	6	5	4		0	士兵	static: storm; onPlay: buff(allyAll,1,1)	疾驰。入场使己方全体+1/+1。	额外行动	img/A036.webp
-A037	花火	同谐	随从	虹	6	3	6		0	指挥官	onPlay: buff(allyTag(士兵),1,1), drawTag(士兵,1)	指挥官入场：使己方士兵+1/+1，并从牌库抽1张士兵。	军功爵位	img/A037.webp
+A031	知更鸟	同谐	随从	虹	5	3	4		0	领航者	onPlay: buff(allyTag(战斗员),1,1), drawTag(战斗员,1)	领航者入场：使己方战斗员+1/+1，并从牌库抽1张战斗员。	军功爵位	img/A031.webp
+A032	刻律德菈	同谐	随从	虹	5	4	4		0	战斗员	onPlay[allyCount>=3]: buff(allyAll,1,1)	己方已有3个随从时，入场使全体+1/+1。	蓄能合鸣	img/A032.webp
+A033	示死祸源：深魇蝗灾	同谐	随从	金	5	3	3		0	战斗员	static: ward; onPlay: dmg(enemyRandom,2)	守护。入场随机给予敌方随从2点。	额外行动	img/A033.webp
+A034	「齐响诗班」神主日	同谐	随从	金	5	2	4		0	战斗员	onPlay[tagCount(领航者)>=1]: buff(self,1,1), grant(self,rush)	若己方有领航者，入场+1/+1并获得突进。	军功爵位	img/A034.webp
+A035	阮•梅	同谐	随从	虹	6	4	5		0	战斗员	onPlay[allyCount>=3]: buff(allyAll,1,1)	己方已有3个随从时，入场使全体+1/+1。	蓄能合鸣	img/A035.webp
+A036	「石心十人」诡弈砂金	同谐	随从	金	6	4	3		0	战斗员	static: storm; onPlay: buff(allyAll,1,1)	疾驰。入场使己方全体+1/+1。	额外行动	img/A036.webp
+A037	花火	同谐	随从	虹	6	2	5		0	领航者	onPlay: buff(allyTag(战斗员),1,1), drawTag(战斗员,1)	领航者入场：使己方战斗员+1/+1，并从牌库抽1张战斗员。	军功爵位	img/A037.webp
 A038	过往未来	同谐	法术	金	6				0		spell: buff(allyAll,2,1), grant(allyAll,rush)	使己方全体+2/+1并获得突进。	蓄能合鸣	img/A038.webp
-A039	星期日	同谐	随从	虹	7	4	6		0	指挥官	static: storm; onPlay: buff(allyAll,1,1)	疾驰。入场使己方全体+1/+1。	额外行动	img/A039.webp
-A040	「星核猎手」萨姆	同谐	随从	虹	7	6	5		0	士兵	onPlay[tagCount(指挥官)>=1]: buff(self,1,1), grant(self,rush)	若己方有指挥官，入场+1/+1并获得突进。	军功爵位	img/A040.webp
+A039	星期日	同谐	随从	虹	7	3	5		0	领航者	static: storm; onPlay: buff(allyAll,1,1)	疾驰。入场使己方全体+1/+1。	额外行动	img/A039.webp
+A040	「星核猎手」萨姆	同谐	随从	虹	7	5	4		0	战斗员	onPlay[tagCount(领航者)>=1]: buff(self,1,1), grant(self,rush)	若己方有领航者，入场+1/+1并获得突进。	军功爵位	img/A040.webp
 A041	金血铭刻的时代	同谐	法术	虹	8				0		spell: buff(allyAll,2,1), grant(allyAll,rush)	使己方全体+2/+1并获得突进。	蓄能合鸣	img/A041.webp
-A042	波涛夫人	同谐	随从	银	3	2	4		0	士兵	static: rush; onEvolve: draw(1)	突进。进化时抽1张。	额外行动	img/A042.webp
-A043	至高，至阳，天空的化身	同谐	随从	虹	8	6	6		0	指挥官	onPlay: buff(allyTag(士兵),1,1), drawTag(士兵,1)	指挥官入场：使己方士兵+1/+1，并从牌库抽1张士兵。	军功爵位	img/A043.webp
-T701	帝国士兵	同谐	随从	衍生	1	1	1		1	士兵		皇家横铺体系的1/1士兵衍生物。
+A042	波涛夫人	同谐	随从	银	3	2	3		0	战斗员	static: rush; onEvolve: draw(1)	突进。进化时抽1张。	额外行动	img/A042.webp
+A043	至高，至阳，天空的化身	同谐	随从	虹	8	5	5		0	领航者	onPlay: buff(allyTag(战斗员),1,1), drawTag(战斗员,1)	领航者入场：使己方战斗员+1/+1，并从牌库抽1张战斗员。	军功爵位	img/A043.webp
+T701	云骑新兵	同谐	随从	衍生	1	1	1		1	战斗员		皇家横铺体系的1/1战斗员衍生物。		img/T701.webp

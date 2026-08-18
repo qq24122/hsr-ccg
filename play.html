@@ -181,17 +181,6 @@
                            inset 0 0 0 calc(var(--uw) * .009) #24272a; }
   .unit.ward::after { content: '🛡'; position: absolute; top: 2px; left: 3px; font-size: 11px;
                       line-height: 1; opacity: .95; z-index: 5; text-shadow: 0 0 4px #000, 0 0 8px #4dabf7; }
-  .unit.amulet::before { content: ''; position: absolute; top: 4px; right: 4px;
-                         width: calc(var(--uw) * .15); height: calc(var(--uw) * .15);
-                         border: 2px solid #d8c7ff; border-radius: 3px;
-                         transform: rotate(45deg); z-index: 5;
-                         background: linear-gradient(135deg,#8b6bd4,#332754);
-                         box-shadow: inset 0 0 0 2px #1c1630, 0 1px 4px #000; }
-  .unit.amulet::after { content: ''; position: absolute; top: calc(4px + var(--uw) * .044);
-                        right: calc(4px + var(--uw) * .044);
-                        width: calc(var(--uw) * .062); height: calc(var(--uw) * .062);
-                        border: 1px solid #fff; border-radius: 50%; z-index: 6;
-                        box-shadow: 0 0 5px #d8c7ff; }
   .unit.ready { outline: 2px solid #51cf66; outline-offset: 1px; cursor: grab; }
   .unit.sel { outline: 3px solid #ffd43b; outline-offset: 1px; }
   .unit.targetable { outline: 2px dashed #ffd43b; outline-offset: 2px; cursor: crosshair;
@@ -226,6 +215,14 @@
                   background: linear-gradient(180deg, rgba(13,17,22,.88), rgba(7,10,13,.97));
                   border-top: 1px solid rgba(205,205,190,.35); padding: 3% 4%; overflow: hidden; }
   .card .ct { font-size: calc(var(--hfs) * .78); color: #f1f1ea; line-height: 1.25; }
+  .card .subtype, .unit .subtype { position: absolute; left: 24%; right: 24%; bottom: 3%; z-index: 5;
+      color: #dfe7f0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      text-shadow: 0 1px 3px #000, 0 0 5px #000; }
+  .card .subtype { font-size: calc(var(--hfs) * .62); }
+  .unit .subtype { font-size: calc(var(--ufs) * .62); }
+  .card .boost { position: absolute; right: 3%; top: 3%; z-index: 6; min-width: 20%; padding: 1px 3px;
+      border-radius: 7px; background: #49357a; border: 1px solid #c5a3ff; color: #fff;
+      font-size: calc(var(--hfs) * .62); text-align: center; text-shadow: 0 1px 2px #000; }
 
   /* ---- 牌库：显示成一叠真的卡背，抽卡就从这里飞出去 ---- */
   .deckPile { position: relative; width: calc(var(--hw) * .62); height: calc(var(--hh) * .62);
@@ -718,16 +715,16 @@ const GLOSS = [
   ['谢幕曲', '这个随从/护符离开战场（被消灭、倒数归零）时发动。'],
   ['倒数', '护符专用。你的回合开始时 -1，变成 0 时护符被破坏（会触发【谢幕曲】）。护符无法攻击，也不会被攻击。'],
   ['进化', '消耗 1 点 EP，使随从 +2/+2。进化当回合可以立刻攻击随从，但不能攻击主战者。先手方第 5 回合、后手方第 4 回合开始解禁。'],
-  ['入魔', '自己主战者的生命值 ≤ 10 时视为已入魔（对应【复仇】）。毁灭卡会明确写出入魔后的强化效果。'],
+  ['入魔', '毁灭专属状态。自己的主战者生命值≤10时进入入魔；主战者区域会始终显示当前生命值与10点阈值的进度。'],
   ['觉醒', '自己的 PP 上限达到 7 时成立。巡猎卡会在觉醒后获得额外效果。'],
-  ['法术增幅', '这张卡在手牌中时，每当你使用1张法术，它的法术增幅次数+1；不同卡按自己的次数降费或强化。'],
-  ['土片', '智识的土之秘术资源。土片是护符，占用场地；土之秘术会消耗1个土片来发动追加效果。'],
-  ['指挥官', '同谐的随从标签。指挥官通常强化、检索或指挥士兵。'],
-  ['士兵', '同谐的随从标签。士兵擅长横向铺场并接受指挥官强化。'],
-  ['死灵术', '虚无通过消耗指定数量的墓场数发动追加效果。消耗后可用墓场数会下降。'],
+  ['演算层数', '这张卡在手牌中时，每当你使用1张法术，它的演算层数+1；每张卡分别记录，并会直接显示在卡面右上角。'],
+  ['演算模块', '智识的模块解析资源。演算模块是护符，会占用场地；模块解析会消耗1个演算模块发动追加效果。'],
+  ['领航者', '同谐的随从细分类型，通常负责检索或强化战斗员。'],
+  ['战斗员', '同谐的随从细分类型，擅长铺开场面并接受领航者强化。'],
+  ['残响调用', '虚无通过消耗指定数量的残响值发动追加效果；消耗后可用残响值会下降。'],
   ['连击', '检查本回合已经使用的卡牌数。打出的每一张牌都自然计入，不是跨回合永久累积的资源。'],
-  ['妖精', '欢愉生成的1费衍生随从。先把妖精加入手牌，再用低费连打满足连击或快攻收益。'],
-  ['创造物', '记忆洗入牌库、检索并循环使用的衍生卡体系。'],
+  ['剧团玩偶', '欢愉生成的1费衍生随从，加入手牌后可用于低费连打和玩偶协同。'],
+  ['忆质', '记忆洗入牌库、检索并循环使用的衍生卡体系。'],
   ['共鸣', '自己的牌库剩余张数为偶数时成立。抽牌或把卡洗入牌库都会让它在奇数/偶数之间切换。'],
   ['破绽', '被打出破绽的随从受到的伤害 +1，直到它离场。与【标记】数值相同，但属于通用效果、不与巡猎的标记体系联动。'],
   ['弱点', '可叠加。每层使该随从受到的伤害 +1。'],
@@ -740,9 +737,9 @@ const GLOSS = [
   ['奥迹', '可叠加。使该目标每层【持续伤害】的结算数值 +1。'],
   ['缺陷', '三种之一：迟缓（被攻击时不反击）／脆弱（受到的伤害 +1）／衰弱（攻击力 -1）。'],
   ['老主顾', '场上唯一的标记，虚无的部分卡会针对它。同时只能存在一个。'],
-  ['军功', '同谐旧版机制，仅用于兼容旧回放；当前指挥官/士兵卡组不再以它为主轴。'],
-  ['爵位', '同谐旧版机制，仅用于兼容旧回放。'],
-  ['忆质', '记忆的创造物之一；当前创造物卡组会把创造物洗入牌库、检索并循环使用。'],
+  ['军功', '旧版回放兼容标记，当前领航者/战斗员卡组不再以它为主轴。'],
+  ['爵位', '旧版回放兼容标记。'],
+  ['忆质', '记忆洗入牌库、检索并循环使用的衍生卡体系。'],
   ['忆灵', '记忆的具名衍生随从，各自独立占一个场地位。'],
   ['间隙织线', '复制体系中少数卡使用的目标标记。'],
   ['衍生', '由其他卡的效果生成的卡，不能放进卡组，也不会触发【入场曲】。'],
@@ -880,7 +877,7 @@ function toast(btn, msg) {
 
 async function shareSite(btn) {
   const url = LINKS.site || (location.origin + location.pathname.replace(/[^/]*$/, ''));
-  const text = '崩坏：星穹铁道 同人集换式卡牌游戏 — 363 张卡、8 命途、24 套卡组，'
+  const text = '崩坏：星穹铁道 同人集换式卡牌游戏 — 357 张卡、8 命途、24 套卡组，'
     + '打开网页就能和 AI 对战。';
   // 手机上优先用系统分享面板；桌面浏览器基本没有，落到复制链接
   if (navigator.share) {
@@ -1094,14 +1091,17 @@ function leaderHTML(p, cls, isMe) {
     // 【入魔】是毁灭一整套卡的开关，血量掉到 10 以下必须让人立刻看见。
     // 但它是毁灭的专属机制——其他命途血量≤10 时不该出现「入魔」这个词，
     // 否则玩家会以为自己的卡入魔后会变强，实际上只有毁灭有 mara 条件的卡。
-    + (S.isMara(p) && p.cls === '毁灭' ? '<span class="badge mara">入魔</span>' : '')
+    + (p.cls === '毁灭'
+        ? `<span class="res ${S.isMara(p) ? 'mara' : ''}" title="生命值降至10或以下时进入入魔">`
+          + `<b>入魔 ${S.isMara(p) ? '已开启' : `${p.hp}/10`}</b>`
+          + `<span class="resBar"><i style="width:${Math.max(0, Math.min(100, (20 - p.hp) / 10 * 100))}%"></i></span></span>` : '')
     + (p.cls === '巡猎'
         ? `<span class="badge ${Math.min(S.RULES.PP_MAX, p.ppMax + p.ppBonus) >= 7 ? 'bar' : ''}">觉醒 ${Math.min(S.RULES.PP_MAX, p.ppMax + p.ppBonus) >= 7 ? '开启' : `${Math.min(S.RULES.PP_MAX, p.ppMax + p.ppBonus)}/7`}</span>` : '')
     + (p.cls === '记忆' && p.deckName === '新蕊献祭'
         ? `<span class="badge ${S.isResonance(p) ? 'bar' : ''}">共鸣 ${S.isResonance(p) ? '开启' : '关闭'}（牌库${p.deck.length}）</span>` : '')
     + (p.cls === '欢愉' && p.deckName === '笑点狂欢'
         ? `<span class="badge">连击 ${p.cardsPlayedThisTurn}</span>` : '')
-    + (p.cls === '虚无' ? `<span class="badge">墓场 ${p.shadows}</span>` : '')
+    + (p.cls === '虚无' ? `<span class="badge">残响值 ${p.shadows}</span>` : '')
     /* 【侵蚀】现在是一条递进的时钟（伤害随层数成长），不显示出来玩家就是在被暗杀 */
     + (p.dots > 0 ? `<span class="badge rot" title="每回合结束时受到 ${Math.min(3, 1 + Math.floor(p.dots / 5)) + (p.aura || 0)} 点伤害，层数不消耗">`
         + `侵蚀 ${p.dots}　-${Math.min(3, 1 + Math.floor(p.dots / 5)) + (p.aura || 0)}/回合</span>` : '')
@@ -1207,6 +1207,7 @@ function unitHTML(u, isMe) {
         ctr.length ? `<span class="mk ctr">${esc(ctr.join(' '))}</span>` : '',
       ].filter(Boolean).join('')}</div>`
     + `<div class="cname">${esc(u.name)}${u.evolved ? ' ★' : ''}</div>`
+    + (u.def.tag ? `<div class="subtype">${esc(u.def.tag)}</div>` : '')
     + (amulet ? '' : `<div class="atk"><b>${ea}${ea !== u.atk ? '*' : ''}</b></div>`
         + `<div class="hp"><b>${u.hp}</b></div>`)
     + '</div>';
@@ -1254,8 +1255,10 @@ function cardHTML(inst, i, myTurn) {
     + ` style="${pathStyle(d)}" title="${esc((d.note || '') + (chk.ok ? '' : '\n【无法使用】' + chk.why))}">`
     + art(d)
     + `<div class="cost ${cost < d.cost ? 'cut' : ''}"><b>${cost}</b></div>`
+    + (inst.spellboost > 0 ? `<div class="boost">演算 ${inst.spellboost}</div>` : '')
     + `<div class="cname">${esc(d.name)}</div>`
     + `<div class="effect"><div class="ct">${esc(d.note || '')}</div></div>`
+    + (d.tag ? `<div class="subtype">${esc(d.tag)}</div>` : '')
     + (follower
         ? `<div class="atk"><b>${d.atk}</b></div><div class="hp"><b>${d.hp}</b></div>`
         : (d.countdown ? `<div class="cd">${d.countdown}</div>` : ''))
@@ -1358,7 +1361,7 @@ function detailHTML(spec) {
   } else {
     stats.push(`<span class="dStat">费用 <b style="color:#8ecdf7">${def.cost}</b></span>`);
   }
-  if (inst && inst.spellboost) stats.push(`<span class="dStat">法术增幅 <b style="color:#d0bfff">${inst.spellboost}</b></span>`);
+  if (inst && (inst.spellboost || (def.effect || '').includes('spellboost'))) stats.push(`<span class="dStat">演算层数 <b style="color:#d0bfff">${inst.spellboost || 0}</b></span>`);
   if (def.type === '随从') {
     if (unit) {
       const ea = E.effAtk(s, unit);
@@ -1790,7 +1793,7 @@ function eventsSince(logLen) {
     if ((m = /^打出 (.+?)（/.exec(body)))            out.push({ k: 'play', name: m[1], mine });
     else if ((m = /^召唤 (.+)$/.exec(body)))          out.push({ k: 'summon', name: m[1], mine });
     else if ((m = /^复制出 (.+)$/.exec(body)))        out.push({ k: 'summon', name: m[1], mine });
-    else if ((m = /^从墓场召还 (.+?)（/.exec(body)))   out.push({ k: 'summon', name: m[1], mine });
+    else if ((m = /^从残响值召还 (.+?)（/.exec(body)))   out.push({ k: 'summon', name: m[1], mine });
     else if ((m = /^(.+) 变身为 (.+)$/.exec(body)))    out.push({ k: 'summon', name: m[2], mine });
     else if ((m = /^(.+?) 攻击主战者 (\d+)$/.exec(body)))
       out.push({ k: 'atkFace', name: m[1], dmg: +m[2], mine });

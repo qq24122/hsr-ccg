@@ -1,46 +1,46 @@
 id	name	class	type	quality	cost	atk	hp	countdown	token	tag	effect	note	decks	img
-E001	自动机兵·蜘蛛	智识	随从	铜	1	1	1		0	自动机兵	costIf(spellboost/2)[spellboost>=2]; onPlay[spellboost>=3]: buff(self,2,2), draw(1)	法术增幅每2次费用-1；增幅3次以上时入场+2/+2并抽1。	解读演算	img/E001.webp
-E002	序列扑满	智识	随从	铜	1	1	2		0		onPlay: earthSigil(1)	入场曲：召唤1个土片。	神君追击	img/E002.webp
+E001	自动机兵·蜘蛛	智识	随从	铜	1	1	1		0	自动机兵	costIf(spellboost/2)[spellboost>=2]; onPlay[spellboost>=3]: buff(self,2,2), draw(1)	演算层数每2次费用-1；增幅3次以上时入场+2/+2并抽1。	解读演算	img/E001.webp
+E002	序列扑满	智识	随从	铜	1	1	2		0		onPlay: earthSigil(1)	入场曲：召唤1个演算模块。	神君追击	img/E002.webp
 E004	睿见	智识	法术	铜	1				0		spell: dmg(enemyAny,2)	给予敌方主战者或随从2点伤害。	弱点揭露	img/E004.webp
-E005	灵钥	智识	法术	铜	1				0		costIf(spellboost/2)[spellboost>=2]; spell: draw(1), dmg(enemyAny,1)	法术增幅每2次费用-1；抽1并造成1点。	解读演算	img/E005.webp
-E006	智库	智识	法术	铜	2				0		spell: earthSigil(1), draw(1)	召唤1个土片并抽1张。	神君追击	img/E006.webp
+E005	灵钥	智识	法术	铜	1				0		costIf(spellboost/2)[spellboost>=2]; spell: draw(1), dmg(enemyAny,1)	演算层数每2次费用-1；抽1并造成1点。	解读演算	img/E005.webp
+E006	智库	智识	法术	铜	2				0		spell: earthSigil(1), draw(1)	召唤1个演算模块并抽1张。	神君追击	img/E006.webp
 E007	基层员工·外勤	智识	随从	铜	1	2	2		0	基层员工	onPlay: dmg(enemyLeader,1); onSpell: dmg(enemyLeader,1)	入场打脸1点；在场时每使用法术再打脸1点。	弱点揭露	img/E007.webp
-E008	天才们的休憩	智识	法术	铜	1				0		costIf(spellboost/2)[spellboost>=2]; spell: draw(1), dmg(enemyAny,1)	法术增幅每2次费用-1；抽1并造成1点。	解读演算	img/E008.webp
-E009	自动机兵·战犬	智识	随从	铜	2	2	2		0	自动机兵	onPlay: earthSigil(1)	入场曲：召唤1个土片。	神君追击	img/E009.webp
-E011	基层员工·安保	智识	随从	铜	2	2	3		0	基层员工	onPlay: dmg(enemyLeader,1); onSpell: dmg(enemyLeader,1)	入场打脸1点；在场时每使用法术再打脸1点。	弱点揭露	img/E011.webp
-E012	银河沦陷日	智识	法术	银	3				0		costIf(spellboost/2)[spellboost>=2]; spell: dmg(enemyAny,3), draw(1)	法术增幅每2次费用-1；造成伤害并抽1。	解读演算	img/E012.webp
-E013	今日亦是和平的一日	智识	法术	银	3				0		spell: earthRite(); spell[ctr(土之秘术)>=1]: summon(泥尘巨像,1), dmg(enemyAny,2)	土之秘术：消耗1个土片，召唤泥尘巨像并造成2点。	神君追击	img/E013.webp
+E008	天才们的休憩	智识	法术	铜	1				0		costIf(spellboost/2)[spellboost>=2]; spell: draw(1), dmg(enemyAny,1)	演算层数每2次费用-1；抽1并造成1点。	解读演算	img/E008.webp
+E009	自动机兵·战犬	智识	随从	铜	2	3	3		0	自动机兵	onPlay: earthSigil(1)	入场曲：召唤1个演算模块。	神君追击	img/E009.webp
+E011	基层员工·安保	智识	随从	铜	2	2	2		0	基层员工	onPlay: dmg(enemyLeader,1); onSpell: dmg(enemyLeader,1)	入场打脸1点；在场时每使用法术再打脸1点。	弱点揭露	img/E011.webp
+E012	银河沦陷日	智识	法术	银	3				0		costIf(spellboost/2)[spellboost>=2]; spell: dmg(enemyAny,3), draw(1)	演算层数每2次费用-1；造成伤害并抽1。	解读演算	img/E012.webp
+E013	今日亦是和平的一日	智识	法术	银	3				0		spell: earthRite(); spell[ctr(模块解析)>=1]: summon(神君投影,1), dmg(enemyAny,2)	模块解析：消耗1个演算模块，召唤神君投影并造成2点。	神君追击	img/E013.webp
 E014	早餐的仪式感	智识	护符	银	3			3	0		onSpell: dmg(enemyLeader,1)	每当自己使用法术，给予敌方主战者1点伤害。	弱点揭露	img/E014.webp
-E015	希露瓦	智识	随从	金	2	2	2		0		costIf(spellboost/2)[spellboost>=2]; onPlay[spellboost>=3]: buff(self,2,2), draw(1)	法术增幅每2次费用-1；增幅3次以上时入场+2/+2并抽1。	解读演算	img/E015.webp
-E016	希露瓦·雷殛	智识	随从	铜	2	2	1		0		onPlay: earthSigil(1)	入场曲：召唤1个土片。	神君追击	img/E016.webp
+E015	希露瓦	智识	随从	金	2	3	3		0		costIf(spellboost/2)[spellboost>=2]; onPlay[spellboost>=3]: buff(self,2,2), draw(1)	演算层数每2次费用-1；增幅3次以上时入场+2/+2并抽1。	解读演算	img/E015.webp
+E016	希露瓦·雷殛	智识	随从	铜	2	2	1		0		onPlay: earthSigil(1)	入场曲：召唤1个演算模块。	神君追击	img/E016.webp
 E017	破晓战队•灰烬	智识	随从	铜	2	2	2		0	破晓战队	onPlay: dmg(enemyLeader,1); onSpell: dmg(enemyLeader,1)	入场打脸1点；在场时每使用法术再打脸1点。	弱点揭露	img/E017.webp
-E018	青雀	智识	随从	金	3	2	4		0		costIf(spellboost/2)[spellboost>=2]; onPlay[spellboost>=3]: buff(self,2,2), draw(1)	法术增幅每2次费用-1；增幅3次以上时入场+2/+2并抽1。	解读演算	img/E018.webp
-E019	黑塔	智识	随从	虹	3	2	5		0		onPlay: earthSigil(1)	入场曲：召唤1个土片。	神君追击	img/E019.webp
-E020	自动机兵·甲虫	智识	随从	铜	3	3	2		0	自动机兵	onPlay: dmg(enemyLeader,1); onSpell: dmg(enemyLeader,1)	入场打脸1点；在场时每使用法术再打脸1点。	弱点揭露	img/E020.webp
+E018	青雀	智识	随从	金	3	3	5		0		costIf(spellboost/2)[spellboost>=2]; onPlay[spellboost>=3]: buff(self,2,2), draw(1)	演算层数每2次费用-1；增幅3次以上时入场+2/+2并抽1。	解读演算	img/E018.webp
+E019	黑塔	智识	随从	虹	3	2	6		0		onPlay: earthSigil(1)	入场曲：召唤1个演算模块。	神君追击	img/E019.webp
+E020	自动机兵·甲虫	智识	随从	铜	3	2	2		0	自动机兵	onPlay: dmg(enemyLeader,1); onSpell: dmg(enemyLeader,1)	入场打脸1点；在场时每使用法术再打脸1点。	弱点揭露	img/E020.webp
 E021	氤氲麦香的梦	智识	护符	金	2				0		onSpell: draw(1)	每当自己使用法术，抽1张。	解读演算	img/E021.webp
-E022	那刻夏	智识	随从	虹	3	2	3		0		onPlay: earthSigil(1)	入场曲：召唤1个土片。	神君追击	img/E022.webp
-E023	炎华造物	智识	随从	铜	3	2	3		0	造物	onPlay: dmg(enemyLeader,1); onSpell: dmg(enemyLeader,1)	入场打脸1点；在场时每使用法术再打脸1点。	弱点揭露	img/E023.webp
-E024	破晓战队•曙光	智识	随从	银	3	2	4		0	破晓战队	costIf(spellboost/2)[spellboost>=2]; onPlay[spellboost>=3]: buff(self,2,2), draw(1)	法术增幅每2次费用-1；增幅3次以上时入场+2/+2并抽1。	解读演算	img/E024.webp
-E025	咆哮灵柩	智识	随从	银	4	3	3		0		onPlay: earthRite(); onPlay[ctr(土之秘术)>=1]: summon(泥尘巨像,1), buff(self,2,2)	土之秘术：消耗土片，召唤泥尘巨像并使自身+2/+2。	神君追击	img/E025.webp
-E026	咆哮灵柩·雷鸣	智识	随从	银	5	4	4		0		onPlay: dmg(enemyAll,2), dmg(enemyLeader,2)	入场给予敌方全体随从2点并打脸2点。	弱点揭露	img/E026.webp
-E027	姬子•启行	智识	随从	虹	5	3	5		0		costIf(spellboost/2)[spellboost>=2]; static: ward; onPlay[spellboost>=5]: dmg(enemyAll,3)	守护。法术增幅每2次费用-1；增幅5次以上时全场3点。	解读演算	img/E027.webp
-E028	破晓战队•赤焰	智识	随从	银	4	4	2		0	破晓战队	onPlay: earthRite(); onPlay[ctr(土之秘术)>=1]: summon(泥尘巨像,1), buff(self,2,2)	土之秘术：消耗土片，召唤泥尘巨像并使自身+2/+2。	神君追击	img/E028.webp
-E029	银枝·观测	智识	随从	虹	4	2	5		0		onPlay: dmg(enemyAll,2), dmg(enemyLeader,2)	入场给予敌方全体随从2点并打脸2点。	弱点揭露	img/E029.webp
-E030	宇宙大生意	智识	法术	金	5				0		costIf(spellboost/2)[spellboost>=2]; spell: dmg(enemyAny,5), draw(1)	法术增幅每2次费用-1；造成伤害并抽1。	解读演算	img/E030.webp
-E031	谐乐静默之后	智识	法术	金	4				0		spell: earthRite(); spell[ctr(土之秘术)>=1]: summon(泥尘巨像,1), dmg(enemyAny,2)	土之秘术：消耗1个土片，召唤泥尘巨像并造成2点。	神君追击	img/E031.webp
-E032	破晓战队•苍翼	智识	随从	银	5	3	5		0	破晓战队	onPlay: dmg(enemyAll,2), dmg(enemyLeader,2)	入场给予敌方全体随从2点并打脸2点。	弱点揭露	img/E032.webp
-E033	入魔机巧·率从狻猊	智识	随从	银	5	5	3		0		costIf(spellboost/2)[spellboost>=2]; static: ward; onPlay[spellboost>=5]: dmg(enemyAll,3)	守护。法术增幅每2次费用-1；增幅5次以上时全场3点。	解读演算	img/E033.webp
-E034	大黑塔	智识	随从	虹	5	5	5		0		onPlay: earthRite(); onPlay[ctr(土之秘术)>=1]: summon(泥尘巨像,1), buff(self,2,2)	土之秘术：消耗土片，召唤泥尘巨像并使自身+2/+2。	神君追击	img/E034.webp
-E035	自动机兵·齿狼	智识	随从	金	6	4	5		0	自动机兵	onPlay: dmg(enemyAll,2), dmg(enemyLeader,2)	入场给予敌方全体随从2点并打脸2点。	弱点揭露	img/E035.webp
-E036	姬子	智识	随从	虹	6	4	5		0		costIf(spellboost/2)[spellboost>=2]; static: ward; onPlay[spellboost>=5]: dmg(enemyAll,3)	守护。法术增幅每2次费用-1；增幅5次以上时全场3点。	解读演算	img/E036.webp
-E037	景元	智识	随从	虹	6	3	6		0		onPlay: earthRite(); onPlay[ctr(土之秘术)>=1]: summon(泥尘巨像,1), buff(self,2,2)	土之秘术：消耗土片，召唤泥尘巨像并使自身+2/+2。	神君追击	img/E037.webp
-E038	乱破	智识	随从	虹	6	5	4		0		onPlay: dmg(enemyAll,2), dmg(enemyLeader,2)	入场给予敌方全体随从2点并打脸2点。	弱点揭露	img/E038.webp
-E039	史瓦罗	智识	随从	金	6	4	5		0		costIf(spellboost/2)[spellboost>=2]; static: ward; onPlay[spellboost>=5]: dmg(enemyAll,3)	守护。法术增幅每2次费用-1；增幅5次以上时全场3点。	解读演算	img/E039.webp
-E040	星火悄然闪耀	智识	法术	虹	5				0		spell: earthRite(); spell[ctr(土之秘术)>=1]: summon(泥尘巨像,1), dmg(enemyAny,2)	土之秘术：消耗1个土片，召唤泥尘巨像并造成2点。	神君追击	img/E040.webp
-E041	合金机铠•帕姆王	智识	随从	虹	7	5	6		0	自动机兵	onPlay: dmg(enemyAll,2), dmg(enemyLeader,2)	入场给予敌方全体随从2点并打脸2点。	弱点揭露	img/E041.webp
-E042	远坂凛	智识	随从	虹	6	5	6		0		costIf(spellboost/2)[spellboost>=2]; static: ward; onPlay[spellboost>=5]: dmg(enemyAll,3)	守护。法术增幅每2次费用-1；增幅5次以上时全场3点。	解读演算	img/E042.webp
-E043	第一位天才，隐德来希，赞达尔	智识	随从	虹	6	6	6		0		onPlay: earthRite(); onPlay[ctr(土之秘术)>=1]: summon(泥尘巨像,1), buff(self,2,2)	土之秘术：消耗土片，召唤泥尘巨像并使自身+2/+2。	神君追击	img/E043.webp
-E044	当一颗星照亮夜空	智识	法术	虹	8				0		spell: dmg(enemyLeader,9)	给予敌方主战者大量直接伤害。	弱点揭露	img/E044.webp
-T301	土片	智识	护符	衍生	1			9	1	土片		【土片】。供土之秘术消耗。		img/T301.webp
-T302	泥尘巨像	智识	随从	衍生	3	3	3		1	土偶	static: rush	【突进】。由土之秘术召唤。		img/T302.webp
-E045	外宇宙之冰	智识	随从	铜	3	2	4		0		costIf(spellboost/2)[spellboost>=2]; onPlay[spellboost>=3]: buff(self,2,2), draw(1)	法术增幅每2次费用-1；增幅3次以上时入场+2/+2并抽1。	解读演算	img/E045.webp
+E022	那刻夏	智识	随从	虹	3	2	3		0		onPlay: earthSigil(1)	入场曲：召唤1个演算模块。	神君追击	img/E022.webp
+E023	炎华造物	智识	随从	铜	3	2	2		0	造物	onPlay: dmg(enemyLeader,1); onSpell: dmg(enemyLeader,1)	入场打脸1点；在场时每使用法术再打脸1点。	弱点揭露	img/E023.webp
+E024	破晓战队•曙光	智识	随从	银	3	3	5		0	破晓战队	costIf(spellboost/2)[spellboost>=2]; onPlay[spellboost>=3]: buff(self,2,2), draw(1)	演算层数每2次费用-1；增幅3次以上时入场+2/+2并抽1。	解读演算	img/E024.webp
+E025	咆哮灵柩	智识	随从	银	4	3	3		0		onPlay: earthRite(); onPlay[ctr(模块解析)>=1]: summon(神君投影,1), buff(self,2,2)	模块解析：消耗演算模块，召唤神君投影并使自身+2/+2。	神君追击	img/E025.webp
+E026	咆哮灵柩·雷鸣	智识	随从	银	5	3	3		0		onPlay: dmg(enemyAll,2), dmg(enemyLeader,2)	入场给予敌方全体随从2点并打脸2点。	弱点揭露	img/E026.webp
+E027	姬子•启行	智识	随从	虹	5	4	7		0		costIf(spellboost/2)[spellboost>=2]; static: ward; onPlay[spellboost>=5]: dmg(enemyAll,3)	守护。演算层数每2次费用-1；增幅5次以上时全场3点。	解读演算	img/E027.webp
+E028	破晓战队•赤焰	智识	随从	银	4	4	2		0	破晓战队	onPlay: earthRite(); onPlay[ctr(模块解析)>=1]: summon(神君投影,1), buff(self,2,2)	模块解析：消耗演算模块，召唤神君投影并使自身+2/+2。	神君追击	img/E028.webp
+E029	银枝·观测	智识	随从	虹	4	2	4		0		onPlay: dmg(enemyAll,2), dmg(enemyLeader,2)	入场给予敌方全体随从2点并打脸2点。	弱点揭露	img/E029.webp
+E030	宇宙大生意	智识	法术	金	5				0		costIf(spellboost/2)[spellboost>=2]; spell: dmg(enemyAny,5), draw(1)	演算层数每2次费用-1；造成伤害并抽1。	解读演算	img/E030.webp
+E031	谐乐静默之后	智识	法术	金	4				0		spell: earthRite(); spell[ctr(模块解析)>=1]: summon(神君投影,1), dmg(enemyAny,2)	模块解析：消耗1个演算模块，召唤神君投影并造成2点。	神君追击	img/E031.webp
+E032	破晓战队•苍翼	智识	随从	银	5	2	4		0	破晓战队	onPlay: dmg(enemyAll,2), dmg(enemyLeader,2)	入场给予敌方全体随从2点并打脸2点。	弱点揭露	img/E032.webp
+E033	入魔机巧·率从狻猊	智识	随从	银	5	7	4		0		costIf(spellboost/2)[spellboost>=2]; static: ward; onPlay[spellboost>=5]: dmg(enemyAll,3)	守护。演算层数每2次费用-1；增幅5次以上时全场3点。	解读演算	img/E033.webp
+E034	大黑塔	智识	随从	虹	5	6	6		0		onPlay: earthRite(); onPlay[ctr(模块解析)>=1]: summon(神君投影,1), buff(self,2,2)	模块解析：消耗演算模块，召唤神君投影并使自身+2/+2。	神君追击	img/E034.webp
+E035	自动机兵·齿狼	智识	随从	金	6	3	4		0	自动机兵	onPlay: dmg(enemyAll,2), dmg(enemyLeader,2)	入场给予敌方全体随从2点并打脸2点。	弱点揭露	img/E035.webp
+E036	姬子	智识	随从	虹	6	5	7		0		costIf(spellboost/2)[spellboost>=2]; static: ward; onPlay[spellboost>=5]: dmg(enemyAll,3)	守护。演算层数每2次费用-1；增幅5次以上时全场3点。	解读演算	img/E036.webp
+E037	景元	智识	随从	虹	6	3	7		0		onPlay: earthRite(); onPlay[ctr(模块解析)>=1]: summon(神君投影,1), buff(self,2,2)	模块解析：消耗演算模块，召唤神君投影并使自身+2/+2。	神君追击	img/E037.webp
+E038	乱破	智识	随从	虹	6	4	3		0		onPlay: dmg(enemyAll,2), dmg(enemyLeader,2)	入场给予敌方全体随从2点并打脸2点。	弱点揭露	img/E038.webp
+E039	史瓦罗	智识	随从	金	6	5	7		0		costIf(spellboost/2)[spellboost>=2]; static: ward; onPlay[spellboost>=5]: dmg(enemyAll,3)	守护。演算层数每2次费用-1；增幅5次以上时全场3点。	解读演算	img/E039.webp
+E040	星火悄然闪耀	智识	法术	虹	5				0		spell: earthRite(); spell[ctr(模块解析)>=1]: summon(神君投影,1), dmg(enemyAny,2)	模块解析：消耗1个演算模块，召唤神君投影并造成2点。	神君追击	img/E040.webp
+E041	合金机铠•帕姆王	智识	随从	虹	7	4	5		0	自动机兵	onPlay: dmg(enemyAll,2), dmg(enemyLeader,2)	入场给予敌方全体随从2点并打脸2点。	弱点揭露	img/E041.webp
+E042	远坂凛	智识	随从	虹	6	7	8		0		costIf(spellboost/2)[spellboost>=2]; static: ward; onPlay[spellboost>=5]: dmg(enemyAll,3)	守护。演算层数每2次费用-1；增幅5次以上时全场3点。	解读演算	img/E042.webp
+E043	第一位天才，隐德来希，赞达尔	智识	随从	虹	6	7	7		0		onPlay: earthRite(); onPlay[ctr(模块解析)>=1]: summon(神君投影,1), buff(self,2,2)	模块解析：消耗演算模块，召唤神君投影并使自身+2/+2。	神君追击	img/E043.webp
+E044	当一颗星照亮夜空	智识	法术	虹	8				0		spell: dmg(enemyLeader,9)	给予敌方主战者9点伤害。	弱点揭露	img/E044.webp
+T301	演算模块	智识	护符	衍生	1			9	1	演算模块		【演算模块】。供模块解析消耗。		img/T301.webp
+T302	神君投影	智识	随从	衍生	3	3	3		1	土偶	static: rush	【突进】。由模块解析召唤。		img/T302.webp
+E045	外宇宙之冰	智识	随从	铜	3	2	4		0		costIf(spellboost/2)[spellboost>=2]; onPlay[spellboost>=3]: buff(self,2,2), draw(1)	演算层数每2次费用-1；增幅3次以上时入场+2/+2并抽1。	解读演算	img/E045.webp

@@ -92,10 +92,10 @@ async function main() {
   const produced = new Set();
   for (const r of allRows) for (const cl of (r.clauses || [])) for (const a of (cl.actions || [])) {
     if (a.op === 'summon' || a.op === 'stackSummon' || a.op === 'addHand' || a.op === 'shuffleDeck') produced.add(a.args[0]);
+    if (a.op === 'earthSigil') produced.add('演算模块');
     if (a.op === 'transform') produced.add(a.args[1]);
   }
-  const intentionallyUnused = new Set(['卡厄斯兰那', '蚀刻残焰', '星核碎屑', '浮元', '龙灵', '账账', '土片', '神秘的创造物', '复制体']);
-  const orphans = allRows.filter(r => r.isToken && !produced.has(r.name) && !intentionallyUnused.has(r.name)).map(r => r.name);
+  const orphans = allRows.filter(r => r.isToken && !produced.has(r.name)).map(r => r.name);
 
   // 旧机制残留检查：卡组名可以沿用用户指定名称，但卡效与玩家说明不能继续跑旧主轴。
   const oldMechanics = {
@@ -111,6 +111,31 @@ async function main() {
     const re = oldMechanics[r.class];
     if (re && re.test(`${r.effect || ''} ${r.note || ''}`)) {
       errors.push(`${r.class}/${r.name}: 仍残留旧机制 "${re.source}"`);
+    }
+  }
+
+  // 崩铁主题与内容质量检查：玩家文案不得残留影之诗专有名，描述必须给出准确数字。
+  const foreignTerms = /神圣猎鹰|猎鹰祷告|尘土巨像|土之秘术|土片|法术增幅|帝国士兵|指挥官|士兵|妖精|悬丝傀儡|古老的创造物|解析的创造物|死灵术|墓场/;
+  const vagueText = /大量(?:直接)?伤害|造成直接伤害|造成伤害(?!并|。)/;
+  for (const r of allRows) {
+    const text = `${r.name || ''} ${r.tag || ''} ${r.note || ''}`;
+    if (foreignTerms.test(text)) errors.push(`${r.class}/${r.name}: 仍残留影之诗专有词`);
+    if (vagueText.test(r.note || '')) errors.push(`${r.class}/${r.name}: 描述没有写明准确伤害数字`);
+  }
+  const rampByDeck = new Map();
+  for (const r of allRows) if (/ppMaxUp\(/.test(r.effect || '')) {
+    for (const d of String(r.decks || '').split('/').filter(Boolean)) rampByDeck.set(`${r.class}｜${d}`, (rampByDeck.get(`${r.class}｜${d}`) || 0) + 1);
+  }
+  for (const [deck, count] of rampByDeck) if (count > 3) errors.push(`${deck}: 永久PP成长卡过多（${count}种，上限3种）`);
+
+  // 缺图与坏路径：所有保留卡牌（包括衍生卡）都必须有可加载的配图。
+  for (const r of allRows) {
+    if (!r.img) errors.push(`${r.class}/${r.name}: 缺少卡图路径`);
+    else {
+      try {
+        const imgRes = await fetch('../' + r.img, { cache: 'no-store' });
+        if (!imgRes.ok) errors.push(`${r.class}/${r.name}: 卡图无法加载（HTTP ${imgRes.status}）`);
+      } catch (e) { errors.push(`${r.class}/${r.name}: 卡图加载失败`); }
     }
   }
 

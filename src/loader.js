@@ -158,46 +158,13 @@ const PRESET_IDS = {
   '记忆｜新蕊献祭': 'M003 M006 M009 M012 M015 M018 M021 M024 M027 M030 M033 M036 M039 M042',
 };
 
-const DECK_TUNE = {
-  // multiplicative stat scaling for followers; spell damage is tuned separately in TSV when needed
-  '毁灭｜地狱变': 0.68,
-  '毁灭｜反击回响': 0.94,
-  '同谐｜军功爵位': 0.8,
-  '同谐｜额外行动': 0.85,
-  '巡猎｜连锁追击': 0.86,
-  '巡猎｜饲饵猎杀': 0.96,
-  '巡猎｜绝命对峙': 0.68,
-  '智识｜解读演算': 1.1,
-  '智识｜神君追击': 0.76,
-  '智识｜弱点揭露': 1.32,
-  '虚无｜持续侵蚀': 0.72,
-  '虚无｜引爆奥迹': 2.8,
-  '虚无｜缺陷植入': 1.65,
-  '欢愉｜剧团登场': 0.58,
-  '存护丰饶｜不死回响': 0.72,
-  '存护丰饶｜孽物增殖': 0.68,
-  '记忆｜忆灵编织': 1.3,
-  '记忆｜迷因回响': 1.2,
-  '欢愉｜笑点狂欢': 0.92,
-  '记忆｜新蕊献祭': 0.9,
-};
-
-function tunedDef(def, factor) {
-  if (!factor || factor === 1 || def.type !== '随从') return def;
-  return { ...def,
-    atk: Math.max(0, Math.round((def.atk || 0) * factor)),
-    hp: Math.max(1, Math.round((def.hp || 1) * factor)),
-  };
-}
-
 function fixedPreset(cards, cls, deckName) {
   const key = `${cls}｜${deckName}`;
   const src = PRESET_IDS[key];
   if (!src) return null;
-  const defs = src.split(' ').map(id => {
-    const d = (cards.byId && cards.byId[id]) || cards.all.find(c => c.id === id);
-    return d ? tunedDef(d, DECK_TUNE[key]) : null;
-  }).filter(Boolean);
+  const defs = src.split(' ').map(id =>
+    (cards.byId && cards.byId[id]) || cards.all.find(c => c.id === id)
+  ).filter(Boolean);
   if (defs.length < 12) return null;
   const deck = [];
   // 前12张满编，其余各2张；按费用最高者优先削到40张。

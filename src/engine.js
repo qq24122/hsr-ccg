@@ -255,25 +255,25 @@ function runAction(s, a, ctx) {
       for (const h of P.hand) h.spellboost += n;
       break;
     }
-    case 'earthSigil': { // 生成通用【土片】护符；土之秘术只认该标签
+    case 'earthSigil': { // 生成通用【演算模块】护符；模块解析只认该标签
       const n = A[0] ? num(s, A[0], ctx) : 1;
-      const def = s.__tokenIndex && s.__tokenIndex['土片'];
-      if (!def) { S.log(s, '找不到衍生物定义 土片'); break; }
+      const def = s.__tokenIndex && s.__tokenIndex['演算模块'];
+      if (!def) { S.log(s, '找不到衍生物定义 演算模块'); break; }
       for (let i = 0; i < n; i++) {
         if (S.boardFull(P)) break;
         const u = S.makeUnit(def, s.turn);
         placeUnit(P, u);
-        S.log(s, '召唤 土片');
+        S.log(s, '召唤 演算模块');
       }
       break;
     }
-    case 'earthRite': { // 消耗一个土片，并把成功状态写入来源供同卡后续触发读取
-      const sigil = P.board.find(u => S.hasTag(u, '土片'));
-      if (ctx.source && ctx.source.counters) ctx.source.counters['土之秘术'] = sigil ? 1 : 0;
+    case 'earthRite': { // 消耗一个演算模块，并把成功状态写入来源供同卡后续触发读取
+      const sigil = P.board.find(u => S.hasTag(u, '演算模块'));
+      if (ctx.source && ctx.source.counters) ctx.source.counters['模块解析'] = sigil ? 1 : 0;
       if (sigil) killUnit(s, sigil);
       break;
     }
-    case 'shuffleDeck': { // 将指定卡洗入牌库，支持创造物/衍生卡形成检索循环
+    case 'shuffleDeck': { // 将指定卡洗入牌库，支持忆质衍生卡形成检索循环
       const name = A[0], n = A[1] ? num(s, A[1], ctx) : 1;
       const def = s.__cardIndex && s.__cardIndex[name];
       if (!def) { S.log(s, `找不到卡定义 ${name}`); break; }
@@ -282,11 +282,11 @@ function runAction(s, a, ctx) {
       updateResonance(s, me);
       break;
     }
-    case 'necromancy': { // 消耗墓场数；成功状态写入来源供 [ctr(死灵术)>=1] 使用
+    case 'necromancy': { // 消耗残响值；成功状态写入来源供 [ctr(残响调用)>=1] 使用
       const n = num(s, A[0], ctx);
       const ok = P.shadows >= n;
       if (ok) P.shadows -= n;
-      if (ctx.source && ctx.source.counters) ctx.source.counters['死灵术'] = ok ? 1 : 0;
+      if (ctx.source && ctx.source.counters) ctx.source.counters['残响调用'] = ok ? 1 : 0;
       break;
     }
     case 'destroyAlly':
@@ -555,7 +555,7 @@ function runAction(s, a, ctx) {
         for (const c of clausesOf(u)) {
           if (c.trigger === 'static') runActions(s, c.actions, { ownerIdx: me, source: u });
         }
-        S.log(s, `从墓场召还 ${u.name}（2/2）`);
+        S.log(s, `从记录区召还 ${u.name}（2/2）`);
         fireTrigger(s, 'onAllySummon', { ownerOnly: me, ownerIdx: me, extra: u });
       }
       break;
@@ -672,7 +672,7 @@ export function metricOf(s, name, ctx) {
       return n;
     }
     case 'spellboost':   return ctx.source ? (ctx.source.spellboost || 0) : 0;
-    case 'earthSigils':  return P.board.filter(u => S.hasTag(u, '土片')).length;
+    case 'earthSigils':  return P.board.filter(u => S.hasTag(u, '演算模块')).length;
     case 'shadows':      return P.shadows || 0;
     case 'evolves':      return P.evolves || 0;
     case 'selfDamageTurn': return P.selfDamageThisTurn || 0;
