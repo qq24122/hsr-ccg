@@ -58,6 +58,8 @@ export function makeCardInstance(def) {
     costMod: 0,          // 费用增减（costDown 等）
     atkMod: 0,           // 在手牌里就被强化的攻/血（银鬃射手那类）
     hpMod: 0,
+    spellboost: 0,       // 巫师【法术增幅】：此卡在手牌中见过多少次己方法术
+    counters: {},        // 法术也可暂存土之秘术/死灵术是否成功
   };
 }
 
@@ -74,6 +76,7 @@ export function makeUnit(def, turn) {
     maxHp: def.hp | 0,
     keywords: new Set(),
     counters: {},                   // 火种/朔望/兴致…
+    spellboost: 0,                  // 从手牌带入的法术增幅次数
     marks: new Set(),               // 正面标记：军功 / 爵位 / 老主顾 / 织线（负面标记迁到 slot）
     slot: null,                     // 所在场地格子（slot 对象引用；负面状态存在这里）
     atkPlusExpr: null,              // 动态攻击力加成表达式（如 lostHp/2）
@@ -108,6 +111,8 @@ export function makeSlot(idx) {
 export function makePlayer(name, deckDefs, isFirst) {
   return {
     name,
+    cls: '',                        // 由开局页写入；规则/UI 不再从显示字符串反推职业
+    deckName: '',                   // 当前预设卡组名，供机制显示与测试核验
     hp: RULES.LEADER_HP,
     maxHp: RULES.LEADER_HP,
     keywords: new Set(),        // 主战者身上的关键词（目前只有【屏障】）
@@ -128,11 +133,15 @@ export function makePlayer(name, deckDefs, isFirst) {
     board: [],
     slots: Array.from({ length: RULES.BOARD_LIMIT }, (_, i) => makeSlot(i)),
     graveyard: [],
-    counters: {},               // 解读/蓄能/笑点/腐化…
+    shadows: 0,                   // 死灵术可消费墓场；单位/护符/法术入墓时增加
+    counters: {},                 // 少量卡牌/职业计数器
     cardsPlayedThisTurn: 0,
     spellsPlayedThisTurn: 0,
-    deckOut: false,             // 牌库耗尽（判负）
+    selfDamageThisTurn: 0,        // 本回合自己的主战者实际受到伤害的次数
     evolvedThisTurn: false,
+    evolves: 0,                   // 本局己方随从进化次数
+    wasResonance: deckDefs.length % 2 === 0, // 复仇者【共鸣】前一状态，用于进出共鸣触发
+    deckOut: false,               // 牌库耗尽（判负）
   };
 }
 
@@ -179,7 +188,7 @@ export function drawCard(s, pi) {
   const def = p.deck.shift();
   if (p.hand.length >= RULES.HAND_LIMIT) {
     // 官方：「超过手牌上限时，超出的卡牌不会加入手牌，而是增加墓场数量。」
-    p.graveyard.push(def);
+    addToGrave(p, def);
     log(s, `手牌已满（${RULES.HAND_LIMIT}），${def.name} 进入墓场`);
     return null;
   }
@@ -204,7 +213,7 @@ function clonePlayer(p) {
   });
   return { ...p, keywords: new Set(p.keywords), counters: { ...p.counters },
     deck: p.deck.slice(), graveyard: p.graveyard.slice(),
-    hand: p.hand.map(h => ({ ...h })), board, slots };
+    hand: p.hand.map(h => ({ ...h, counters: { ...(h.counters || {}) } })), board, slots };
 }
 export function cloneForSim(s) {
   return {
@@ -226,6 +235,15 @@ export function boardFull(p) { return p.board.length >= RULES.BOARD_LIMIT; }
 
 export function isMara(p) { return p.hp <= RULES.MARA_THRESHOLD; }
 
+/** 复仇者【共鸣】：自己的牌库剩余张数为偶数时成立。抽牌与塞牌都会立刻切换。 */
+export function isResonance(p) { return p.deck.length % 2 === 0; }
+
+/** 统一记录进入墓场；死灵术消费的是 shadows，墓场仍保留对局历史。 */
+export function addToGrave(p, def) {
+  p.graveyard.push(def);
+  p.shadows += 1;
+}
+
 export function ctrOf(p, name) { return p.counters[name] || 0; }
 export function addCtr(p, name, n) {
   p.counters[name] = (p.counters[name] || 0) + n;
@@ -233,8 +251,9 @@ export function addCtr(p, name, n) {
   return p.counters[name];
 }
 
-export function unitCtr(u, name) { return u.counters[name] || 0; }
+export function unitCtr(u, name) { return (u.counters && u.counters[name]) || 0; }
 export function addUnitCtr(u, name, n) {
+  u.counters ||= {};
   u.counters[name] = (u.counters[name] || 0) + n;
   if (u.counters[name] < 0) u.counters[name] = 0;
   return u.counters[name];

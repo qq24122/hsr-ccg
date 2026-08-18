@@ -58,7 +58,7 @@
   @keyframes maraPulse { 0%,100% { box-shadow: 0 0 0 0 #ff6b6b00 }
                          50% { box-shadow: 0 0 9px 2px #ff6b6b88 } }
 
-  /* 命途资源条：笑点 / 解读 / 蓄能。带进度条，让人知道离下一档还差多少 */
+  /* 预留的卡组资源条样式。即时状态优先显示在主战者徽章中。 */
   .res { display: inline-flex; flex-direction: column; align-items: stretch; gap: 2px;
          font-size: 11px; padding: 2px 8px; border-radius: 6px; background: #2a2438;
          border: 1px solid #46395e; min-width: 62px; }
@@ -181,10 +181,17 @@
                            inset 0 0 0 calc(var(--uw) * .009) #24272a; }
   .unit.ward::after { content: '🛡'; position: absolute; top: 2px; left: 3px; font-size: 11px;
                       line-height: 1; opacity: .95; z-index: 5; text-shadow: 0 0 4px #000, 0 0 8px #4dabf7; }
-  .unit.amulet::before { content: ''; position: absolute; top: 3px; right: 3px;
-                         width: calc(var(--uw) * .16); height: calc(var(--uw) * .16);
-                         background: url('img/icon/amulet.png') center/contain no-repeat;
-                         z-index: 5; filter: drop-shadow(0 1px 2px #000); }
+  .unit.amulet::before { content: ''; position: absolute; top: 4px; right: 4px;
+                         width: calc(var(--uw) * .15); height: calc(var(--uw) * .15);
+                         border: 2px solid #d8c7ff; border-radius: 3px;
+                         transform: rotate(45deg); z-index: 5;
+                         background: linear-gradient(135deg,#8b6bd4,#332754);
+                         box-shadow: inset 0 0 0 2px #1c1630, 0 1px 4px #000; }
+  .unit.amulet::after { content: ''; position: absolute; top: calc(4px + var(--uw) * .044);
+                        right: calc(4px + var(--uw) * .044);
+                        width: calc(var(--uw) * .062); height: calc(var(--uw) * .062);
+                        border: 1px solid #fff; border-radius: 50%; z-index: 6;
+                        box-shadow: 0 0 5px #d8c7ff; }
   .unit.ready { outline: 2px solid #51cf66; outline-offset: 1px; cursor: grab; }
   .unit.sel { outline: 3px solid #ffd43b; outline-offset: 1px; }
   .unit.targetable { outline: 2px dashed #ffd43b; outline-offset: 2px; cursor: crosshair;
@@ -711,8 +718,17 @@ const GLOSS = [
   ['谢幕曲', '这个随从/护符离开战场（被消灭、倒数归零）时发动。'],
   ['倒数', '护符专用。你的回合开始时 -1，变成 0 时护符被破坏（会触发【谢幕曲】）。护符无法攻击，也不会被攻击。'],
   ['进化', '消耗 1 点 EP，使随从 +2/+2。进化当回合可以立刻攻击随从，但不能攻击主战者。先手方第 5 回合、后手方第 4 回合开始解禁。'],
-  ['入魔', '自己主战者的生命值 ≤ 10 时视为已入魔。毁灭的许多卡在入魔后效果更强，代价是把自己的血压低。'],
-  ['标记', '被标记的随从受到的伤害 +1，直到它离场。巡猎的部分卡可以无视守护攻击被标记的目标。'],
+  ['入魔', '自己主战者的生命值 ≤ 10 时视为已入魔（对应【复仇】）。毁灭卡会明确写出入魔后的强化效果。'],
+  ['觉醒', '自己的 PP 上限达到 7 时成立。巡猎卡会在觉醒后获得额外效果。'],
+  ['法术增幅', '这张卡在手牌中时，每当你使用1张法术，它的法术增幅次数+1；不同卡按自己的次数降费或强化。'],
+  ['土片', '智识的土之秘术资源。土片是护符，占用场地；土之秘术会消耗1个土片来发动追加效果。'],
+  ['指挥官', '同谐的随从标签。指挥官通常强化、检索或指挥士兵。'],
+  ['士兵', '同谐的随从标签。士兵擅长横向铺场并接受指挥官强化。'],
+  ['死灵术', '虚无通过消耗指定数量的墓场数发动追加效果。消耗后可用墓场数会下降。'],
+  ['连击', '检查本回合已经使用的卡牌数。打出的每一张牌都自然计入，不是跨回合永久累积的资源。'],
+  ['妖精', '欢愉生成的1费衍生随从。先把妖精加入手牌，再用低费连打满足连击或快攻收益。'],
+  ['创造物', '记忆洗入牌库、检索并循环使用的衍生卡体系。'],
+  ['共鸣', '自己的牌库剩余张数为偶数时成立。抽牌或把卡洗入牌库都会让它在奇数/偶数之间切换。'],
   ['破绽', '被打出破绽的随从受到的伤害 +1，直到它离场。与【标记】数值相同，但属于通用效果、不与巡猎的标记体系联动。'],
   ['弱点', '可叠加。每层使该随从受到的伤害 +1。'],
   ['触电', '每当施加方的回合结束时，该随从受到 2 点伤害。'],
@@ -724,14 +740,11 @@ const GLOSS = [
   ['奥迹', '可叠加。使该目标每层【持续伤害】的结算数值 +1。'],
   ['缺陷', '三种之一：迟缓（被攻击时不反击）／脆弱（受到的伤害 +1）／衰弱（攻击力 -1）。'],
   ['老主顾', '场上唯一的标记，虚无的部分卡会针对它。同时只能存在一个。'],
-  ['军功', '可叠加，每层使随从 +1/+1。是升【爵位】的前置。'],
-  ['爵位', '需要该随从已有【军功】。额外 +2/+2 并获得【必杀】。'],
-  ['忆质', '记忆的专属衍生随从，一方场上只会存在 1 个。再次召唤时改为使它的层数 +1 并 +1/+1，所以它会越打越大，也不会占掉你其他随从的位置。'],
-  ['忆灵', '记忆的具名衍生随从（长夜月、犬形、翼蛇形等），各自独立占一个场地位。'],
-  ['间隙织线', '记忆的标记，部分卡会检查随从身上有没有它。'],
-  ['笑点', '欢愉的职业计数器。多张卡会检查它的数值，攒得越高收益越大（天国@直播间 的伤害就是笑点/3）。'],
-  ['解读', '智识的职业计数器，多张卡的条件与伤害按它计算。'],
-  ['蓄能', '同谐的职业计数器，多张卡的条件按它计算。'],
+  ['军功', '同谐旧版机制，仅用于兼容旧回放；当前指挥官/士兵卡组不再以它为主轴。'],
+  ['爵位', '同谐旧版机制，仅用于兼容旧回放。'],
+  ['忆质', '记忆的创造物之一；当前创造物卡组会把创造物洗入牌库、检索并循环使用。'],
+  ['忆灵', '记忆的具名衍生随从，各自独立占一个场地位。'],
+  ['间隙织线', '复制体系中少数卡使用的目标标记。'],
   ['衍生', '由其他卡的效果生成的卡，不能放进卡组，也不会触发【入场曲】。'],
   ['蛰虫', '存护丰饶的衍生随从标签，多张卡会一次性强化你场上全部蛰虫。'],
   ['涂鸦', '欢愉的衍生随从标签，多张卡会一次性强化你场上全部涂鸦。'],
@@ -920,6 +933,8 @@ function startMatch() {
   const P0 = humanFirst ? [a, da] : [b, db];       // players[0] = 先手方
   const P1 = humanFirst ? [b, db] : [a, da];
   s = S.createGame(buildDeckFor(CARDS, ...P0, rng), buildDeckFor(CARDS, ...P1, rng), seed);
+  s.players[0].cls = P0[0]; s.players[0].deckName = P0[1];
+  s.players[1].cls = P1[0]; s.players[1].deckName = P1[1];
   s.__cardIndex = CARDS.byName;
   s.__tokenIndex = CARDS.byName;
   s.__cls = [`${P0[0]}·${P0[1]}`, `${P1[0]}·${P1[1]}`];
@@ -1031,10 +1046,9 @@ function render() {
   if (s.winner != null) finish();
 }
 
-/* 命途资源（笑点/解读/蓄能）必须一眼看见，而且要看见「下一个门槛还差多少」——
- * 只显示一个数字玩家记不住这数字有什么用。所以扫一遍手牌与牌库里所有
- * ctr(该资源)>=N 的条件，取比当前值大的最小那个 N 当作下一档。 */
-const PATH_RES = ['笑点', '解读', '蓄能'];
+/* 即时职业状态（入魔、觉醒、连击、共鸣、墓场）直接在 leaderHTML 里显示。
+ * 暂不再把职业包装成永久累计数字；resourceHTML 仅保留为以后真正的数值资源复用。 */
+const PATH_RES = [];
 
 function nextThreshold(p, name) {
   const cur = S.ctrOf(p, name);
@@ -1069,7 +1083,7 @@ function resourceHTML(p, isMe) {
 }
 
 function leaderHTML(p, cls, isMe) {
-  const cap = p.ppMax + p.ppBonus;
+  const cap = Math.min(S.RULES.PP_MAX, p.ppMax + p.ppBonus);
   let pips = '';
   for (let i = 0; i < Math.max(cap, 1); i++) pips += `<span class="pip ${i < p.pp ? 'pp-on' : 'pp-off'}"></span>`;
   return `<span class="lname">${isMe ? '我方' : '对手'}·${cls}</span>`
@@ -1080,7 +1094,14 @@ function leaderHTML(p, cls, isMe) {
     // 【入魔】是毁灭一整套卡的开关，血量掉到 10 以下必须让人立刻看见。
     // 但它是毁灭的专属机制——其他命途血量≤10 时不该出现「入魔」这个词，
     // 否则玩家会以为自己的卡入魔后会变强，实际上只有毁灭有 mara 条件的卡。
-    + (S.isMara(p) && cls.split('·')[0] === '毁灭' ? '<span class="badge mara">入魔</span>' : '')
+    + (S.isMara(p) && p.cls === '毁灭' ? '<span class="badge mara">入魔</span>' : '')
+    + (p.cls === '巡猎'
+        ? `<span class="badge ${Math.min(S.RULES.PP_MAX, p.ppMax + p.ppBonus) >= 7 ? 'bar' : ''}">觉醒 ${Math.min(S.RULES.PP_MAX, p.ppMax + p.ppBonus) >= 7 ? '开启' : `${Math.min(S.RULES.PP_MAX, p.ppMax + p.ppBonus)}/7`}</span>` : '')
+    + (p.cls === '记忆' && p.deckName === '新蕊献祭'
+        ? `<span class="badge ${S.isResonance(p) ? 'bar' : ''}">共鸣 ${S.isResonance(p) ? '开启' : '关闭'}（牌库${p.deck.length}）</span>` : '')
+    + (p.cls === '欢愉' && p.deckName === '笑点狂欢'
+        ? `<span class="badge">连击 ${p.cardsPlayedThisTurn}</span>` : '')
+    + (p.cls === '虚无' ? `<span class="badge">墓场 ${p.shadows}</span>` : '')
     /* 【侵蚀】现在是一条递进的时钟（伤害随层数成长），不显示出来玩家就是在被暗杀 */
     + (p.dots > 0 ? `<span class="badge rot" title="每回合结束时受到 ${Math.min(3, 1 + Math.floor(p.dots / 5)) + (p.aura || 0)} 点伤害，层数不消耗">`
         + `侵蚀 ${p.dots}　-${Math.min(3, 1 + Math.floor(p.dots / 5)) + (p.aura || 0)}/回合</span>` : '')
@@ -1224,7 +1245,7 @@ function pathStyle(def) {
 
 function cardHTML(inst, i, myTurn) {
   const d = inst.def;
-  const cost = E.handCost(s, inst);
+  const cost = E.handCost(s, inst, ME);
   const chk = E.canPlay(s, i);
   const ok = myTurn && chk.ok;
   const selected = sel && sel.kind === 'target' && sel.hand === i;
@@ -1329,7 +1350,7 @@ function detailHTML(spec) {
 
   const stats = [];
   if (spec.kind === 'hand') {
-    const c = E.handCost(s, inst);
+    const c = E.handCost(s, inst, ME);
     stats.push(`<span class="dStat">费用 <b style="color:${c < def.cost ? '#8ce99a' : '#8ecdf7'}">${c}</b>`
       + (c !== def.cost ? `<span style="color:#889"> （原 ${def.cost}）</span>` : '') + '</span>');
   } else if (spec.kind === 'mull') {
@@ -1337,6 +1358,7 @@ function detailHTML(spec) {
   } else {
     stats.push(`<span class="dStat">费用 <b style="color:#8ecdf7">${def.cost}</b></span>`);
   }
+  if (inst && inst.spellboost) stats.push(`<span class="dStat">法术增幅 <b style="color:#d0bfff">${inst.spellboost}</b></span>`);
   if (def.type === '随从') {
     if (unit) {
       const ea = E.effAtk(s, unit);
@@ -1363,11 +1385,13 @@ function detailHTML(spec) {
     const st = [];
     if (unit.evolved) st.push('已进化');
     for (const m of unit.marks) st.push(m);
-    if (unit.vuln) st.push(`弱点 ${unit.vuln} 层`);
-    if (unit.dots) st.push(`持续伤害 ${unit.dots} 层`);
-    if (unit.aura) st.push(`奥迹 ${unit.aura} 层`);
-    if (unit.shocked) st.push('触电');
-    for (const f of unit.flaws) st.push('缺陷·' + f);
+    const sl = unit.slot;
+    for (const m of sl.marks) st.push(m);
+    if (sl.vuln) st.push(`弱点 ${sl.vuln} 层`);
+    if (sl.dots) st.push(`持续伤害 ${sl.dots} 层`);
+    if (sl.aura) st.push(`奥迹 ${sl.aura} 层`);
+    if (sl.shocked) st.push('触电');
+    for (const f of sl.flaws) st.push('缺陷·' + f);
     for (const [k, v] of Object.entries(unit.counters)) if (v > 0) st.push(`${k} ${v}`);
     if (st.length) now.push('状态：' + st.join('、'));
     if (mine && unit.type === '随从') {
@@ -1383,7 +1407,7 @@ function detailHTML(spec) {
       : '<button class="warn" data-act="toss">换掉这张</button>');
   } else if (spec.kind === 'hand') {
     const chk = E.canPlay(s, spec.hand);
-    if (myTurn && chk.ok) acts.push(`<button data-act="play">打出（${E.handCost(s, inst)} PP）</button>`);
+    if (myTurn && chk.ok) acts.push(`<button data-act="play">打出（${E.handCost(s, inst, ME)} PP）</button>`);
     else acts.push(`<button disabled>${myTurn ? esc(chk.why) : '不是你的回合'}</button>`);
   } else if (unit && mine && unit.type === '随从') {
     if (myTurn && E.canAttack(s, unit)) acts.push('<button data-act="attack">发起攻击</button>');
@@ -1418,7 +1442,7 @@ function detailAct(a) {
   if (a === 'play') {
     const inst = s.players[ME].hand[spec.hand];
     if (!inst) return render();
-    const need = E.needsTarget(inst.def);
+    const need = E.needsTarget(inst.def, s, ME);
     if (need && hasLegalTarget(need)) {
       sel = { kind: 'target', hand: spec.hand, need };
       return render();
@@ -1477,7 +1501,7 @@ function canHitLeader() {
 function hintFor(x) {
   if (x.kind === 'evolve') return '选择要进化的随从（+2/+2，当回合可攻击随从）';
   if (x.kind === 'attack') return '选择攻击目标（黄框可选）；对方有守护时必须先打守护';
-  if (x.kind === 'place') return '点一个绿色空格放置，或拖拽手牌到具体格子';
+  if (x.kind === 'place') return x.opts ? '目标已选择：点一个绿色空格放置这张卡' : '点一个绿色空格放置，或拖拽手牌到具体格子';
   return x.need === 'allyOne' ? '为这张卡选择 1 个自己的随从'
     : x.need === 'enemyAny' ? '选择敌方主战者或 1 个敌方随从'
     : '选择 1 个敌方随从';
@@ -1507,9 +1531,9 @@ function bind() {
 /* 点空格：正在「选位置」时，把选中的手牌放到这个格子 */
 function onSlot(slot) {
   if (!sel || sel.kind !== 'place') return;
-  const h = sel.hand;
+  const x = sel;
   sel = null;
-  doPlay(h, { slot });
+  doPlay(x.hand, { ...(x.opts || {}), slot });
 }
 
 /* ============================ 拖拽 ============================
@@ -1606,7 +1630,7 @@ function dragEnd(e) {
   if (d.spec.kind === 'hand') {
     const inst = s.players[ME].hand[d.spec.hand];
     if (!inst) return render();
-    const need = E.needsTarget(inst.def);
+    const need = E.needsTarget(inst.def, s, ME);
     if (!need) return doPlay(d.spec.hand, hit.slot != null ? { slot: hit.slot } : {});
     // 拖到具体目标上 = 直接指定它
     if (hit !== 'field' && hit.uid != null) {
@@ -1676,7 +1700,12 @@ function onUnit(uid, mine, el) {
   if (sel && sel.kind === 'target') {
     if (!isTargetable(u)) return flash('不是合法目标');
     const h = sel.hand, opts = sel.need === 'allyOne' ? { ally: u } : { target: u };
+    const inst = s.players[ME].hand[h];
     sel = null;
+    if (inst && inst.def.type !== '法术') {
+      sel = { kind: 'place', hand: h, opts };
+      return render();
+    }
     return doPlay(h, opts);
   }
   if (sel && sel.kind === 'attack') {
@@ -1701,8 +1730,14 @@ function onFoeLeader() {
       { lunge: [from, 'leader'] });
   }
   const h = sel.hand;
+  const inst = s.players[ME].hand[h];
+  const opts = { target: { __leader: 1 - ME } };
   sel = null;
-  doPlay(h, { target: { __leader: 1 - ME } });
+  if (inst && inst.def.type !== '法术') {
+    sel = { kind: 'place', hand: h, opts };
+    return render();
+  }
+  doPlay(h, opts);
 }
 
 function doPlay(i, opts) {
@@ -1842,6 +1877,13 @@ function act(fn, opt = {}) {
   render();
   return playAnims(before);      // 返回「这一步的画面要放多久」，供 AI 回合调节奏
 }
+
+/* 仅供浏览器回归测试读取/驱动当前局面。生产界面不使用；不暴露卡表修改能力。 */
+window.__gameTest = {
+  get state() { return s; },
+  get me() { return ME; },
+  render,
+};
 
 /* 音效和动画共用同一份还原出来的事件，所以对手的操作、卡效触发的连锁召唤，
  * 声音全都自动有，不需要在 ai.js 里埋任何回调。 */

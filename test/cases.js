@@ -633,5 +633,38 @@ export async function runAll() {
     eq(mine.atk, before + 1, '我方召唤时，onAllySummon 触发 +1/+0');
   });
 
+
+  t('法术增幅：使用法术后手牌卡逐张累积并可按增幅降费', () => {
+    const s = game(); turnTo(s, 9);
+    const boosted = {
+      id: 'XSB', name: '增幅测试', class: '智识', type: '随从', quality: '铜', cost: 5, atk: 2, hp: 2,
+      effect: 'costIf(spellboost)[spellboost>=1]', clauses: parseEffect('costIf(spellboost)[spellboost>=1]', '增幅测试')
+    };
+    const inst = S.makeCardInstance(boosted); s.players[0].hand.push(inst);
+    const i = hand(s, 0, '好运饼干');
+    E.playCard(s, i);
+    eq(inst.spellboost, 1, '手牌中的增幅卡应累计1次');
+    eq(E.handCost(s, inst), 4, '费用应按增幅次数-1');
+  });
+
+  t('共鸣：牌库偶数时成立，抽牌后切换为不共鸣', () => {
+    const s = game();
+    s.players[0].deck = s.players[0].deck.slice(0, 10);
+    ok(S.isResonance(s.players[0]), '10张牌库应处于共鸣');
+    S.drawCard(s, 0);
+    ok(!S.isResonance(s.players[0]), '抽至9张后应离开共鸣');
+  });
+
+  t('墓场：召还会移除真实墓场卡，不能无限重复召还', () => {
+    const s = game(); turnTo(s, 9);
+    s.players[0].graveyard = [CARDS.byName['丰饶扑满']];
+    s.players[0].shadows = 1;
+    E.runActions(s, [{ op: 'reanimate', args: ['1'] }], { ownerIdx: 0, source: null });
+    eq(s.players[0].graveyard.length, 0, '被召还的卡应离开墓场');
+    eq(s.players[0].board.filter(u => u.name === '丰饶扑满').length, 1, '应只召还1张');
+    E.runActions(s, [{ op: 'reanimate', args: ['1'] }], { ownerIdx: 0, source: null });
+    eq(s.players[0].board.filter(u => u.name === '丰饶扑满').length, 1, '空墓场不能重复召还同一张');
+  });
+
   return results;
 }

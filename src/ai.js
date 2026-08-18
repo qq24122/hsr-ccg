@@ -54,12 +54,8 @@ function evaluate(s, me) {
   v += P.hand.length * 1.4;
   v += P.ep * 1.5;
 
-  /* 职业资源计数器（欢愉的笑点、智识的解读、同谐的蓄能…）。
-   * 一分不给的话，「纯攒资源」的卡在 AI 眼里永远是负收益：
-   * 攻击性阅读物、风举云飞的勇烈 的出场率是 0% 和 2%，
-   * 于是笑点狂欢 / 解读演算 这类靠计数器兑现的卡组被系统性低估。
-   * 估值贴着兑现口径来：天国@直播间 是「笑点/3 点伤害」，1 点笑点≈0.33 点伤害，
-   * 打个对折的兑现概率 ≈ 0.35 分。封顶是防某个计数器暴涨后主导整个评分。 */
+  /* 少量卡牌仍会保存跨回合计数器。计数器本身只有在能被后续效果兑现时才有价值，
+   * 给一个保守权重，避免 AI 完全拒绝启动件，同时不让纯记账压过场面与血量。 */
   for (const n of Object.values(P.counters)) v += Math.min(n, 24) * 0.35;
 
   /* 【入魔】：血量≤10 才解锁的效果。不给它加分，AI 就只把自伤看成掉血，
@@ -193,7 +189,7 @@ function doAttacks(s, me) {
 
 /**
  * 反复挑「模拟打出后评分提升最大」的那张牌，直到没有正收益。
- * 这样条件没满足的卡（没有侵蚀层时的引爆、笑点不够时的爆发）自然会被跳过，
+ * 条件未满足、或资源尚未准备好的牌自然会在试算中被跳过，
  * 不需要为每张卡写专门的判断。
  */
 function doPlays(s, me) {
@@ -243,13 +239,14 @@ function targetOptions(s, handIndex, me) {
   const p = s.players[s.active];
   const inst = p.hand[handIndex];
   if (!inst) return [{}];
-  const need = E.needsTarget(inst.def);
-  if (!need) return [{}];
+  const need = E.needsTarget(inst.def, s, me);
+  if (!need) return placementOptions(s, inst.def, {});
   const byBody = arr => arr.slice().sort((a, b) => (E.effAtk(s, b) + b.hp) - (E.effAtk(s, a) + a.hp));
 
   if (need === 'allyOne') {
     const arr = byBody(S.minionsOf(p));
-    return arr.length ? [{ ally: arr[0] }] : [{}];
+    const base = arr.length ? [{ ally: arr[0] }] : [{}];
+    return base.flatMap(opt => placementOptions(s, inst.def, opt));
   }
   const foes = byBody(S.minionsOf(s.players[S.opp(s.active)]));
   const opts = [];
@@ -259,12 +256,23 @@ function targetOptions(s, handIndex, me) {
     if (dotty !== foes[0] && dotty.slot.dots > 0) opts.push({ target: dotty });
   }
   if (need === 'enemyAny') opts.push({ target: { __leader: S.opp(s.active) } });
-  return opts.length ? opts : [{}];
+  return (opts.length ? opts : [{}]).flatMap(opt => placementOptions(s, inst.def, opt));
 }
 
-/** 把「真实局面里的目标」换成试算副本里的同一个单位（按 uid 认人） */
+
+/** 随从/护符把目标选项扩展成每个空格；AI 试算后自然避开残留污染。 */
+function placementOptions(s, def, base) {
+  if (def.type === '法术') return [base];
+  const p = S.self(s), used = new Set(p.board.map(u => u.slot.idx));
+  const out = [];
+  for (const sl of p.slots) if (!used.has(sl.idx)) out.push({ ...base, slot: sl.idx });
+  return out.length ? out : [base];
+}
+
+/** 把真实局面的目标换成试算副本里的同一单位，位置选择保持数字即可。 */
 function remapOpt(sim, opt) {
   const out = {};
+  if (opt.slot != null) out.slot = opt.slot;
   for (const k of ['target', 'ally']) {
     const v = opt[k];
     if (!v) continue;

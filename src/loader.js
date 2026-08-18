@@ -128,6 +128,92 @@ export function deckPool(cards, cls, deckName) {
  * 这正是之前测试用的组牌方式，所以那批胜率数字不能信。 */
 const COST_QUOTA = { 1: 6, 2: 10, 3: 8, 4: 6, 5: 4, 6: 3, 7: 2, 8: 1 };
 const MAX_COPIES = 3;
+/* 24 套预设牌使用固定 40 张构筑，不再从“属于这套牌的卡池”随机配额。
+ * 每套 14~15 种：核心低费与启动件满编3张，其余2~3张，既能稳定打出原型，
+ * 也让平衡测试和玩家实际拿到的是同一副牌。 */
+const PRESET_IDS = {
+  '毁灭｜地狱变': 'D001 D006 D009 D012 D015 D018 D021 D024 D027 D030 D033 D036 D039 D042 D044',
+  '毁灭｜反击回响': 'D002 D005 D008 D011 D014 D017 D020 D023 D026 D029 D032 D035 D038 D041',
+  '毁灭｜血仇变身': 'D003 D004 D007 D010 D013 D016 D019 D022 D025 D028 D031 D034 D037 D040 D043',
+  '巡猎｜连锁追击': 'H001 H004 H007 H010 H013 H016 H019 H022 H025 H028 H031 H034 H037 H040 H043',
+  '巡猎｜饲饵猎杀': 'H002 H005 H008 H011 H014 H017 H020 H023 H026 H029 H032 H035 H038 H041',
+  '巡猎｜绝命对峙': 'H003 H006 H009 H012 H015 H018 H021 H024 H027 H030 H033 H036 H039 H042',
+  '智识｜解读演算': 'E001 E004 E007 E010 E013 E016 E019 E022 E025 E028 E031 E034 E037 E040 E043',
+  '智识｜神君追击': 'E002 E005 E008 E011 E014 E017 E020 E023 E026 E029 E032 E035 E038 E041',
+  '智识｜弱点揭露': 'E003 E006 E009 E012 E015 E018 E021 E024 E027 E030 E033 E036 E039 E042',
+  '同谐｜军功爵位': 'A001 A004 A007 A010 A013 A016 A019 A022 A025 A028 A031 A034 A037 A040 A043',
+  '同谐｜蓄能合鸣': 'A002 A005 A008 A011 A014 A017 A020 A023 A026 A029 A032 A035 A038 A041',
+  '同谐｜额外行动': 'A003 A006 A009 A012 A015 A018 A021 A024 A027 A030 A033 A036 A039 A042',
+  '虚无｜持续侵蚀': 'N001 N004 N007 N010 N013 N016 N019 N022 N025 N028 N031 N034 N037 N040 N043',
+  '虚无｜引爆奥迹': 'N002 N005 N008 N011 N014 N017 N020 N023 N026 N029 N032 N035 N038 N041',
+  '虚无｜缺陷植入': 'N003 N006 N009 N012 N015 N018 N021 N024 N027 N030 N033 N036 N039 N042',
+  '欢愉｜笑点狂欢': 'L001 L004 L007 L010 L013 L016 L019 L022 L025 L028 L031 L034 L037 L040 L043',
+  '欢愉｜剧团登场': 'L002 L005 L008 L011 L014 L017 L020 L023 L026 L029 L032 L035 L038 L041',
+  '欢愉｜大吉大利': 'L003 L006 L009 L012 L015 L018 L021 L024 L027 L030 L033 L036 L039 L042',
+  '存护丰饶｜护盾壁垒': 'P001 P004 P007 P010 P013 P016 P019 P022 P025 P028 P031 P034 P037 P040 P043',
+  '存护丰饶｜不死回响': 'P002 P005 P008 P011 P014 P017 P020 P023 P026 P029 P032 P035 P038 P041',
+  '存护丰饶｜孽物增殖': 'P003 P006 P009 P012 P015 P018 P021 P024 P027 P030 P033 P036 P039 P042',
+  '记忆｜忆灵编织': 'M001 M004 M007 M010 M013 M016 M019 M022 M025 M028 M031 M034 M037 M040 M043',
+  '记忆｜迷因回响': 'M002 M005 M008 M011 M014 M017 M020 M023 M026 M029 M032 M035 M038 M041',
+  '记忆｜新蕊献祭': 'M003 M006 M009 M012 M015 M018 M021 M024 M027 M030 M033 M036 M039 M042',
+};
+
+const DECK_TUNE = {
+  // multiplicative stat scaling for followers; spell damage is tuned separately in TSV when needed
+  '毁灭｜地狱变': 0.68,
+  '毁灭｜反击回响': 0.94,
+  '同谐｜军功爵位': 0.8,
+  '同谐｜额外行动': 0.85,
+  '巡猎｜连锁追击': 0.86,
+  '巡猎｜饲饵猎杀': 0.96,
+  '巡猎｜绝命对峙': 0.68,
+  '智识｜解读演算': 1.1,
+  '智识｜神君追击': 0.76,
+  '智识｜弱点揭露': 1.32,
+  '虚无｜持续侵蚀': 0.72,
+  '虚无｜引爆奥迹': 2.8,
+  '虚无｜缺陷植入': 1.65,
+  '欢愉｜剧团登场': 0.58,
+  '存护丰饶｜不死回响': 0.72,
+  '存护丰饶｜孽物增殖': 0.68,
+  '记忆｜忆灵编织': 1.3,
+  '记忆｜迷因回响': 1.2,
+  '欢愉｜笑点狂欢': 0.92,
+  '记忆｜新蕊献祭': 0.9,
+};
+
+function tunedDef(def, factor) {
+  if (!factor || factor === 1 || def.type !== '随从') return def;
+  return { ...def,
+    atk: Math.max(0, Math.round((def.atk || 0) * factor)),
+    hp: Math.max(1, Math.round((def.hp || 1) * factor)),
+  };
+}
+
+function fixedPreset(cards, cls, deckName) {
+  const key = `${cls}｜${deckName}`;
+  const src = PRESET_IDS[key];
+  if (!src) return null;
+  const defs = src.split(' ').map(id => {
+    const d = (cards.byId && cards.byId[id]) || cards.all.find(c => c.id === id);
+    return d ? tunedDef(d, DECK_TUNE[key]) : null;
+  }).filter(Boolean);
+  if (defs.length < 12) return null;
+  const deck = [];
+  // 前12张满编，其余各2张；按费用最高者优先削到40张。
+  defs.forEach((d, i) => { const n = i < 12 ? 3 : 2; for (let k = 0; k < n; k++) deck.push(d); });
+  while (deck.length > RULES.DECK_SIZE) {
+    let at = 0;
+    for (let i = 1; i < deck.length; i++) if ((deck[i].cost || 0) > (deck[at].cost || 0)) at = i;
+    deck.splice(at, 1);
+  }
+  while (deck.length < RULES.DECK_SIZE) {
+    const d = defs[deck.length % Math.min(12, defs.length)];
+    if (deck.filter(x => x.id === d.id).length < MAX_COPIES) deck.push(d);
+    else break;
+  }
+  return deck;
+}
 
 /**
  * 按卡组名构建一副 40 张的牌。
@@ -136,6 +222,10 @@ const MAX_COPIES = 3;
 export function buildDeckFor(cards, cls, deckName, rng = Math.random, exclude = null) {
   /* exclude 是给消融实验用的：把某一张卡从卡池里拿掉再组牌，
    * 组牌器会自动用同档的其他卡补满 40 张——正好等于「这张卡不存在时的卡组」。 */
+  if (!exclude) {
+    const fixed = fixedPreset(cards, cls, deckName);
+    if (fixed) return fixed;
+  }
   let pool = deckPool(cards, cls, deckName);
   if (exclude) pool = pool.filter(c => c.name !== exclude);
   if (!pool.length) throw new Error(`卡组「${cls}｜${deckName}」没有任何卡`);

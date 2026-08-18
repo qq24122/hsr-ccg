@@ -26,9 +26,10 @@ function condCtx(s, ownerIdx, source, chosen) {
   const mc = { ownerIdx, source };
   return {
     mara: S.isMara(p),
+    resonance: S.isResonance(p),
     marked: chosen && chosen.slot ? chosen.slot.marks.has('标记') : false,
     evolved: source ? source.evolved : false,
-    ctr: name => (source && source.counters[name] != null)
+    ctr: name => (source && source.counters && source.counters[name] != null)
       ? source.counters[name]
       : S.ctrOf(p, name),
     // 其余条件量统一走 metricOf，与动作参数里的动态数值共用一套词汇
@@ -81,7 +82,7 @@ function resolveTarget(s, spec, ctx) {
     case 'allyAll':     return S.minionsOf(P).slice();
     case 'enemyAll':    return S.minionsOf(E).slice();
     case 'allyOther':   return S.minionsOf(P).filter(u => u !== ctx.source);
-    case 'allyOne':     return pickOne(ctx.chosenAlly || S.minionsOf(P).filter(u => u !== ctx.source)[0] || S.minionsOf(P)[0]);
+    case 'allyOne':     return pickOne(ctx.chosenAlly || S.minionsOf(P).find(u => u !== ctx.source) || S.minionsOf(P)[0]);
     case 'enemyOne':    return pickOne(ctx.chosen || S.minionsOf(E)[0]);
     // 随机 1 个敌方随从；对方空场时没有目标（不会溢出去打主战者）
     case 'enemyRandom': {
@@ -125,6 +126,8 @@ function resolveTarget(s, spec, ctx) {
       return arr.length ? [arr[Math.floor(s.rng() * arr.length)]] : [];
     }
     case 'allyToken':   return P.board.filter(u => u.def && u.def.isToken);
+    case 'allyAmulet':  return S.amuletsOf(P).slice();
+    case 'allyCountdown': return S.amuletsOf(P).filter(u => u.countdown != null);
     case 'enemyAmulet': return E.board.filter(u => u.type === '护符');
     // 「敌方主战者或1个敌方随从」：玩家指定了就打那个，没指定就打脸（所以永远有合法目标）
     case 'enemyAny':    return [ctx.chosen || { __leader: you }];
@@ -169,7 +172,7 @@ function runAction(s, a, ctx) {
       const def = s.__cardIndex && s.__cardIndex[name];
       if (!def) { S.log(s, `找不到卡定义 ${name}`); break; }
       for (let i = 0; i < n; i++) {
-        if (P.hand.length >= RULES.HAND_LIMIT) { P.graveyard.push(def); continue; }
+        if (P.hand.length >= RULES.HAND_LIMIT) { S.addToGrave(P, def); continue; }
         P.hand.push(S.makeCardInstance(def));
       }
       break;
@@ -196,7 +199,10 @@ function runAction(s, a, ctx) {
     case 'draw': {  // 第二参 = 上限，对应卡面的「最多4张」
       let n = num(s, A[0], ctx);
       if (A[1] != null) n = Math.min(n, num(s, A[1], ctx));
-      for (let i = 0; i < n; i++) S.drawCard(s, me);
+      for (let i = 0; i < n; i++) {
+        S.drawCard(s, me);
+        updateResonance(s, me);
+      }
       break;
     }
     case 'drawKind': {  // 从牌库里抽指定类型的卡（法术/随从/护符），抽不到就跳过
@@ -205,8 +211,95 @@ function runAction(s, a, ctx) {
         const at = P.deck.findIndex(d => d.type === kind);
         if (at < 0) break;
         const [def] = P.deck.splice(at, 1);
-        if (P.hand.length >= RULES.HAND_LIMIT) { P.graveyard.push(def); continue; }
+        if (P.hand.length >= RULES.HAND_LIMIT) { S.addToGrave(P, def); updateResonance(s, me); continue; }
         P.hand.push(S.makeCardInstance(def));
+        updateResonance(s, me);
+      }
+      break;
+    }
+    case 'drawTag': {
+      const tag = A[0], n = A[1] ? num(s, A[1], ctx) : 1;
+      for (let i = 0; i < n; i++) {
+        const at = P.deck.findIndex(d => String(d.tag || '').split('/').includes(tag));
+        if (at < 0) break;
+        const [def] = P.deck.splice(at, 1);
+        if (P.hand.length >= RULES.HAND_LIMIT) S.addToGrave(P, def);
+        else P.hand.push(S.makeCardInstance(def));
+        updateResonance(s, me);
+      }
+      break;
+    }
+    case 'drawToken': {
+      const n = A[0] ? num(s, A[0], ctx) : 1;
+      for (let i = 0; i < n; i++) {
+        const at = P.deck.findIndex(d => d.isToken);
+        if (at < 0) break;
+        const [def] = P.deck.splice(at, 1);
+        if (P.hand.length >= RULES.HAND_LIMIT) S.addToGrave(P, def);
+        else P.hand.push(S.makeCardInstance(def));
+        updateResonance(s, me);
+      }
+      break;
+    }
+    case 'discard': {
+      const n = A[0] ? num(s, A[0], ctx) : 1;
+      for (let i = 0; i < n && P.hand.length; i++) {
+        const at = Math.floor(s.rng() * P.hand.length);
+        const [inst] = P.hand.splice(at, 1);
+        S.addToGrave(P, inst.def);
+      }
+      break;
+    }
+    case 'spellboost': { // 使当前手牌内所有带增幅条件/数值的卡分别累积1次
+      const n = A[0] ? num(s, A[0], ctx) : 1;
+      for (const h of P.hand) h.spellboost += n;
+      break;
+    }
+    case 'earthSigil': { // 生成通用【土片】护符；土之秘术只认该标签
+      const n = A[0] ? num(s, A[0], ctx) : 1;
+      const def = s.__tokenIndex && s.__tokenIndex['土片'];
+      if (!def) { S.log(s, '找不到衍生物定义 土片'); break; }
+      for (let i = 0; i < n; i++) {
+        if (S.boardFull(P)) break;
+        const u = S.makeUnit(def, s.turn);
+        placeUnit(P, u);
+        S.log(s, '召唤 土片');
+      }
+      break;
+    }
+    case 'earthRite': { // 消耗一个土片，并把成功状态写入来源供同卡后续触发读取
+      const sigil = P.board.find(u => S.hasTag(u, '土片'));
+      if (ctx.source && ctx.source.counters) ctx.source.counters['土之秘术'] = sigil ? 1 : 0;
+      if (sigil) killUnit(s, sigil);
+      break;
+    }
+    case 'shuffleDeck': { // 将指定卡洗入牌库，支持创造物/衍生卡形成检索循环
+      const name = A[0], n = A[1] ? num(s, A[1], ctx) : 1;
+      const def = s.__cardIndex && s.__cardIndex[name];
+      if (!def) { S.log(s, `找不到卡定义 ${name}`); break; }
+      for (let i = 0; i < n; i++) P.deck.push(def);
+      S.shuffle(P.deck, s.rng);
+      updateResonance(s, me);
+      break;
+    }
+    case 'necromancy': { // 消耗墓场数；成功状态写入来源供 [ctr(死灵术)>=1] 使用
+      const n = num(s, A[0], ctx);
+      const ok = P.shadows >= n;
+      if (ok) P.shadows -= n;
+      if (ctx.source && ctx.source.counters) ctx.source.counters['死灵术'] = ok ? 1 : 0;
+      break;
+    }
+    case 'destroyAlly':
+      for (const t of resolveTarget(s, A[0], ctx)) {
+        if (t.__leader == null && t !== ctx.source && S.ownerOf(s, t.uid) === me) killUnit(s, t);
+      }
+      break;
+    case 'countdownDown': {
+      const n = num(s, A[1], ctx) || 1;
+      for (const t of resolveTarget(s, A[0], ctx).slice()) {
+        if (t.__leader != null || t.type !== '护符' || t.countdown == null) continue;
+        t.countdown -= n;
+        if (t.countdown <= 0) killUnit(s, t);
       }
       break;
     }
@@ -252,9 +345,9 @@ function runAction(s, a, ctx) {
         killUnit(s, t);
       }
       break;
-    /* 计数器分两种作用域，靠动作名区分（不再靠硬编码名单猜，那会让 onCtr 永远等不到）：
-     *   ctr  = 单位计数器（火种/充能/兴致…），onCtr 阈值触发读的就是这一种
-     *   pctr = 玩家的职业计数器（解读/蓄能/笑点），本局累积，用条件 [ctr(笑点)>=5] 判读 */
+    /* 计数器分两种作用域，靠动作名区分：
+     *   ctr  = 单位计数器（火种/充能等），onCtr 阈值读这一种
+     *   pctr = 玩家计数器，只给少量需要跨单位保存的卡使用；职业即时状态不再伪装成计数器 */
     case 'ctr': {
       const delta = parseInt(A[1], 10);
       if (ctx.source) S.addUnitCtr(ctx.source, A[0], delta);
@@ -269,6 +362,15 @@ function runAction(s, a, ctx) {
         const h = cand[Math.floor(s.rng() * cand.length)];
         h.atkMod += da; h.hpMod += dh;
         S.log(s, `手牌中的 ${h.def.name} 获得 +${da}/+${dh}`);
+      }
+      break;
+    }
+    case 'buffHandTag': {
+      const tag = A[0], da = num(s, A[1], ctx), dh = num(s, A[2], ctx);
+      const cand = P.hand.filter(h => h.def.type === '随从' && S.hasTag({ def: h.def }, tag));
+      if (cand.length) {
+        const h = cand[Math.floor(s.rng() * cand.length)];
+        h.atkMod += da; h.hpMod += dh;
       }
       break;
     }
@@ -292,9 +394,13 @@ function runAction(s, a, ctx) {
       if (P.hp > n) { const d = P.hp - n; P.hp = n; afterLeaderDamage(s, me, d); }
       break;
     }
-    case 'refundPP': P.pp = Math.min(P.pp + num(s, A[0], ctx), P.ppMax + P.ppBonus); break;
+    case 'refundPP': P.pp = Math.min(P.pp + num(s, A[0], ctx), Math.min(RULES.PP_MAX, P.ppMax + P.ppBonus)); break;
     case 'refundEP': P.ep += num(s, A[0], ctx); break;
-    case 'ppMaxUp':  P.ppBonus += num(s, A[0], ctx); break;
+    case 'ppMaxUp': {
+      const room = Math.max(0, RULES.PP_MAX - (P.ppMax + P.ppBonus));
+      P.ppBonus += Math.min(room, num(s, A[0], ctx));
+      break;
+    }
     case 'ppUp': {   // 本回合临时 PP 上限 +N（回合开始时 PP 已回满，refundPP 无效；这个能突破上限）
       const n = num(s, A[0], ctx);
       P.tempPP += n; P.pp += n;
@@ -436,12 +542,13 @@ function runAction(s, a, ctx) {
       }
       break;
     }
-    case 'reanimate': { // 从自己墓场随机召唤 N 张随从卡，攻血视为 2/2
+    case 'reanimate': { // 从真实墓场移除随从卡并召还，不能重复利用同一张墓场牌
       const n = num(s, A[0], ctx) || 1;
-      const pool = P.graveyard.filter(d => d.type === '随从');
-      for (let i = 0; i < n && pool.length; i++) {
-        if (S.boardFull(P)) { S.log(s, '场地已满，亡者召还失败'); break; }
-        const def = pool.splice(Math.floor(s.rng() * pool.length), 1)[0];
+      for (let i = 0; i < n; i++) {
+        const choices = P.graveyard.map((d, at) => ({ d, at })).filter(x => x.d.type === '随从');
+        if (!choices.length || S.boardFull(P)) break;
+        const pick = choices[Math.floor(s.rng() * choices.length)];
+        const [def] = P.graveyard.splice(pick.at, 1);
         const u = S.makeUnit(def, s.turn);
         u.atk = 2; u.hp = 2; u.maxHp = 2;
         placeUnit(P, u);
@@ -449,6 +556,7 @@ function runAction(s, a, ctx) {
           if (c.trigger === 'static') runActions(s, c.actions, { ownerIdx: me, source: u });
         }
         S.log(s, `从墓场召还 ${u.name}（2/2）`);
+        fireTrigger(s, 'onAllySummon', { ownerOnly: me, ownerIdx: me, extra: u });
       }
       break;
     }
@@ -519,7 +627,7 @@ function runAction(s, a, ctx) {
 /* ---------------- 动态数值 ----------------
  * 卡面里真正出现的动态量只有下面这些，所以求值器故意做得很小：
  *   整数          3
- *   指标          lostHp / sumVuln / tokenCount / ctr(蓄能) …
+ *   指标          lostHp / spellboost / shadows / cardsPlayed …
  *   指标除以常数   lostHp/4   （向下取整，对应卡面的「÷4（向下取整）」）
  * 写了不认识的量会抛错，不会静默算成 0。
  */
@@ -529,7 +637,7 @@ export function metricOf(s, name, ctx) {
   const c = /^ctr\(([^)]+)\)$/.exec(name);
   if (c) {
     const nm = c[1];
-    if (ctx.source && ctx.source.counters[nm] != null) return S.unitCtr(ctx.source, nm);
+    if (ctx.source && ctx.source.counters && ctx.source.counters[nm] != null) return S.unitCtr(ctx.source, nm);
     return S.ctrOf(P, nm);
   }
   // tagCount(蛰虫) / enemyTagCount(虚卒)
@@ -550,9 +658,9 @@ export function metricOf(s, name, ctx) {
     case 'tokenCount':  return P.board.filter(u => u.def && u.def.isToken).length;
     case 'allyCount':   return S.minionsOf(P).length;
     case 'enemyCount':  return S.minionsOf(E).length;
-    case 'graveCount':  return P.graveyard.length;
+    case 'graveCount':  return P.shadows || 0;
     case 'cardsPlayed': return P.cardsPlayedThisTurn;
-    case 'ppMax':       return P.ppMax + P.ppBonus;
+    case 'ppMax':       return Math.min(RULES.PP_MAX, P.ppMax + P.ppBonus);
     /* 记忆的「忆质与忆灵数量」。忆质现在是唯一叠加的，所以数它的层数；
      * 忆灵（长夜/迷迷/小伊卡/衣匠）仍是各自独立的随从，按个数算。 */
     case 'memCount': {
@@ -563,6 +671,12 @@ export function metricOf(s, name, ctx) {
       }
       return n;
     }
+    case 'spellboost':   return ctx.source ? (ctx.source.spellboost || 0) : 0;
+    case 'earthSigils':  return P.board.filter(u => S.hasTag(u, '土片')).length;
+    case 'shadows':      return P.shadows || 0;
+    case 'evolves':      return P.evolves || 0;
+    case 'selfDamageTurn': return P.selfDamageThisTurn || 0;
+    case 'resonance':    return S.isResonance(P) ? 1 : 0;
     case 'markedCount': return S.minionsOf(E).filter(u => u.slot.marks.has('标记')).length;
     case 'selfAtk':     return ctx.source ? effAtk(s, ctx.source) : 0;
     case 'myAttacks':   return ctx.source ? ctx.source.attacksUsed : 0;
@@ -671,6 +785,8 @@ export function dealDamage(s, target, n, source, opts = {}) {
 }
 
 function afterLeaderDamage(s, pi, n) {
+  const p = s.players[pi];
+  if (n > 0 && pi === s.active) p.selfDamageThisTurn += 1;
   fireTrigger(s, 'onLeaderDamaged', { ownerOnly: pi });
   // 主战者受伤会喂养单位计数器（刃的充能、白厄的火种），所以必须紧接着扫阈值。
   // 各卡的 onCtr 子句都以 ctr(名,-N) 开头先清零，因此不会自我递归。
@@ -704,13 +820,16 @@ export function killUnit(s, u) {
   fireTrigger(s, 'onDeath', { source: u, ownerIdx: pi });   // 【谢幕曲】
   removeUnit(s, u);
   // 「每当敌方随从被消灭」只数随从，护符离场不算
-  if (wasMinion) fireTrigger(s, 'onEnemyDeath', { ownerOnly: S.opp(pi) });
+  if (wasMinion) {
+    fireTrigger(s, 'onAllyDeath', { ownerOnly: pi, chosen: u });
+    fireTrigger(s, 'onEnemyDeath', { ownerOnly: S.opp(pi), chosen: u });
+  }
 }
 
 function removeUnit(s, u) {
   for (const p of s.players) {
     const i = p.board.indexOf(u);
-    if (i >= 0) { halfSlot(s, u); p.board.splice(i, 1); p.graveyard.push(u.def); return; }
+    if (i >= 0) { halfSlot(s, u); p.board.splice(i, 1); S.addToGrave(p, u.def); return; }
   }
 }
 
@@ -756,13 +875,15 @@ export function startTurn(s) {
   // 官方：「在自己的回合开始时，能量点最大值＋1且回复至上限。能量点的上限不会大于10。」
   // PP 上限 = 该玩家自己经历的回合数（第1回合1点，每回合+1，最多10）
   p.ppMax = Math.min(turnOfPlayer(s), RULES.PP_MAX);
-  p.pp = p.ppMax + p.ppBonus;
+  p.pp = Math.min(RULES.PP_MAX, p.ppMax + p.ppBonus);
   p.tempPP = 0;                        // 清掉上一回合的临时 PP（ppUp）
+  p.selfDamageThisTurn = 0;
   p.cardsPlayedThisTurn = 0;
   p.spellsPlayedThisTurn = 0;
   p.evolvedThisTurn = false;
   for (const u of p.board) { u.attacksUsed = 0; u.extraAttacks = 0; }
   S.drawCard(s, s.active);
+  updateResonance(s, s.active);
   if (s.winner != null) return s;      // 牌库耗尽已判负，不再结算后续时机
   fireTrigger(s, 'turnStart', { ownerOnly: s.active });
   tickCountdowns(s, s.active);         // 官方【倒数】：自己的回合开始时 -1，为 0 时被破坏
@@ -816,6 +937,23 @@ function settleDots(s, pi) {
   }
 }
 
+function updateResonance(s, pi) {
+  const p = s.players[pi];
+  if (p.__updatingResonance) return;
+  p.__updatingResonance = true;
+  try {
+    const now = S.isResonance(p);
+    const before = p.wasResonance;
+    p.wasResonance = now; // 触发前先提交状态，避免触发内抽牌递归再次看到旧状态
+    if (now) fireTrigger(s, 'onResonance', { ownerOnly: pi });
+    if (now !== before) {
+      fireTrigger(s, now ? 'onEnterResonance' : 'onLeaveResonance', { ownerOnly: pi });
+    }
+  } finally {
+    p.__updatingResonance = false;
+  }
+}
+
 function tickCountdowns(s, pi) {
   for (const u of s.players[pi].board.slice()) {
     if (u.type !== '护符' || u.countdown == null) continue;
@@ -830,15 +968,19 @@ function tickCountdowns(s, pi) {
  * costIf 子句——对应「若已入魔，此牌在手牌中的费用-4」这类写法。
  * 出牌、AI 选牌、界面显示都必须走这一个函数，否则三处会算出不同的费用。
  */
-export function handCost(s, inst) {
+function handCostFor(s, inst, ownerIdx) {
   let c = inst.def.cost + inst.costMod;
   const clauses = inst.def.clauses || parseEffect(inst.def.effect, inst.def.name);
   for (const cl of clauses) {
     if (cl.trigger !== 'costIf') continue;
-    if (!evalCond(cl.cond, condCtx(s, s.active, null, null))) continue;
-    c -= parseInt(cl.args[0], 10) || 0;
+    if (!evalCond(cl.cond, condCtx(s, ownerIdx, inst, null))) continue;
+    c -= num(s, cl.args[0], { ownerIdx, source: inst });
   }
   return Math.max(0, c);
+}
+
+export function handCost(s, inst, ownerIdx = s.active) {
+  return handCostFor(s, inst, ownerIdx);
 }
 
 /**
@@ -847,9 +989,13 @@ export function handCost(s, inst) {
  * 引擎在没拿到 opts.target 时会自动挑第一个合法目标——那是给自对弈兜底的，
  * 真人对局必须让玩家自己点，否则等于卡效被随机化。
  */
-export function needsTarget(def) {
+export function needsTarget(def, s = null, ownerIdx = null) {
   const clauses = def.clauses || parseEffect(def.effect, def.name);
   for (const c of clauses) {
+    if (s && c.cond) {
+      const pi = ownerIdx == null ? s.active : ownerIdx;
+      if (!evalCond(c.cond, condCtx(s, pi, null, null))) continue;
+    }
     if (!['spell', 'onPlay'].includes(c.trigger)) continue;
     for (const a of c.actions) {
       const t = a.args[0];
@@ -902,20 +1048,24 @@ export function playCard(s, handIndex, opts = {}) {
   const inst = p.hand.splice(handIndex, 1)[0];
   p.pp -= chk.cost;
   p.cardsPlayedThisTurn += 1;
-  if (inst.def.type === '法术') p.spellsPlayedThisTurn += 1;
+  if (inst.def.type === '法术') {
+    p.spellsPlayedThisTurn += 1;
+    for (const h of p.hand) h.spellboost += 1;
+  }
   S.log(s, `打出 ${inst.def.name}（${chk.cost} PP）`);
 
-  const ctx = { ownerIdx: me, chosen: opts.target, chosenAlly: opts.ally };
+  const ctx = { ownerIdx: me, chosen: opts.target, chosenAlly: opts.ally, source: inst };
 
   if (inst.def.type === '法术') {
     for (const c of parseEffect(inst.def.effect, inst.def.name)) {
       if (c.trigger !== 'spell' && c.trigger !== 'onPlay') continue;
-      if (!evalCond(c.cond, condCtx(s, me, null, opts.target))) continue;
+      if (!evalCond(c.cond, condCtx(s, me, inst, opts.target))) continue;
       runActions(s, c.actions, ctx);
     }
-    p.graveyard.push(inst.def);
+    S.addToGrave(p, inst.def);
   } else {
     const u = S.makeUnit(inst.def, s.turn);
+    u.spellboost = inst.spellboost || 0;
     // 在手牌里拿到的增益要带进场
     if (inst.atkMod) u.atk += inst.atkMod;
     if (inst.hpMod) { u.hp += inst.hpMod; u.maxHp += inst.hpMod; }
@@ -1067,6 +1217,7 @@ export function evolve(s, uid) {
 function doEvolve(s, pi, u, free) {
   if (u.evolved) return;
   u.evolved = true;
+  s.players[pi].evolves += 1;
   u.atk += RULES.EVOLVE_ATK;
   u.hp += RULES.EVOLVE_HP;
   u.maxHp += RULES.EVOLVE_HP;

@@ -30,10 +30,14 @@ const TRIGGERS = new Set([
   'turnStart',       // 自己的回合开始时
   'turnEnd',         // 自己的回合结束时
   'onLeaderDamaged', // 自己的主战者受到伤害
+  'onResonance',     // 牌库张数变化后处于【共鸣】
+  'onEnterResonance',// 牌库由奇数变偶数，进入【共鸣】
+  'onLeaveResonance',// 牌库由偶数变奇数，离开【共鸣】
   'onLeaderHeal',    // 自己的主战者回复生命
   'onSpell',         // 每当自己使用法术卡
   'onCard',          // 每当自己使用卡牌
   'onAllySummon',    // 每当随从进入自己的战场
+  'onAllyDeath',     // 每当自己的随从离场
   'onAllyAttack',    // 自己的随从攻击后
   'onEnemySummon',   // 每当敌方随从进入战场
   'onEnemyDeath',    // 每当敌方随从被消灭
@@ -50,13 +54,14 @@ const ACTIONS = new Set([
   'stackSummon', // 唯一叠加型衍生物（忆质）：场上没有就召唤，已有就叠层数并按层加攻血
   'detonate',  // 引爆【持续伤害】：detonate(目标, 每层倍率, 上限)，结算后清空层数
                // 目标为主战者时引爆它身上的【侵蚀】——虚无唯一不依赖对手场面的终结手段
-  'reanimate', // 从自己墓场随机召唤 N 张随从卡（视为 2/2）
+  'reanimate', // 从真实墓场移除并召还 N 张随从卡（视为 2/2）
   'ctr',       // 单位计数器（onCtr 阈值读的是这一种）
-  'pctr',      // 玩家的职业计数器：解读 / 蓄能 / 笑点
+  'pctr',      // 玩家级计数器（只保留给不适合用即时状态表达的个别卡）
   'setLeaderHp', 'refundPP', 'refundEP', 'ppMaxUp', 'ppUp', 'extraAtk', 'transform',
   'bounce', 'evolveFree', 'costDown', 'custom',
   'cleanse',   // 解除负面效果
   'buffHand',  // 强化手牌里的随从卡
+  'buffHandTag', // 强化手牌里指定标签的随从卡
   'maxAtk',    // 每回合攻击次数上限（不会在回合开始时清零）
   // 职业机制
   'mark',      // 巡猎【标记】受到的伤害 +1
@@ -77,6 +82,16 @@ const ACTIONS = new Set([
   'halveHp',   // 将自己主战者生命值减半（向上取整）
   'addHand',   // 生成卡牌加入手牌
   'copy',      // 复制场上的随从
+  'spellboost',// 使手牌中带法术增幅的卡累积增幅
+  'earthSigil',// 召唤【土片】护符
+  'earthRite', // 消耗己方一个【土片】，成功后执行后续动作由条件判断
+  'shuffleDeck', // 将指定卡牌洗入自己的牌库
+  'necromancy',  // 消耗 N 个墓场数（死灵术）
+  'destroyAlly', // 主动破坏自己的随从，触发谢幕曲
+  'countdownDown', // 使己方护符倒数减少 N；到0时破坏并触发谢幕曲
+  'drawTag',    // 从牌库抽指定标签的卡
+  'drawToken',  // 从牌库抽衍生/创造物卡
+  'discard',    // 丢弃手牌中的卡进入墓场
 ]);
 
 /* 动态数值可用的指标（写别的会在结算时抛错）：
@@ -108,6 +123,8 @@ const TARGETS = new Set([
   'allyMedal',        // 1 个拥有【军功】但还没升【爵位】的自己随从
   'allyAllMedal',     // 自己全体拥有【军功】的随从
   'allyToken',
+  'allyAmulet',       // 自己全部护符（倒数加速等）
+  'allyCountdown',    // 自己带倒数的护符
   'enemyAmulet',      // 敌方全部护符（史瓦罗的破坏效果）
   'enemyAny',         // 敌方主战者或 1 个敌方随从（玩家指定，未指定则打主战者）
   'dmgSource',        // 造成本次伤害的单位（配合 onDamaged）
@@ -228,9 +245,9 @@ export function parseEffect(src, cardName = '?') {
         throw new Error(`[${cardName}] 未知动作 "${pc.name}"，可用: ${[...ACTIONS].join(',')}`);
       }
       // 目标合法性检查（第一个参数是目标的动作）
-      const needTarget = ['dmg', 'heal', 'buff', 'grant', 'destroy', 'extraAtk', 'transform', 'bounce',
+      const needTarget = ['dmg', 'heal', 'buff', 'grant', 'destroy', 'destroyAlly', 'extraAtk', 'transform', 'bounce',
         'evolveFree', 'mark', 'break', 'vuln', 'dot', 'aura', 'flaw', 'shock', 'medal', 'title', 'patron', 'weave',
-        'atkPlus', 'reduce', 'cleanse', 'maxAtk', 'copy', 'detonate'];
+        'atkPlus', 'reduce', 'cleanse', 'maxAtk', 'copy', 'detonate', 'countdownDown'];
       if (needTarget.includes(pc.name) && pc.args.length) {
         const t = pc.args[0].replace(/\(.*/, '');
         if (!TARGETS.has(t)) {
@@ -251,8 +268,10 @@ export function parseEffect(src, cardName = '?') {
  */
 export function evalCond(cond, ctx) {
   if (!cond) return true;
-  let neg = false;
   let c = cond.trim();
+  const parts = c.split(/\s*&&\s*/);
+  if (parts.length > 1) return parts.every(part => evalCond(part, ctx));
+  let neg = false;
   if (c.startsWith('!')) { neg = true; c = c.slice(1).trim(); }
 
   let val;
@@ -285,9 +304,10 @@ function readMetric(expr, ctx) {
 
 function readFlag(name, ctx) {
   switch (name) {
-    case 'mara':   return ctx.mara;
-    case 'marked': return ctx.marked;
-    case 'evolved':return ctx.evolved;
+    case 'mara':      return ctx.mara;
+    case 'resonance': return ctx.resonance;
+    case 'marked':    return ctx.marked;
+    case 'evolved':   return ctx.evolved;
     default: throw new Error(`未知条件 "${name}"`);
   }
 }

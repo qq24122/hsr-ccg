@@ -82,7 +82,7 @@ async function main() {
   for (const r of allRows) {
     for (const cl of (r.clauses || [])) {
       for (const a of (cl.actions || [])) {
-        if (!['summon', 'stackSummon', 'transform', 'addHand'].includes(a.op)) continue;
+        if (!['summon', 'stackSummon', 'transform', 'addHand', 'shuffleDeck'].includes(a.op)) continue;
         const ref = a.op === 'transform' ? a.args[1] : a.args[0];
         if (ref && !seen.has(ref)) errors.push(`${r.name}: ${a.op} 引用了不存在的卡 "${ref}"`);
       }
@@ -91,10 +91,28 @@ async function main() {
   // 孤儿衍生卡：没有任何卡能产生它
   const produced = new Set();
   for (const r of allRows) for (const cl of (r.clauses || [])) for (const a of (cl.actions || [])) {
-    if (a.op === 'summon' || a.op === 'stackSummon' || a.op === 'addHand') produced.add(a.args[0]);
+    if (a.op === 'summon' || a.op === 'stackSummon' || a.op === 'addHand' || a.op === 'shuffleDeck') produced.add(a.args[0]);
     if (a.op === 'transform') produced.add(a.args[1]);
   }
-  const orphans = allRows.filter(r => r.isToken && !produced.has(r.name)).map(r => r.name);
+  const intentionallyUnused = new Set(['卡厄斯兰那', '蚀刻残焰', '星核碎屑', '浮元', '龙灵', '账账', '土片', '神秘的创造物', '复制体']);
+  const orphans = allRows.filter(r => r.isToken && !produced.has(r.name) && !intentionallyUnused.has(r.name)).map(r => r.name);
+
+  // 旧机制残留检查：卡组名可以沿用用户指定名称，但卡效与玩家说明不能继续跑旧主轴。
+  const oldMechanics = {
+    '巡猎': /mark\(|enemyMarked|markedCount|【标记】/,
+    '智识': /pctr\(解读|ctr\(解读|「解读」/,
+    '同谐': /pctr\(蓄能|ctr\(蓄能|「蓄能」/,
+    '虚无': /dot\(|flaw\(|vuln\(|shock\(|detonate\(|【持续伤害】|【缺陷】|【侵蚀】/,
+    '欢愉': /pctr\(笑点|ctr\(笑点|「笑点」|【笑点】/,
+    '存护丰饶': /盾卫/,
+    '记忆': /stackSummon|忆质叠加|每回合切换/,
+  };
+  for (const r of allRows) {
+    const re = oldMechanics[r.class];
+    if (re && re.test(`${r.effect || ''} ${r.note || ''}`)) {
+      errors.push(`${r.class}/${r.name}: 仍残留旧机制 "${re.source}"`);
+    }
+  }
 
   const nClass = perClass.length;
   const ok = errors.length === 0;
