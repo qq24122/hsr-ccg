@@ -131,7 +131,7 @@ const MAX_COPIES = 3;
 /* 24 套预设牌使用固定 40 张构筑，不再从“属于这套牌的卡池”随机配额。
  * 每套 14~15 种：核心低费与启动件满编3张，其余2~3张，既能稳定打出原型，
  * 也让平衡测试和玩家实际拿到的是同一副牌。 */
-const PRESET_IDS = {
+export const PRESET_IDS = {
   '毁灭｜地狱变': 'D001 D006 D009 D012 D015 D018 D021 D024 D027 D030 D033 D036 D039 D042 D044',
   '毁灭｜反击回响': 'D002 D005 D008 D011 D014 D017 D020 D023 D026 D029 D032 D035 D038 D041',
   '毁灭｜血仇变身': 'D003 D004 D007 D010 D013 D016 D019 D022 D025 D028 D031 D034 D037 D040 D043',
@@ -187,11 +187,23 @@ function fixedPreset(cards, cls, deckName) {
  * 每个费用档按配额从该档的卡里取，同名最多 3 张；某档缺卡就把名额让给相邻档。
  */
 export function buildDeckFor(cards, cls, deckName, rng = Math.random, exclude = null) {
-  /* exclude 是给消融实验用的：把某一张卡从卡池里拿掉再组牌，
-   * 组牌器会自动用同档的其他卡补满 40 张——正好等于「这张卡不存在时的卡组」。 */
-  if (!exclude) {
-    const fixed = fixedPreset(cards, cls, deckName);
-    if (fixed) return fixed;
+  const fixed = fixedPreset(cards, cls, deckName);
+  if (fixed && !exclude) return fixed;
+  if (fixed && exclude) {
+    const kept = fixed.filter(c => c.name !== exclude);
+    if (kept.length === fixed.length) return fixed;
+    const pool = deckPool(cards, cls, deckName).filter(c => c.name !== exclude);
+    const candidates = pool
+      .filter(c => !kept.some(k => k.id === c.id))
+      .sort((a, b) => Math.abs((a.cost || 0) - ((fixed.find(x => x.name === exclude)?.cost) || 0))
+        - Math.abs((b.cost || 0) - ((fixed.find(x => x.name === exclude)?.cost) || 0)));
+    let at = 0;
+    while (kept.length < RULES.DECK_SIZE && candidates.length) {
+      const d = candidates[at++ % candidates.length];
+      if (kept.filter(x => x.id === d.id).length < MAX_COPIES) kept.push(d);
+      if (at > candidates.length * MAX_COPIES) break;
+    }
+    return kept;
   }
   let pool = deckPool(cards, cls, deckName);
   if (exclude) pool = pool.filter(c => c.name !== exclude);

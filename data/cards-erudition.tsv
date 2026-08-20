@@ -1,5 +1,5 @@
 id	name	class	type	quality	cost	atk	hp	countdown	token	tag	effect	note	decks	img
-E001	自动机兵·蜘蛛	智识	随从	铜	1	1	1		0	自动机兵	costIf(spellboost/2)[spellboost>=2]; onPlay[spellboost>=3]: buff(self,2,2), draw(1)	演算层数每2次费用-1；增幅3次以上时入场+2/+2并抽1。	解读演算	img/E001.webp
+E001	自动机兵·蜘蛛	智识	随从	铜	1	1	2		0	自动机兵	costIf(spellboost/2)[spellboost>=2]; onPlay[spellboost>=3]: buff(self,2,2), draw(1)	演算层数每2次费用-1；增幅3次以上时入场+2/+2并抽1。	解读演算	img/E001.webp
 E002	序列扑满	智识	随从	铜	1	1	2		0		onPlay: earthSigil(1)	入场曲：召唤1个演算模块。	神君追击	img/E002.webp
 E004	睿见	智识	法术	铜	1				0		spell: dmg(enemyAny,2)	给予敌方主战者或随从2点伤害。	弱点揭露	img/E004.webp
 E005	灵钥	智识	法术	铜	1				0		costIf(spellboost/2)[spellboost>=2]; spell: draw(1), dmg(enemyAny,1)	演算层数每2次费用-1；抽1并造成1点。	解读演算	img/E005.webp

@@ -157,6 +157,8 @@ export function createGame(deck0, deck1, seed = 1) {
     rng,
     seed,
     pendingChoices: [],   // 需要玩家选择目标的动作（阶段0由 AI/测试直接给定）
+    __aiTrace: null,       // 诊断页按需启用；默认不记录，避免污染真实对局
+    __cardTrace: null,     // 卡牌实例生命周期；只在平衡诊断启用
   };
   shuffle(s.players[0].deck, rng);
   shuffle(s.players[1].deck, rng);
@@ -175,6 +177,26 @@ export function shuffle(arr, rng) {
 
 export function log(s, msg) { s.log.push(`T${s.turn} P${s.active} ${msg}`); }
 
+export function traceCard(s, event) {
+  if (!s.__cardTrace || s.__sim) return;
+  s.__cardTrace.push({ turn: s.turn, ...event });
+}
+
+export function drawDef(s, pi, def) {
+  const p = s.players[pi];
+  if (p.hand.length >= RULES.HAND_LIMIT) {
+    // 官方：「超过手牌上限时，超出的卡牌不会加入手牌，而是增加墓场数量。」
+    addToGrave(p, def);
+    traceCard(s, { kind: 'draw', player: pi, cardId: def.id, name: def.name, zone: 'burned' });
+    log(s, `手牌已满（${RULES.HAND_LIMIT}），${def.name} 进入墓场`);
+    return null;
+  }
+  const inst = makeCardInstance(def);
+  p.hand.push(inst);
+  traceCard(s, { kind: 'draw', player: pi, uid: inst.uid, cardId: def.id, name: def.name, zone: 'hand' });
+  return inst;
+}
+
 export function drawCard(s, pi) {
   const p = s.players[pi];
   if (!p.deck.length) {
@@ -185,16 +207,7 @@ export function drawCard(s, pi) {
     log(s, `${p.name} 牌库耗尽，判负`);
     return null;
   }
-  const def = p.deck.shift();
-  if (p.hand.length >= RULES.HAND_LIMIT) {
-    // 官方：「超过手牌上限时，超出的卡牌不会加入手牌，而是增加墓场数量。」
-    addToGrave(p, def);
-    log(s, `手牌已满（${RULES.HAND_LIMIT}），${def.name} 进入墓场`);
-    return null;
-  }
-  const inst = makeCardInstance(def);
-  p.hand.push(inst);
-  return inst;
+  return drawDef(s, pi, p.deck.shift());
 }
 
 /* ---------------- 供 AI 试算用的深拷贝 ----------------
@@ -222,7 +235,7 @@ export function cloneForSim(s) {
     // 试算用的随机源不需要与真局同源，只要能跑通带随机的卡效
     rng: makeRng(0x5eed),
     __cardIndex: s.__cardIndex, __tokenIndex: s.__tokenIndex, __cls: s.__cls,
-    __sim: true,
+    __sim: true, __aiTrace: null, __cardTrace: null,
     players: s.players.map(clonePlayer),
   };
 }

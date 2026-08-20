@@ -2,13 +2,15 @@
  * 每个用例都直接构造局面（不依赖随机抽牌），断言失败会记下卡名与期望值。
  */
 
-import { loadCards, buildDeck } from '../src/loader.js';
+import { loadCards, buildDeck, buildDeckFor } from '../src/loader.js';
 import { parseEffect } from '../src/dsl.js';
 import * as S from '../src/state.js';
 import * as E from '../src/engine.js';
+import * as AI from '../src/ai.js';
 
 const results = [];
 let CARDS = null;
+let ALL_CARDS = null;
 
 function t(name, fn) {
   try { fn(); results.push({ name, ok: true }); }
@@ -50,10 +52,91 @@ function turnTo(s, n) { while (s.turn < n) { E.startTurn(s); if (s.turn < n) E.e
 export async function runAll() {
   results.length = 0;
   CARDS = await loadCards('../data/cards.tsv');
+  ALL_CARDS = await loadCards('ALL');
 
   t('卡表加载与 DSL 全部通过校验', () => {
     ok(CARDS.all.length >= 20, `卡表只有 ${CARDS.all.length} 张`);
     for (const c of CARDS.all) ok(Array.isArray(c.clauses), `${c.name} 未解析出 clauses`);
+  });
+
+  t('固定牌组：消融只替换目标卡，不切换成元数据卡池构筑', () => {
+    const base = buildDeckFor(ALL_CARDS, '智识', '解读演算', S.makeRng(1));
+    const target = base[0].name;
+    const ablated = buildDeckFor(ALL_CARDS, '智识', '解读演算', S.makeRng(1), target);
+    eq(base.length, 40, '固定牌组应为40张');
+    eq(ablated.length, 40, '消融后的牌组仍应为40张');
+    ok(!ablated.some(c => c.name === target), '消融目标不应残留');
+    const baseIds = new Set(base.filter(c => c.name !== target).map(c => c.id));
+    const retained = ablated.filter(c => baseIds.has(c.id)).length;
+    ok(retained >= 37, `消融应保留绝大部分实战构筑，实际仅保留${retained}张`);
+  });
+
+  t('AI：有守护时优先攻击守护而非主战者', () => {
+    const s = game(); turnTo(s, 7);
+    const atk = board(s, 0, '毁灭扑满');
+    const ward = board(s, 1, '存护扑满');
+    s.__aiTrace = [];
+    AI.doAttacks(s, 0);
+    ok(ward.hp < 3, 'AI 应优先攻击守护');
+    eq(s.players[1].hp, 20, '处理守护时不应绕过守护打脸');
+    ok(s.__aiTrace.some(x => x.kind === 'attack' && x.target === ward.uid), '应记录攻击守护目标');
+    void atk;
+  });
+
+  t('AI：存在斩杀时直接攻击主战者', () => {
+    const s = game(); turnTo(s, 7);
+    const atk = board(s, 0, '毁灭扑满');
+    atk.atk = 20;
+    s.players[1].hp = 20;
+    s.__aiTrace = [];
+    AI.doAttacks(s, 0);
+    eq(s.winner, 0, '应完成斩杀');
+    ok(s.__aiTrace.some(x => x.kind === 'attack' && x.target === 'leader'), '应记录打脸斩杀');
+  });
+
+  t('AI：没有进化点时不强行进化', () => {
+    const s = game(); turnTo(s, 9);
+    const u = board(s, 0, '存护扑满');
+    s.players[0].ep = 0;
+    s.__aiTrace = [];
+    AI.doEvolve(s, 0);
+    ok(!u.evolved, '没有进化点时不应进化');
+    ok(!s.__aiTrace.some(x => x.kind === 'evolve-choice'), '没有合法进化时无需记录选择');
+  });
+
+  t('AI：出牌选择留痕且试算日志隔离', () => {
+    const s = game(); turnTo(s, 5);
+    hand(s, 0, '好运饼干');
+    const before = s.log.length;
+    s.__aiTrace = [];
+    AI.doPlays(s, 0);
+    ok(s.log.length >= before, '真实动作日志应保持可追踪');
+    ok(s.__aiTrace.some(x => x.kind === 'play-choice'), '应记录出牌候选');
+    ok(!s.log.some(x => /模拟/.test(x)), '试算不应写入模拟日志');
+  });
+
+  t('诊断：记录抽取、打出和丢弃的卡牌实例', () => {
+    const s = game();
+    s.__cardTrace = [];
+    E.startTurn(s);
+    ok(s.__cardTrace.some(x => x.kind === 'draw' && x.player === 0 && x.uid), '应记录抽牌实例');
+    const i = hand(s, 0, '虚卒·掠夺者');
+    const playedUid = s.players[0].hand[i].uid;
+    E.playCard(s, i);
+    ok(s.__cardTrace.some(x => x.kind === 'play' && x.uid === playedUid), '应记录打出实例');
+    const discardAt = hand(s, 0, '好运饼干');
+    const discardedUid = s.players[0].hand[discardAt].uid;
+    E.runActions(s, [{ op: 'discard', args: ['99'] }], { ownerIdx: 0 });
+    ok(s.__cardTrace.some(x => x.kind === 'discard' && x.uid === discardedUid), '应记录丢弃实例');
+  });
+
+  t('AI：解牌场景可完成一整个回合', () => {
+    const s = game(); turnTo(s, 7);
+    board(s, 1, '存护扑满');
+    hand(s, 0, '炎之爪牙');
+    s.__aiTrace = [];
+    AI.takeTurn(s, 0);
+    ok(s.__aiTrace.some(x => x.kind === 'play-choice'), '应记录解牌候选');
   });
 
   t('PP：第1回合1点，每回合+1，上限10', () => {

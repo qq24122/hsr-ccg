@@ -21,19 +21,24 @@
 <div id="body"></div>
 
 <script type="module">
-import { parseTSV, CLASS_FILES, listDecks, buildDeckFor, deckPool } from '../src/loader.js';
+import { parseTSV, CLASS_FILES, listDecks, buildDeckFor, deckPool, PRESET_IDS } from '../src/loader.js';
 import { parseEffect } from '../src/dsl.js';
 import * as S from '../src/state.js';
 import * as E from '../src/engine.js';
 import { takeTurn } from '../src/ai.js';
 
-/* AI 在 src/ai.js —— 与对战页共用同一套，
- * 否则「测出来的平衡」和「玩家实际面对的对手」是两回事。 */
 const autoPlay = s => takeTurn(s, s.active);
 
-function playOne(cards, dA, dB, seed) {
+function playOne(cards, dA, dB, seed, trace = false) {
   const s = S.createGame(dA.slice(), dB.slice(), seed);
   s.__cardIndex = cards.byName; s.__tokenIndex = cards.byName;
+  if (trace) {
+    s.__aiTrace = [];
+    s.__cardTrace = s.players.flatMap((p, player) => p.hand.map(inst => ({
+      turn: 0, kind: 'draw', player, uid: inst.uid,
+      cardId: inst.def.id, name: inst.def.name, zone: 'hand'
+    })));
+  }
   let g = 0;
   while (s.winner == null && g < 100) {
     E.startTurn(s); if (s.winner != null) break;
@@ -41,6 +46,22 @@ function playOne(cards, dA, dB, seed) {
     E.endTurn(s); g++;
   }
   return s;
+}
+
+function percentile(values, q) {
+  if (!values.length) return 0;
+  const a = values.slice().sort((x, y) => x - y);
+  return a[Math.min(a.length - 1, Math.floor((a.length - 1) * q))];
+}
+
+function aiSummary(trace) {
+  const rows = trace || [];
+  return {
+    choices: rows.filter(x => x.kind === 'play-choice').length,
+    noCandidate: rows.filter(x => x.kind === 'play-choice' && x.legalCandidates === 0).length,
+    lethalPlans: rows.filter(x => x.kind === 'attack-plan' && x.lethal).length,
+    attacks: rows.filter(x => x.kind === 'attack').length,
+  };
 }
 
 async function main() {
@@ -62,33 +83,18 @@ async function main() {
       catch (e) { errors.push(`${cls}/${e.message}`); bad++; }
     }
     allRows.push(...rows);
-    const nonToken = rows.filter(r => !r.isToken);
-    const curve = {};
+    const nonToken = rows.filter(r => !r.isToken), curve = {};
     for (const r of nonToken) curve[r.cost] = (curve[r.cost] || 0) + 1;
-    perClass.push({ cls, file, total: rows.length, token: rows.length - nonToken.length, bad,
-      minion: rows.filter(r => r.type === '随从').length,
-      spell: rows.filter(r => r.type === '法术').length,
-      amulet: rows.filter(r => r.type === '护符').length,
-      curve });
+    perClass.push({ cls, file, total: rows.length, token: rows.length - nonToken.length, bad, minion: rows.filter(r => r.type === '随从').length, spell: rows.filter(r => r.type === '法术').length, amulet: rows.filter(r => r.type === '护符').length, curve });
   }
 
-  // 重名检查（byName 索引会互相覆盖，导致 summon/transform 找错卡）
   const seen = new Map();
-  for (const r of allRows) {
-    if (seen.has(r.name)) errors.push(`卡名重复："${r.name}" 同时出现在 ${seen.get(r.name)} 与 ${r.__file}`);
-    else seen.set(r.name, r.__file);
+  for (const r of allRows) { if (seen.has(r.name)) errors.push(`卡名重复："${r.name}" 同时出现在 ${seen.get(r.name)} 与 ${r.__file}`); else seen.set(r.name, r.__file); }
+  for (const r of allRows) for (const cl of (r.clauses || [])) for (const a of (cl.actions || [])) {
+    if (!['summon', 'stackSummon', 'transform', 'addHand', 'shuffleDeck'].includes(a.op)) continue;
+    const ref = a.op === 'transform' ? a.args[1] : a.args[0];
+    if (ref && !seen.has(ref)) errors.push(`${r.name}: ${a.op} 引用了不存在的卡 "${ref}"`);
   }
-  // 引用完整性：summon/transform/addHand 指向的卡必须存在
-  for (const r of allRows) {
-    for (const cl of (r.clauses || [])) {
-      for (const a of (cl.actions || [])) {
-        if (!['summon', 'stackSummon', 'transform', 'addHand', 'shuffleDeck'].includes(a.op)) continue;
-        const ref = a.op === 'transform' ? a.args[1] : a.args[0];
-        if (ref && !seen.has(ref)) errors.push(`${r.name}: ${a.op} 引用了不存在的卡 "${ref}"`);
-      }
-    }
-  }
-  // 孤儿衍生卡：没有任何卡能产生它
   const produced = new Set();
   for (const r of allRows) for (const cl of (r.clauses || [])) for (const a of (cl.actions || [])) {
     if (a.op === 'summon' || a.op === 'stackSummon' || a.op === 'addHand' || a.op === 'shuffleDeck') produced.add(a.args[0]);
@@ -96,157 +102,111 @@ async function main() {
     if (a.op === 'transform') produced.add(a.args[1]);
   }
   const orphans = allRows.filter(r => r.isToken && !produced.has(r.name)).map(r => r.name);
-
-  // 旧机制残留检查：卡组名可以沿用用户指定名称，但卡效与玩家说明不能继续跑旧主轴。
   const oldMechanics = {
-    '巡猎': /mark\(|enemyMarked|markedCount|【标记】/,
-    '智识': /pctr\(解读|ctr\(解读|「解读」/,
-    '同谐': /pctr\(蓄能|ctr\(蓄能|「蓄能」/,
-    '虚无': /dot\(|flaw\(|vuln\(|shock\(|detonate\(|【持续伤害】|【缺陷】|【侵蚀】/,
-    '欢愉': /pctr\(笑点|ctr\(笑点|「笑点」|【笑点】/,
-    '存护丰饶': /盾卫/,
-    '记忆': /stackSummon|忆质叠加|每回合切换/,
+    '巡猎': /mark\(|enemyMarked|markedCount|【标记】/, '智识': /pctr\(解读|ctr\(解读|「解读」/, '同谐': /pctr\(蓄能|ctr\(蓄能|「蓄能」/, '虚无': /dot\(|flaw\(|vuln\(|shock\(|detonate\(|【持续伤害】|【缺陷】|【侵蚀】/, '欢愉': /pctr\(笑点|ctr\(笑点|「笑点」|【笑点】/, '存护丰饶': /盾卫/, '记忆': /stackSummon|忆质叠加|每回合切换/
   };
-  for (const r of allRows) {
-    const re = oldMechanics[r.class];
-    if (re && re.test(`${r.effect || ''} ${r.note || ''}`)) {
-      errors.push(`${r.class}/${r.name}: 仍残留旧机制 "${re.source}"`);
-    }
-  }
-
-  // 崩铁主题与内容质量检查：玩家文案不得残留影之诗专有名，描述必须给出准确数字。
+  for (const r of allRows) { const re = oldMechanics[r.class]; if (re && re.test(`${r.effect || ''} ${r.note || ''}`)) errors.push(`${r.class}/${r.name}: 仍残留旧机制 "${re.source}"`); }
   const foreignTerms = /神圣猎鹰|猎鹰祷告|尘土巨像|土之秘术|土片|法术增幅|帝国士兵|指挥官|士兵|妖精|悬丝傀儡|古老的创造物|解析的创造物|死灵术|墓场/;
   const vagueText = /大量(?:直接)?伤害|造成直接伤害|造成伤害(?!并|。)/;
-  for (const r of allRows) {
-    const text = `${r.name || ''} ${r.tag || ''} ${r.note || ''}`;
-    if (foreignTerms.test(text)) errors.push(`${r.class}/${r.name}: 仍残留影之诗专有词`);
-    if (vagueText.test(r.note || '')) errors.push(`${r.class}/${r.name}: 描述没有写明准确伤害数字`);
-  }
+  for (const r of allRows) { const text = `${r.name || ''} ${r.tag || ''} ${r.note || ''}`; if (foreignTerms.test(text)) errors.push(`${r.class}/${r.name}: 仍残留影之诗专有词`); if (vagueText.test(r.note || '')) errors.push(`${r.class}/${r.name}: 描述没有写明准确伤害数字`); }
   const rampByDeck = new Map();
-  for (const r of allRows) if (/ppMaxUp\(/.test(r.effect || '')) {
-    for (const d of String(r.decks || '').split('/').filter(Boolean)) rampByDeck.set(`${r.class}｜${d}`, (rampByDeck.get(`${r.class}｜${d}`) || 0) + 1);
-  }
+  for (const r of allRows) if (/ppMaxUp\(/.test(r.effect || '')) for (const d of String(r.decks || '').split('/').filter(Boolean)) rampByDeck.set(`${r.class}｜${d}`, (rampByDeck.get(`${r.class}｜${d}`) || 0) + 1);
   for (const [deck, count] of rampByDeck) if (count > 3) errors.push(`${deck}: 永久PP成长卡过多（${count}种，上限3种）`);
-
-  // 缺图与坏路径：所有保留卡牌（包括衍生卡）都必须有可加载的配图。
+  const byId = new Map(allRows.map(r => [r.id, r]));
+  for (const [key, src] of Object.entries(PRESET_IDS)) {
+    const [cls] = key.split('｜');
+    const ids = String(src).split(/\s+/).filter(Boolean);
+    let present = 0;
+    for (const id of ids) {
+      const card = byId.get(id);
+      if (!card) continue; // 历史预设中允许保留已删除 ID；组牌器本来也会过滤它们
+      present++;
+      if (card.class !== cls) errors.push(`${key}: ${id} 属于${card.class}，固定牌组职业不匹配`);
+    }
+    if (present < 12) errors.push(`${key}: 现存固定卡牌仅${present}种，低于12种`);
+  }
   for (const r of allRows) {
     if (!r.img) errors.push(`${r.class}/${r.name}: 缺少卡图路径`);
-    else {
-      try {
-        const imgRes = await fetch('../' + r.img, { cache: 'no-store' });
-        if (!imgRes.ok) errors.push(`${r.class}/${r.name}: 卡图无法加载（HTTP ${imgRes.status}）`);
-      } catch (e) { errors.push(`${r.class}/${r.name}: 卡图加载失败`); }
-    }
+    else try { const imgRes = await fetch('../' + r.img, { cache: 'no-store' }); if (!imgRes.ok) errors.push(`${r.class}/${r.name}: 卡图无法加载（HTTP ${imgRes.status}）`); }
+    catch (e) { errors.push(`${r.class}/${r.name}: 卡图加载失败`); }
   }
 
-  const nClass = perClass.length;
-  const ok = errors.length === 0;
-  const sum = document.getElementById('sum');
-  sum.className = 'sum ' + (ok ? 'pass' : 'fail');
-  sum.textContent = `${nClass}/8 个职业已录入，共 ${allRows.length} 张卡`
-    + (ok ? '，DSL 全部通过校验' : `，${errors.length} 项错误`)
-    + (missing.length ? `｜未录入：${missing.length}` : '');
-
+  const nClass = perClass.length, ok = errors.length === 0, sum = document.getElementById('sum');
+  sum.className = 'sum ' + (ok ? 'pass' : 'fail'); sum.textContent = `${nClass}/8 个职业已录入，共 ${allRows.length} 张卡` + (ok ? '，DSL 全部通过校验' : `，${errors.length} 项错误`) + (missing.length ? `｜未录入：${missing.length}` : '');
   let html = '<table><tr><th>职业</th><th>卡数</th><th>随从</th><th>法术</th><th>护符</th><th>衍生</th><th>错误</th><th>费用曲线 1→9+</th></tr>';
-  for (const c of perClass) {
-    const cv = [1,2,3,4,5,6,7,8,9].map(k => (c.curve[k] || 0)).join('/');
-    html += `<tr><td>${c.cls}</td><td>${c.total}</td><td>${c.minion}</td><td>${c.spell}</td>`
-         + `<td>${c.amulet}</td><td>${c.token}</td>`
-         + `<td class="${c.bad ? 'no' : 'ok'}">${c.bad || '—'}</td><td>${cv}</td></tr>`;
-  }
-  html += '</table>';
-  if (missing.length) html += `<div class="warn">未录入：${missing.join('；')}</div>`;
-  if (orphans.length) html += `<div class="warn">孤儿衍生卡（没有任何卡能产生它）：${orphans.join('、')}</div>`;
-  if (errors.length) html += `<h1>错误明细</h1><pre class="no">${errors.join('\n')}</pre>`;
-  document.getElementById('body').innerHTML = html;
+  for (const c of perClass) { const cv = [1,2,3,4,5,6,7,8,9].map(k => c.curve[k] || 0).join('/'); html += `<tr><td>${c.cls}</td><td>${c.total}</td><td>${c.minion}</td><td>${c.spell}</td><td>${c.amulet}</td><td>${c.token}</td><td class="${c.bad ? 'no' : 'ok'}">${c.bad || '—'}</td><td>${cv}</td></tr>`; }
+  html += '</table>'; if (missing.length) html += `<div class="warn">未录入：${missing.join('；')}</div>`; if (orphans.length) html += `<div class="warn">孤儿衍生卡（没有任何卡能产生它）：${orphans.join('、')}</div>`; if (errors.length) html += `<h1>错误明细</h1><pre class="no">${errors.join('\n')}</pre>`; document.getElementById('body').innerHTML = html;
+  const stats = { classes: nClass, cards: allRows.length, errors: errors.length, missing, orphans, perClass: perClass.map(c => ({ cls: c.cls, n: c.total, bad: c.bad })) };
 
-  const stats = { classes: nClass, cards: allRows.length, errors: errors.length,
-    missing, orphans, perClass: perClass.map(c => ({ cls: c.cls, n: c.total, bad: c.bad })) };
-
-  // 全部录入且无错时，跑职业两两自对弈
   if (ok && nClass === 8) {
-    const cards = { byName: {}, all: allRows };
-    for (const r of allRows) cards.byName[r.name] = r;
-    /* 按「卡组」而不是「职业整池」对战。
-     * 之前用整池按文件顺序凑 40 张，等于只拿了每职业最便宜的十几张卡，
-     * 既不是卡组也没有曲线——那批胜率数字因此无效。 */
-    const decksByCls = listDecks(cards);
-    const entries = [];      // [{cls, deck, label, deck40}]
-    const thin = [];
-    for (const [cls] of CLASS_FILES) {
-      for (const dk of (decksByCls[cls] || [])) {
-        const pool = deckPool(cards, cls, dk);
-        if (pool.length < 12) { thin.push(`${cls}｜${dk}（仅 ${pool.length} 种）`); continue; }
-        entries.push({ cls, deck: dk, label: `${cls}｜${dk}`,
-          deck40: buildDeckFor(cards, cls, dk, S.makeRng(4242)) });
-      }
-    }
-
-    const games = [], crashes = [];
-    /* 每对卡组打 SEEDS 个不同的发牌序列。1 个种子时单套卡组只有 42 局，
-     * 换个 seed 同一套卡组能从 31% 跳到 48%——那种精度下做 ±5% 的数值调整
-     * 全是在追噪声。3 个种子把单套卡组的样本抬到 126 局，标准误约 4.5%。 */
+    const cards = { byName: {}, all: allRows }; for (const r of allRows) cards.byName[r.name] = r;
+    const entries = [], thin = [], decksByCls = listDecks(cards);
+    for (const [cls] of CLASS_FILES) for (const dk of (decksByCls[cls] || [])) { const pool = deckPool(cards, cls, dk); if (pool.length < 12) { thin.push(`${cls}｜${dk}（仅 ${pool.length} 种）`); continue; } entries.push({ cls, deck: dk, label: `${cls}｜${dk}`, deck40: buildDeckFor(cards, cls, dk, S.makeRng(4242)) }); }
+    const games = [], crashes = [], ai = [], byDeck = entries.map(() => ({ w: 0, l: 0, firstW: 0, firstL: 0, secondW: 0, secondL: 0, turns: [], highDrawn: 0, highPlayed: 0, highEndHand: 0, highDiscarded: 0, highBurned: 0 }));
+    const matrix = {};
+    /* 主验收保持 3 个种子（1512 局），保证每轮调整能及时拿到结果。
+     * 更高样本的互换先后手矩阵应放在独立分批诊断中，不阻塞主验证器。 */
     const SEEDS = 3;
-    for (let i = 0; i < entries.length; i++) {
-      for (let j = 0; j < entries.length; j++) {
-        if (i === j || entries[i].cls === entries[j].cls) continue;   // 同职业内不对打
-        for (let k = 0; k < SEEDS; k++) {
-          try {
-            const s = playOne(cards, entries[i].deck40, entries[j].deck40,
-              9000 + (i * 31 + j) * 17 + k * 613);
-            const warn = s.log.filter(l => /未实现|找不到/.test(l));
-            games.push({ a: i, b: j, winner: s.winner, turn: s.turn });
-            if (warn.length) crashes.push(`${entries[i].label} vs ${entries[j].label}: ${warn.slice(0, 2).join(' | ')}`);
-          } catch (e) {
-            crashes.push(`${entries[i].label} vs ${entries[j].label} 崩溃: ${e.message}`);
-          }
+    for (let i = 0; i < entries.length; i++) for (let j = 0; j < entries.length; j++) {
+      if (i === j || entries[i].cls === entries[j].cls) continue;
+      for (let k = 0; k < SEEDS; k++) try {
+        const s = playOne(cards, entries[i].deck40, entries[j].deck40, 9000 + (i * 31 + j) * 17 + k * 613, true);
+        const trace = s.__aiTrace || [], aiStat = aiSummary(trace), winner = s.winner;
+        games.push({ a: i, b: j, winner, turn: s.turn }); ai.push(aiStat);
+        const warn = s.log.filter(l => /未实现|找不到/.test(l)); if (warn.length) crashes.push(`${entries[i].label} vs ${entries[j].label}: ${warn.slice(0, 2).join(' | ')}`);
+        const sides = [[i, 0], [j, 1]];
+        for (const [idx, side] of sides) {
+          const d = byDeck[idx], p = s.players[side], won = winner === side;
+          d.turns.push(Math.ceil(s.turn / 2)); if (won) d.w++; else if (winner === 1 - side) d.l++;
+          if (side === 0) { if (won) d.firstW++; else if (winner === 1) d.firstL++; } else { if (won) d.secondW++; else if (winner === 0) d.secondL++; }
+          const highIds = new Set(entries[idx].deck40.filter(x => x.cost >= 7).map(x => x.id));
+          const highEvents = (s.__cardTrace || []).filter(x => x.player === side && highIds.has(x.cardId));
+          const drawnHigh = highEvents.filter(x => x.kind === 'draw').length;
+          const playedHigh = highEvents.filter(x => x.kind === 'play').length;
+          const endHigh = p.hand.filter(x => x.def && highIds.has(x.def.id)).length;
+          const discardedHigh = highEvents.filter(x => x.kind === 'discard').length;
+          const burnedHigh = highEvents.filter(x => x.kind === 'draw' && x.zone === 'burned').length;
+          d.highDrawn += drawnHigh;
+          d.highPlayed += playedHigh;
+          d.highEndHand += endHigh;
+          d.highDiscarded += discardedHigh;
+          d.highBurned += burnedHigh;
         }
-      }
-    }
-
-    const dw = entries.map(() => ({ w: 0, l: 0 }));
-    const cw = {};
-    for (const [cls] of CLASS_FILES) cw[cls] = { w: 0, l: 0 };
-    for (const g of games) {
-      const wi = g.winner === 0 ? g.a : g.winner === 1 ? g.b : null;
-      if (wi == null) continue;
-      const li = wi === g.a ? g.b : g.a;
-      dw[wi].w++; dw[li].l++;
-      cw[entries[wi].cls].w++; cw[entries[li].cls].l++;
+        const key = `${i}>${j}`; (matrix[key] ||= { w: 0, l: 0, n: 0 }); matrix[key].n++; if (winner === 0) matrix[key].w++; else if (winner === 1) matrix[key].l++;
+      } catch (e) { crashes.push(`${entries[i].label} vs ${entries[j].label} 崩溃: ${e.message}`); }
     }
     const pct = o => (o.w + o.l) ? Math.round(o.w / (o.w + o.l) * 100) : 0;
-
-    let h2 = `<h1>卡组两两自对弈（${entries.length} 套卡组，${games.length} 局）</h1>`;
-    h2 += '<table><tr><th>卡组</th><th>胜</th><th>负</th><th>胜率</th></tr>';
-    const order = entries.map((e, i) => i).sort((x, y) => pct(dw[y]) - pct(dw[x]));
-    for (const i of order) {
-      const p = pct(dw[i]);
-      const col = p >= 60 ? '#ff8787' : p <= 40 ? '#ffd43b' : '#8ce99a';
-      h2 += `<tr><td>${entries[i].label}</td><td>${dw[i].w}</td><td>${dw[i].l}</td>`
-          + `<td style="color:${col}">${p}%</td></tr>`;
+    const deckRows = entries.map((e, i) => { const d = byDeck[i], total = d.w + d.l, firstN = d.firstW + d.firstL, secondN = d.secondW + d.secondL; return { label: e.label, pct: pct(d), first: pct({ w: d.firstW, l: d.firstL }), second: pct({ w: d.secondW, l: d.secondL }), avgTurn: d.turns.length ? +(d.turns.reduce((a, b) => a + b, 0) / d.turns.length).toFixed(1) : 0, p10: percentile(d.turns, .1), p50: percentile(d.turns, .5), p90: percentile(d.turns, .9), highPlay: d.highDrawn ? +(d.highPlayed / d.highDrawn * 100).toFixed(1) : 0, highLock: d.highDrawn ? +(d.highEndHand / d.highDrawn * 100).toFixed(1) : 0, highDiscard: d.highDrawn ? +(d.highDiscarded / d.highDrawn * 100).toFixed(1) : 0, highBurn: d.highDrawn ? +(d.highBurned / d.highDrawn * 100).toFixed(1) : 0, n: total, firstN, secondN }; });
+    const extremes = Object.entries(matrix).map(([key, v]) => ({ key, pct: pct(v), n: v.n })).sort((a, b) => a.pct - b.pct);
+    const reciprocal = {};
+    for (const [key, v] of Object.entries(matrix)) {
+      const [a, b] = key.split('>').map(Number);
+      if (a >= b) continue;
+      const back = matrix[`${b}>${a}`] || { w: 0, l: 0, n: 0 };
+      const n = v.n + back.n;
+      /* A 的对局总战绩 = A 先手的胜场 + A 后手时对方的负场。 */
+      reciprocal[`${a}↔${b}`] = { w: v.w + back.l, l: v.l + back.w, n };
     }
-    h2 += '</table><table><tr><th>职业合计</th><th>胜率</th></tr>';
-    for (const [cls] of CLASS_FILES) h2 += `<tr><td>${cls}</td><td>${pct(cw[cls])}%</td></tr>`;
+    const matchupPairs = Object.entries(reciprocal)
+      .map(([key, v]) => ({ key, pct: pct(v), n: v.n }))
+      .sort((a, b) => a.pct - b.pct);
+    const aiAvg = ai.length ? { choices: +(ai.reduce((a, x) => a + x.choices, 0) / ai.length).toFixed(2), noCandidate: +(ai.reduce((a, x) => a + x.noCandidate, 0) / ai.length).toFixed(2), lethalPlans: +(ai.reduce((a, x) => a + x.lethalPlans, 0) / ai.length).toFixed(2), attacks: +(ai.reduce((a, x) => a + x.attacks, 0) / ai.length).toFixed(2) } : null;
+    let h2 = `<h1>卡组两两自对弈（${entries.length} 套卡组，${games.length} 局）</h1>`;
+    h2 += '<table><tr><th>卡组</th><th>总胜率</th><th>先手胜率</th><th>后手胜率</th><th>均回合</th><th>P10/P50/P90</th><th>7+打出率</th><th>7+终局留手</th><th>7+丢弃/烧毁</th></tr>';
+    for (const r of deckRows.sort((a, b) => b.pct - a.pct)) h2 += `<tr><td>${r.label}</td><td>${r.pct}%</td><td>${r.first}%</td><td>${r.second}%</td><td>${r.avgTurn}</td><td>${r.p10}/${r.p50}/${r.p90}</td><td>${r.highPlay}%</td><td>${r.highLock}%</td><td>${r.highDiscard}%/${r.highBurn}%</td></tr>`;
     h2 += '</table>';
-    const avgTurn = games.length ? (games.reduce((a, g) => a + g.turn, 0) / games.length).toFixed(1) : 0;
-    h2 += `<div>平均对局长度 ${avgTurn} 回合｜未分出胜负 ${games.filter(g => g.winner == null).length} 局</div>`;
+    const avgTurn = games.length ? +(games.reduce((a, g) => a + g.turn, 0) / games.length).toFixed(1) : 0;
+    h2 += `<div>平均对局 ${avgTurn} 回合｜P10/P50/P90 ${percentile(games.map(g => Math.ceil(g.turn / 2)), .1)}/${percentile(games.map(g => Math.ceil(g.turn / 2)), .5)}/${percentile(games.map(g => Math.ceil(g.turn / 2)), .9)}｜未决 ${games.filter(g => g.winner == null).length}</div>`;
+    if (matchupPairs.length) h2 += `<div class="warn">互换先后手后最极端对局：${matchupPairs[0].key} ${matchupPairs[0].pct}%（${matchupPairs[0].n}局）｜${matchupPairs[matchupPairs.length - 1].key} ${matchupPairs[matchupPairs.length - 1].pct}%（${matchupPairs[matchupPairs.length - 1].n}局）</div>`;
+    h2 += `<div>AI平均每局：${JSON.stringify(aiAvg)}</div>`;
     if (thin.length) h2 += `<div class="warn">卡数不足、已跳过：${thin.join('；')}</div>`;
     if (crashes.length) h2 += `<h1>崩溃 / 未实现动作</h1><pre class="no">${crashes.slice(0, 40).join('\n')}</pre>`;
     document.getElementById('body').innerHTML += h2;
-
-    stats.selfplay = { decks: entries.length, games: games.length, crashes: crashes.length,
-      avgTurn: +avgTurn, undecided: games.filter(g => g.winner == null).length, thin,
-      byClass: Object.fromEntries(CLASS_FILES.map(([c]) => [c, pct(cw[c])])),
-      byDeck: order.map(i => [entries[i].label, pct(dw[i])]),
-      crashList: crashes.slice(0, 6) };
+    stats.selfplay = { decks: entries.length, games: games.length, crashes: crashes.length, avgTurn, undecided: games.filter(g => g.winner == null).length, thin, byDeck: deckRows, matrixExtremes: extremes.slice(0, 10).concat(extremes.slice(-10)), matchupPairs: matchupPairs.slice(0, 10).concat(matchupPairs.slice(-10)), ai: aiAvg, crashList: crashes.slice(0, 6) };
   }
   window.__validate = stats;
 }
-main().catch(e => {
-  document.getElementById('sum').className = 'sum fail';
-  document.getElementById('sum').textContent = '校验器本身出错：' + e.message;
-  window.__validate = { fatal: e.message, stack: (e.stack || '').split('\n').slice(0, 5).join(' | ') };
-});
+main().catch(e => { document.getElementById('sum').className = 'sum fail'; document.getElementById('sum').textContent = '校验器本身出错：' + e.message; window.__validate = { fatal: e.message, stack: (e.stack || '').split('\n').slice(0, 5).join(' | ') }; });
 </script>
 </body>
 </html>

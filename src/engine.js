@@ -211,8 +211,7 @@ function runAction(s, a, ctx) {
         const at = P.deck.findIndex(d => d.type === kind);
         if (at < 0) break;
         const [def] = P.deck.splice(at, 1);
-        if (P.hand.length >= RULES.HAND_LIMIT) { S.addToGrave(P, def); updateResonance(s, me); continue; }
-        P.hand.push(S.makeCardInstance(def));
+        S.drawDef(s, me, def);
         updateResonance(s, me);
       }
       break;
@@ -223,8 +222,7 @@ function runAction(s, a, ctx) {
         const at = P.deck.findIndex(d => String(d.tag || '').split('/').includes(tag));
         if (at < 0) break;
         const [def] = P.deck.splice(at, 1);
-        if (P.hand.length >= RULES.HAND_LIMIT) S.addToGrave(P, def);
-        else P.hand.push(S.makeCardInstance(def));
+        S.drawDef(s, me, def);
         updateResonance(s, me);
       }
       break;
@@ -235,8 +233,7 @@ function runAction(s, a, ctx) {
         const at = P.deck.findIndex(d => d.isToken);
         if (at < 0) break;
         const [def] = P.deck.splice(at, 1);
-        if (P.hand.length >= RULES.HAND_LIMIT) S.addToGrave(P, def);
-        else P.hand.push(S.makeCardInstance(def));
+        S.drawDef(s, me, def);
         updateResonance(s, me);
       }
       break;
@@ -246,6 +243,8 @@ function runAction(s, a, ctx) {
       for (let i = 0; i < n && P.hand.length; i++) {
         const at = Math.floor(s.rng() * P.hand.length);
         const [inst] = P.hand.splice(at, 1);
+        S.traceCard(s, { kind: 'discard', player: me, uid: inst.uid,
+          cardId: inst.def.id, name: inst.def.name });
         S.addToGrave(P, inst.def);
       }
       break;
@@ -1053,6 +1052,8 @@ export function playCard(s, handIndex, opts = {}) {
     for (const h of p.hand) h.spellboost += 1;
   }
   S.log(s, `打出 ${inst.def.name}（${chk.cost} PP）`);
+  S.traceCard(s, { kind: 'play', player: me, uid: inst.uid,
+    cardId: inst.def.id, name: inst.def.name, cost: chk.cost });
 
   const ctx = { ownerIdx: me, chosen: opts.target, chosenAlly: opts.ally, source: inst };
 

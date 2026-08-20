@@ -21,6 +21,27 @@ import * as E from './engine.js';
 /* 主战者血量的效用曲线（凹函数）。20 血时每点约值 1.1 分，3 血时每点约值 3.2 分。 */
 const hpVal = h => 30 * Math.log(1 + Math.max(0, h) / 6);
 
+function cardLabel(inst) {
+  return inst && inst.def ? inst.def.name : null;
+}
+
+function keyCard(inst) {
+  const effect = String(inst?.def?.effect || '');
+  return /ppMaxUp|detonate|spellboost|stackSummon|reanimate|pctr\(|onCtr|costIf/.test(effect);
+}
+
+function keyHoldBonus(p, inst) {
+  if (!keyCard(inst)) return 0;
+  const copies = p.hand.filter(h => h.def.id === inst.def.id).length;
+  /* 只保护唯一启动件；满编复制品仍可正常出牌。 */
+  return copies === 1 ? 1.4 : 0;
+}
+
+function trace(s, event) {
+  if (!s.__aiTrace || s.__sim) return;
+  s.__aiTrace.push({ turn: s.turn, player: s.active, ...event });
+}
+
 function evaluate(s, me) {
   const you = S.opp(me);
   const P = s.players[me], F = s.players[you];
@@ -57,6 +78,9 @@ function evaluate(s, me) {
   /* 少量卡牌仍会保存跨回合计数器。计数器本身只有在能被后续效果兑现时才有价值，
    * 给一个保守权重，避免 AI 完全拒绝启动件，同时不让纯记账压过场面与血量。 */
   for (const n of Object.values(P.counters)) v += Math.min(n, 24) * 0.35;
+
+  /* 唯一的启动件/终结件是跨回合资源，不应被即时场面分轻易吞掉。 */
+  for (const h of P.hand) v += keyHoldBonus(P, h);
 
   /* 【入魔】：血量≤10 才解锁的效果。不给它加分，AI 就只把自伤看成掉血，
    * 而毁灭几乎每张牌都自伤——地狱变有 23 张卡出场率不到 35%，等于整套不打。
@@ -145,6 +169,7 @@ function doAttacks(s, me) {
   const P = s.players[me], you = S.opp(me);
   const lethal = reach(s, me) >= s.players[you].hp && S.tauntTargets(s.players[you]).length === 0;
   const pressured = P.hp <= threat(s, me) + 2;   // 下回合可能被打死，优先清场
+  trace(s, { kind: 'attack-plan', lethal, pressured, attackPower: reach(s, me) });
 
   for (const u of S.minionsOf(P).slice()) {
     // 攻击力 0 的随从（护盾墙之类）打过去什么也不会发生，只有【必杀】例外
@@ -181,6 +206,8 @@ function doAttacks(s, me) {
         target = best.uid;
       }
       if (!target || !E.attack(s, u.uid, target).ok) break;
+      trace(s, { kind: 'attack', attacker: u.name,
+        target: target === 'leader' ? 'leader' : target });
     }
   }
 }
@@ -201,6 +228,7 @@ function doPlays(s, me) {
     try { doAttacks(baseSim, me); } catch (e) { /* 同上 */ }
     const base = evaluate(baseSim, me);
     let best = null;
+    let legal = 0;
 
     for (let i = 0; i < p.hand.length; i++) {
       if (!E.canPlay(s, i).ok) continue;
@@ -212,6 +240,7 @@ function doPlays(s, me) {
         let ok = false;
         try { ok = E.playCard(sim, i, remapOpt(sim, opt)).ok; } catch (e) { ok = false; }
         if (!ok) continue;
+        legal++;
         /* 试算里把攻击也走完再评分。出牌决策发生在攻击之前，只看「打完这张牌的场面分」
          * 的话，凡是「让随从能多打一次 / 当回合就能打」的牌收益全是 0：
          * 舞！舞！舞！和 夜色流光溢彩 的出场率是 0%，突进/疾驰也被严重低估。
@@ -222,6 +251,9 @@ function doPlays(s, me) {
       }
     }
 
+    // 记录候选与最终选择，供诊断区分「没有可行动作」和「评分选错」。
+    trace(s, { kind: 'play-choice', round, legalCandidates: legal,
+      chosen: best ? best.name : null, gain: best ? +best.gain.toFixed(2) : null });
     // 允许极小的负收益（多数随从入场后场面分本来就涨，真正没用的牌会被这条挡掉）
     if (!best || best.gain < -0.5) return;
     if (!E.playCard(s, best.i, best.opt).ok) return;
@@ -244,8 +276,18 @@ function targetOptions(s, handIndex, me) {
   const byBody = arr => arr.slice().sort((a, b) => (E.effAtk(s, b) + b.hp) - (E.effAtk(s, a) + a.hp));
 
   if (need === 'allyOne') {
-    const arr = byBody(S.minionsOf(p));
-    const base = arr.length ? [{ ally: arr[0] }] : [{}];
+    const isSacrifice = String(inst.def.effect || '').includes('destroyAlly');
+    const arr = S.minionsOf(p);
+    const ordered = isSacrifice
+      ? arr.slice().sort((a, b) => {
+          const disposableA = Number(a.def.isToken || S.hasTag(a, '亡灵'));
+          const disposableB = Number(b.def.isToken || S.hasTag(b, '亡灵'));
+          return disposableB - disposableA
+            || (E.effAtk(s, a) + a.hp) - (E.effAtk(s, b) + b.hp);
+        })
+      : byBody(arr);
+    const choices = ordered.slice(0, Math.min(3, ordered.length));
+    const base = choices.length ? choices.map(ally => ({ ally })) : [{}];
     return base.flatMap(opt => placementOptions(s, inst.def, opt));
   }
   const foes = byBody(S.minionsOf(s.players[S.opp(s.active)]));
@@ -302,7 +344,9 @@ function doEvolve(s, me) {
     const gain = evaluate(sim, me) - base;
     if (!best || gain > best.gain) best = { uid: u.uid, gain };
   }
-  if (best) E.evolve(s, best.uid);
+  trace(s, { kind: 'evolve-choice', chosen: best ? S.findUnit(s, best.uid)?.name : null,
+    gain: best ? +best.gain.toFixed(2) : null });
+  if (best && best.gain >= 0) E.evolve(s, best.uid);
 }
 
 /**
@@ -325,3 +369,5 @@ export function takeTurn(s, me) {
     step();
   }
 }
+
+export { doAttacks, doPlays, doEvolve, evaluate };

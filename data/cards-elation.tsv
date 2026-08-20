@@ -15,7 +15,7 @@ L013	今日好手气	欢愉	法术	银	2				0		spell: addHand(剧团玩偶,1), d
 L014	助手涂鸦•赶稿	欢愉	随从	铜	2	2	2		0	剧团玩偶协同	onPlay: addHand(剧团玩偶,1); onAllySummon: buff(self,1,0)	入场获得1张剧团玩偶；每当己方随从入场，此随从+1/+0。	剧团登场	img/L014.webp
 L015	喜剧学家	欢愉	随从	铜	2	2	3		0		onPlay: dmg(enemyLeader,1)	入场给予敌方主战者1点。	大吉大利	img/L015.webp
 L016	未来，有我们一起	欢愉	护符	银	2			4	0		onCard[ctr(连击)<3]: ctr(连击,+1); onCtr(连击,3): ctr(连击,-3), addHand(剧团玩偶,1)	每使用3张牌，将1张剧团玩偶加入手牌。	笑点狂欢	img/L016.webp
-L017	开拓者·欢愉	欢愉	随从	虹	3	2	2		0	剧团玩偶协同	onPlay: addHand(剧团玩偶,1); onAllySummon: buff(self,1,0)	入场获得1张剧团玩偶；每当己方随从入场，此随从+1/+0。	剧团登场	img/L017.webp
+L017	开拓者·欢愉	欢愉	随从	虹	3	2	3		0	剧团玩偶协同	onPlay: addHand(剧团玩偶,1); onAllySummon: buff(self,1,0)	入场获得1张剧团玩偶；每当己方随从入场，此随从+1/+0。	剧团登场	img/L017.webp
 L018	惊梦剧团的舞鸫假面	欢愉	随从	银	3	2	4		0	惊梦剧团	static: storm	疾驰。	大吉大利	img/L018.webp
 L019	画板孔雀	欢愉	随从	银	3	2	4		0		onPlay[cardsPlayed>=2]: buff(self,2,2), draw(1)	连击2：此随从+2/+2并抽1。	笑点狂欢	img/L019.webp
 L020	当她决定看见	欢愉	法术	银	2				0		spell: addHand(剧团玩偶,2)	将2张1费剧团玩偶加入手牌。	剧团登场	img/L020.webp

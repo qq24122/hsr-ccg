@@ -8,7 +8,7 @@ A006	应天涉远的卜者	同谐	随从	铜	1	1	3		0	战斗员	static: rush; on
 A007	追逐风的时候	同谐	随从	铜	1	1	1		0	领航者	onPlay: buff(allyTag(战斗员),1,1), drawTag(战斗员,1)	领航者入场：使己方战斗员+1/+1，并从牌库抽1张战斗员。	军功爵位	img/A007.webp
 A008	艾丝妲	同谐	随从	金	2	2	2		0	战斗员	onPlay: summon(云骑新兵,1)	入场曲：召唤1个云骑新兵。	蓄能合鸣	img/A008.webp
 A009	停云	同谐	随从	金	2	1	3		0	战斗员	static: rush; onEvolve: draw(1)	突进。进化时抽1张。	额外行动	img/A009.webp
-A010	寒鸦	同谐	随从	金	2	2	2		0	战斗员	onPlay[tagCount(领航者)>=1]: buff(self,1,1), grant(self,rush)	若己方有领航者，入场+1/+1并获得突进。	军功爵位	img/A010.webp
+A010	寒鸦	同谐	随从	金	2	2	2		0	战斗员	onPlay[tagCount(领航者)>=1]: buff(self,1,1), grant(self,rush); onEvolve: draw(1)	若己方有领航者，入场+1/+1并获得突进；进化时抽1张。	军功爵位	img/A010.webp
 A011	轮契	同谐	法术	铜	2				0		spell: summon(云骑新兵,2)	召唤2个云骑新兵。	蓄能合鸣	img/A011.webp
 A012	正阳狮鹫	同谐	随从	银	2	3	2		0	战斗员	static: rush; onEvolve: draw(1)	突进。进化时抽1张。	额外行动	img/A012.webp
 A013	齐颂	同谐	法术	银	2				0		spell: summon(云骑新兵,1), buff(allyTag(战斗员),1,0)	召唤云骑新兵，并使己方战斗员+1/+0。	军功爵位	img/A013.webp
