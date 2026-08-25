@@ -338,5 +338,26 @@
     "mobileViewport": "passed",
     "urlRestore": "passed",
     "publication": "local only"
+  },
+  "cardCatalogOptimization": {
+    "battleCardStyle": "shared card-view.css with battle layout/icons",
+    "defaultClass": "毁灭",
+    "allClassOption": false,
+    "selectedClassOnlyLoad": true,
+    "measuredLocalLoadMs": 2163,
+    "deckFilter": {
+      "presets": 27,
+      "allFortyCards": true,
+      "copyRange": "1-3",
+      "copyBad": 0
+    },
+    "postDeckFixOldMatrix": {
+      "games": 1512,
+      "minWinRate": 38,
+      "maxWinRate": 59,
+      "crashes": 0,
+      "undecided": 0
+    },
+    "publication": "local only"
   }
 }

@@ -201,6 +201,14 @@ function fixedPreset(cards, cls, deckName) {
   }
   const kinds = defs;
   if (kinds.length < 12) return null;
+  /* 13种卡最多只能组成39张（同名上限3），不足40张的旧预设要从该职业牌池补一张
+   * 同牌组标签卡；否则对战和图鉴都会把它当成38/39张牌。 */
+  if (kinds.length === 13) {
+    const used = new Set(kinds.map(d => d.id));
+    const extra = cards.all.find(d => !d.isToken && d.class === cls && !used.has(d.id)
+      && String(d.decks || '').split('/').some(name => name.trim() === deckName));
+    if (extra) kinds.push(extra);
+  }
   const deck = [];
   // 前12张满编，其余各2张；按费用最高者优先削到40张。
   kinds.forEach((d, i) => { const n = i < 12 ? 3 : 2; for (let k = 0; k < n; k++) deck.push(d); });
@@ -210,9 +218,13 @@ function fixedPreset(cards, cls, deckName) {
     deck.splice(at, 1);
   }
   while (deck.length < RULES.DECK_SIZE) {
-    const d = kinds[deck.length % Math.min(12, kinds.length)];
-    if (deck.filter(x => x.id === d.id).length < MAX_COPIES) deck.push(d);
-    else break;
+    let added = false;
+    // 从满编核心之后优先补现有2份卡；若都满编，再按原顺序补任何未满3份的卡。
+    for (const d of [...kinds.slice(Math.min(12, kinds.length)), ...kinds]) {
+      if (deck.filter(x => x.id === d.id).length >= MAX_COPIES) continue;
+      deck.push(d); added = true; break;
+    }
+    if (!added) break;
   }
   return deck;
 }

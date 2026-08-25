@@ -1,0 +1,54 @@
+/* 静态卡面：与 play.html 手牌使用同一结构、比例、图标和排版。 */
+.catalog-card.card {
+  --hw: 178px; --hh: 252px; --hfs: 14px;
+  width: var(--hw); height: var(--hh); border-radius: calc(var(--hw) * .06);
+  cursor: pointer; position: relative; overflow: hidden; user-select: none;
+  background: linear-gradient(180deg,#34383c,#181b1e);
+  border: 3px solid #3a3f46;
+  box-shadow: inset 0 0 0 1px #202327, 0 calc(var(--hw) * .01) calc(var(--hw) * .02) rgba(0,0,0,.55);
+  transition: transform .08s; isolation: isolate;
+}
+.catalog-card.card:hover,.catalog-card.card:focus { transform: translateY(-6px); outline: 2px solid #4d7fd0; outline-offset: 1px; }
+.catalog-card.card.q铜 { border-color:#a06a3c }.catalog-card.card.q银 { border-color:#aeb8c2 }
+.catalog-card.card.q金 { border-color:#e6c15a }.catalog-card.card.q虹 { border-color:#c882f0 }
+.catalog-card.card.q衍生 { border-color:#6a9a52; border-style:dashed }
+.catalog-card.card .art { position:absolute; left:4%; right:4%; top:3%; bottom:4%; width:92%; height:93%;
+  object-fit:cover; object-position:center top; opacity:1; pointer-events:none; z-index:0 }
+.catalog-card.card .art.follow { transform:scale(1.2) }
+.catalog-card.card .cost { position:absolute; left:2%; top:1.5%; width:18%; z-index:5; aspect-ratio:1;
+  display:flex; align-items:center; justify-content:center; background-image:var(--pi); background-size:contain;
+  background-repeat:no-repeat; background-position:center;
+  filter:drop-shadow(0 0 1px #000) drop-shadow(0 1px 2px rgba(0,0,0,.85)) }
+.catalog-card.card .cost b { color:#fff; font-weight:900; line-height:1; font-size:calc(var(--hw) * .115);
+  text-shadow:-1px -1px 0 #222,1px -1px 0 #222,-1px 1px 0 #222,1px 1px 0 #222,0 0 4px #000,0 0 7px #000 }
+.catalog-card.card .atk,.catalog-card.card .hp { position:absolute; z-index:4; display:flex; align-items:center;
+  justify-content:center; aspect-ratio:1; width:21%; bottom:3% }
+.catalog-card.card .atk { left:2%; background:url('../img/icon/atk.png') center/contain no-repeat;
+  filter:drop-shadow(0 0 1px #000) drop-shadow(0 1px 2px rgba(0,0,0,.85)) }
+.catalog-card.card .hp { right:2%; background:url('../img/icon/def.png') center/contain no-repeat;
+  filter:drop-shadow(0 0 1px #000) drop-shadow(0 1px 2px rgba(0,0,0,.85)) }
+.catalog-card.card .atk b,.catalog-card.card .hp b { color:#fff; font-weight:900; line-height:1;
+  font-size:calc(var(--hw) * .14); text-shadow:-1px -1px 0 #17222b,1px -1px 0 #17222b,
+  -1px 1px 0 #17222b,1px 1px 0 #17222b,0 0 4px #000 }
+.catalog-card.card .cname { position:absolute; top:2%; left:20%; right:4%; z-index:3; color:#fff;
+  font-weight:700; text-align:center; line-height:1.2; white-space:nowrap; overflow:hidden;
+  text-overflow:ellipsis; font-size:calc(var(--hfs) * .78);
+  text-shadow:0 1px 2px #000,0 0 4px #000,0 0 7px #000 }
+.catalog-card.card .effect { position:absolute; left:4%; right:4%; bottom:20%; z-index:2; max-height:72%;
+  display:flex; flex-direction:column; justify-content:flex-end;
+  background:linear-gradient(180deg,rgba(13,17,22,.88),rgba(7,10,13,.97));
+  border-top:1px solid rgba(205,205,190,.35); padding:3% 4%; overflow:hidden }
+.catalog-card.card .ct { font-size:calc(var(--hfs) * .78); color:#f1f1ea; line-height:1.25 }
+.catalog-card.card .subtype { position:absolute; left:24%; right:24%; bottom:3%; z-index:5; color:#dfe7f0;
+  text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  text-shadow:0 1px 3px #000,0 0 5px #000; font-size:calc(var(--hfs) * .62) }
+.catalog-card.card .cd { position:absolute; bottom:3%; right:3%; z-index:5; background:#7048e8; color:#fff;
+  border-radius:50%; text-align:center; font-weight:bold; box-shadow:0 0 0 2px #202020;
+  width:calc(var(--hw) * .16); height:calc(var(--hw) * .16); font-size:calc(var(--hw) * .09);
+  line-height:calc(var(--hw) * .16) }
+.catalog-card.card .class-chip { position:absolute; left:3%; bottom:21%; z-index:6; padding:1px 5px;
+  border-radius:6px 6px 0 0; background:#111d; color:#dce6f3; font-size:calc(var(--hfs) * .58) }
+.catalog-card.card .copies { position:absolute; right:3%; top:3%; z-index:7; min-width:23%; padding:1px 4px;
+  border-radius:8px; background:#171b23e8; border:1px solid #ffd43b; color:#fff3bf; font-weight:900;
+  font-size:calc(var(--hfs) * .75); text-align:center; text-shadow:0 1px 2px #000 }
+@media(max-width:780px){.catalog-card.card{--hw:calc((100vw - 26px)/2);--hh:calc(var(--hw)*1.416);--hfs:12px}}
