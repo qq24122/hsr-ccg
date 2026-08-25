@@ -1166,8 +1166,9 @@ function fieldHTML(p, isMe) {
         const inst = s.players[ME].hand[sel.hand];
         placeable = !!inst && inst.def.characterId === echo.characterId;
       }
+      const echoName = echo && (echo.characterName || echo.baseName || echo.characterId);
       cells.push(`<div class="slot-empty${placeable ? ' placeable' : ''}${echo ? ' echo' : ''}" data-slot="${i}"`
-        + (echo ? ` data-character="${esc(echo.characterId)}" title="${esc(echo.characterId)}的1阶残影：持续到下个己方回合结束"` : '')
+        + (echo ? ` data-character="${esc(echoName)}" title="${esc(echoName)}的1阶残影：持续到下个己方回合结束"` : '')
         + `></div>`);
     }
   }
@@ -1283,7 +1284,7 @@ function cardHTML(inst, i, myTurn) {
     + ` style="${pathStyle(d)}" title="${esc((d.note || '') + (chk.ok ? '' : '\n【无法使用】' + chk.why))}">`
     + art(d)
     + `<div class="cost ${cost < d.cost ? 'cut' : ''}"><b>${cost}</b></div>`
-    + (inst.spellboost > 0 ? `<div class="boost">演算 ${inst.spellboost}</div>` : '')
+    + (inst.spellboost > 0 && (def.effect || '').includes('spellboost') ? `<div class="boost">演算 ${inst.spellboost}</div>` : '')
     + `<div class="cname">${esc(d.name)}${mode ? ` · ${esc(mode)}` : ''}</div>`
     + `<div class="effect"><div class="ct">${esc(d.note || '')}</div></div>`
     + (d.tag ? `<div class="subtype">${esc(d.tag)}</div>` : '')
@@ -1389,7 +1390,7 @@ function detailHTML(spec) {
   } else {
     stats.push(`<span class="dStat">费用 <b style="color:#8ecdf7">${def.cost}</b></span>`);
   }
-  if (inst && (inst.spellboost || (def.effect || '').includes('spellboost'))) stats.push(`<span class="dStat">演算层数 <b style="color:#d0bfff">${inst.spellboost || 0}</b></span>`);
+  if (inst && ((def.effect || '').includes('spellboost'))) stats.push(`<span class="dStat">演算层数 <b style="color:#d0bfff">${inst.spellboost || 0}</b></span>`);
   if (def.type === '随从') {
     if (unit) {
       const ea = E.effAtk(s, unit);

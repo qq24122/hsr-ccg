@@ -21,6 +21,9 @@
          background: #2f5fa8; color: #fff; text-decoration: none; border-radius: 8px;
          transition: background .15s, transform .1s; }
   .cta:hover { background: #3a72c8; transform: translateY(-2px); }
+  .main-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .cta.secondary { background: #252b36; border: 1px solid #3b4655; color: #d9e4f2; }
+  .cta.secondary:hover { background: #303948; border-color: #5c7594; }
   .acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
   .acts button { padding: 9px 18px; border: 1px solid #2a2d36; border-radius: 7px;
                  background: #1d2028; color: #c8d2e0; font: inherit; font-size: 13px;
@@ -50,7 +53,10 @@
   <h1>崩坏：星穹铁道 CCG</h1>
   <div class="sub">同人集换式卡牌游戏 · 玩法框架取自《影之诗》初代 · 单人对战 AI</div>
 
-  <a class="cta" href="play.html">开始对战</a>
+  <div class="main-actions">
+    <a class="cta" href="play.html">开始对战</a>
+    <a class="cta secondary" href="cards.html">卡牌图鉴</a>
+  </div>
 
   <div class="acts">
     <button id="shareBtn">分享这个游戏</button>

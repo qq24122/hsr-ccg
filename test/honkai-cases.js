@@ -104,12 +104,24 @@ export async function runHonkai() {
     eq(s.players[0].board[0].name, 'base', '第二次击破应退回1阶');
     eq(s.players[0].board[0].hp, 2, '复归1阶应回复满血');
   });
-  t('无下层时生成残影并可在原格再部署', () => {
-    const s = setup(); const base = s.__cardIndex.base; const u = S.makeUnit(base, -99); E.placeUnit(s.players[0], u); const slot = u.slot.idx; E.dealDamage(s, u, 99, null);
-    ok(s.players[0].slots[slot].echo, '应生成残影'); eq(s.players[0].board.length, 0, '残影不应占用场上容量');
+  t('无下层时生成中文残影并可在原格再部署', () => {
+    const s = setup(); const base = { ...s.__cardIndex.base, tag: '测试角色' }; s.__cardIndex.base = base;
+    const u = S.makeUnit(base, -99); E.placeUnit(s.players[0], u); const slot = u.slot.idx; E.dealDamage(s, u, 99, null);
+    ok(s.players[0].slots[slot].echo, '应生成残影'); eq(s.players[0].slots[slot].echo.characterName, '测试角色', '残影应保存中文角色名');
+    eq(s.players[0].board.length, 0, '残影不应占用场上容量');
     const i = addHand(s, 0, base); s.players[0].pp = 1; eq(E.canPlay(s, i).ok, true, '残影上应可再部署');
     E.playCard(s, i, { slot }); const restored = s.players[0].board.find(x => x.characterId === 'test');
     ok(restored, '应从残影回到原格'); eq(restored.slot.idx, slot, '应使用残影原格'); eq(s.players[0].board.length, 1, '残影复归应只产生一个实体');
+  });
+  t('真实一阶换装继承攻击资格，残影换装视为新登场', () => {
+    const real = setup(); const u = S.makeUnit(real.__cardIndex.base, -7); E.placeUnit(real.players[0], u);
+    let i = addHand(real, 0, real.__cardIndex.mid); real.players[0].pp = 1; E.playCard(real, i);
+    eq(E.canAttack(real, real.players[0].board[0]), true, '存活过回合的一阶换装后应可直接攻击');
+
+    const echo = setup(); const old = S.makeUnit(echo.__cardIndex.base, -7); E.placeUnit(echo.players[0], old); E.dealDamage(echo, old, 99, null);
+    i = addHand(echo, 0, echo.__cardIndex.mid); echo.players[0].pp = 1; E.playCard(echo, i);
+    eq(echo.players[0].board[0].summonedTurn, echo.turn, '从残影换装应重置登场回合');
+    eq(E.canAttack(echo, echo.players[0].board[0]), false, '从残影换装不能继承旧一阶攻击资格');
   });
   t('残影在控制者下个回合结束时消散', () => {
     const s = setup(); const u = S.makeUnit(s.__cardIndex.base, -99); E.placeUnit(s.players[0], u); E.dealDamage(s, u, 99, null);
@@ -118,18 +130,22 @@ export async function runHonkai() {
     E.startTurn(s); E.endTurn(s); ok(s.players[0].slots[slot].echo, '对手回合结束时不应消散');
     E.startTurn(s); E.endTurn(s); ok(!s.players[0].slots[slot].echo, '控制者下个回合结束时应消散');
   });
-  t('己方牺牲、回手与变形绕过退阶和残影', () => {
+  t('己方牺牲和变形绕过残影，高阶回手返回全形态并留下残影', () => {
     const sacrifice = setup(); let u = S.makeUnit(sacrifice.__cardIndex.base, -99); E.placeUnit(sacrifice.players[0], u); E.killUnit(sacrifice, u, 'sacrifice', 0); ok(!sacrifice.players[0].slots[0].echo, '己方牺牲不应生成残影');
 
     const bounce = setup(); u = S.makeUnit(bounce.__cardIndex.base, -99); E.placeUnit(bounce.players[0], u);
     E.runActions(bounce, [{ op: 'bounce', args: ['allyOne'] }], { ownerIdx: 0, chosen: u, source: null });
-    eq(bounce.players[0].board.length, 0, '己方回手应直接离场'); ok(!bounce.players[0].slots[0].echo, '回手不应生成残影');
+    eq(bounce.players[0].board.length, 0, '己方回手应直接离场'); eq(bounce.players[0].hand.at(-1).def.name, 'base', '一阶应返回手牌');
+    ok(bounce.players[0].slots[0].echo, '崩坏角色回手后应留下残影');
 
-    const enemyBounce = setup(); u = S.makeUnit(enemyBounce.__cardIndex.base, -99); E.placeUnit(enemyBounce.players[0], u);
+    const enemyBounce = setup(); u = S.makeUnit(enemyBounce.__cardIndex.high, -99);
+    u.lowerForms = [enemyBounce.__cardIndex.base, enemyBounce.__cardIndex.mid]; E.placeUnit(enemyBounce.players[0], u);
+    const before = enemyBounce.players[0].hand.length;
     E.runActions(enemyBounce, [{ op: 'bounce', args: ['enemyOne'] }], { ownerIdx: 1, chosen: u, source: null });
     eq(enemyBounce.players[0].board.length, 0, '敌方回手应从目标控制者场上移除');
-    eq(enemyBounce.players[0].hand.at(-1).def.name, 'base', '敌方回手应返回目标控制者手牌');
-    ok(!enemyBounce.players[0].slots[0].echo, '敌方回手也不应生成残影');
+    eq(enemyBounce.players[0].hand.length, before + 3, '1、2、3阶应全部返回目标控制者手牌');
+    eq(enemyBounce.players[0].hand.slice(-3).map(x => x.def.name).join('/'), 'base/mid/high', '回手形态顺序应从低到高');
+    ok(enemyBounce.players[0].slots[0].echo, '全形态回手后原格应留下残影');
 
     const transform = setup(); u = S.makeUnit(transform.__cardIndex.base, -99); u.lowerForms = [transform.__cardIndex.base]; E.placeUnit(transform.players[0], u);
     E.runActions(transform, [{ op: 'transform', args: ['allyOne', 'other'] }], { ownerIdx: 0, chosen: u, source: null });
@@ -142,6 +158,16 @@ export async function runHonkai() {
 
     const friendly = setup(); u = S.makeUnit(friendly.__cardIndex.base, -99); E.placeUnit(friendly.players[0], u);
     E.killUnit(friendly, u, 'effect', 0); ok(!friendly.players[0].slots[0].echo, '己方主动消灭应绕过残影');
+  });
+  t('崩坏手牌不会因使用圣痕法术获得演算层数', () => {
+    const s = setup();
+    const spell = { id: 'stigma', name: '圣痕测试', class: '崩坏', type: '法术', cost: 0, effect: 'spell: draw(1)' };
+    const boost = { id: 'boost', name: '演算测试', class: '智识', type: '随从', cost: 2, atk: 2, hp: 2,
+      effect: 'costIf(spellboost/2)[spellboost>=2]' };
+    s.players[0].hand = [S.makeCardInstance(spell), S.makeCardInstance(s.__cardIndex.base), S.makeCardInstance(boost)];
+    s.players[0].pp = 0; E.playCard(s, 0);
+    eq(s.players[0].hand.find(x => x.def.id === 'base').spellboost, 0, '崩坏形态不应获得演算层数');
+    eq(s.players[0].hand.find(x => x.def.id === 'boost').spellboost, 1, '实际使用演算机制的牌应正常累积');
   });
   t('AI：保留1→2换装链，无锚点时换走高阶', () => {
     const s = setup();

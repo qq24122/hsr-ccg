@@ -250,9 +250,9 @@ function runAction(s, a, ctx) {
       }
       break;
     }
-    case 'spellboost': { // 使当前手牌内所有带增幅条件/数值的卡分别累积1次
+    case 'spellboost': { // 只使手牌中实际使用【演算层数】的卡累积
       const n = A[0] ? num(s, A[0], ctx) : 1;
-      for (const h of P.hand) h.spellboost += n;
+      for (const h of P.hand) if (usesSpellboost(h.def)) h.spellboost += n;
       break;
     }
     case 'earthSigil': { // 生成通用【演算模块】护符；模块解析只认该标签
@@ -441,13 +441,29 @@ function runAction(s, a, ctx) {
         const owner = S.ownerOf(s, t.uid);
         if (owner < 0) continue;
         const side = s.players[owner], i = side.board.indexOf(t);
-        if (i >= 0) {
-          halfSlot(s, t);   // 回手也算离场，格子的负面效果减半残留
-          side.board.splice(i, 1);
-          const inst = S.makeCardInstance(t.def);
-          // 回手后费用恢复原价——「回手 + 永久 0 费」是无限引擎，貘泽会无限标记
+        if (i < 0) continue;
+        halfSlot(s, t);   // 回手也算离场，格子的负面效果减半残留
+        side.board.splice(i, 1);
+
+        const forms = t.characterId ? [...(t.lowerForms || []), t.def] : [t.def];
+        for (const def of forms) {
+          const inst = S.makeCardInstance(def);
+          // 回手后费用与临时增益恢复原价；溢出的形态按现有规则进入墓场。
           if (side.hand.length < RULES.HAND_LIMIT) side.hand.push(inst);
-          else S.addToGrave(side, t.def);
+          else S.addToGrave(side, def);
+        }
+        if (t.characterId) {
+          const base = forms.find(def => Number(def.formTier || 0) === 1)
+            || (s.__cardIndex && Object.values(s.__cardIndex).find(def =>
+              def.characterId === t.characterId && Number(def.formTier || 0) === 1));
+          t.slot.echo = {
+            characterId: t.characterId,
+            characterName: characterDisplayName(t, base),
+            baseName: base?.name || '',
+            expireOnTurn: nextTurnForPlayer(s, owner),
+          };
+          fireTrigger(s, 'onEcho', { ownerOnly: owner, chosen: null });
+          S.log(s, `${t.name} 与真实下层全部返回手牌，在${t.slot.idx + 1}号格留下残影`);
         }
       }
       break;
@@ -873,8 +889,12 @@ export function killUnit(s, u, reason = 'destroyed', actorIdx = null) {
       return;
     }
     p.board.splice(p.board.indexOf(u), 1);
+    const base = (s.__cardIndex && Object.values(s.__cardIndex).find(def =>
+      def.characterId === u.characterId && Number(def.formTier || 0) === 1)) || null;
     slot.echo = {
       characterId: u.characterId,
+      characterName: characterDisplayName(u, base),
+      baseName: base?.name || '',
       expireOnTurn: nextTurnForPlayer(s, pi),
     };
     fireTrigger(s, 'onEcho', { ownerOnly: pi, chosen: null });
@@ -887,6 +907,12 @@ export function killUnit(s, u, reason = 'destroyed', actorIdx = null) {
     fireTrigger(s, 'onAllyDeath', { ownerOnly: pi, chosen: u });
     fireTrigger(s, 'onEnemyDeath', { ownerOnly: S.opp(pi), chosen: u });
   }
+}
+
+function characterDisplayName(u, base = null) {
+  const raw = String(base?.tag || u?.def?.tag || '').trim();
+  if (raw && !['女武神', '随从'].includes(raw)) return raw;
+  return base?.name || u?.name || '角色';
 }
 
 function nextTurnForPlayer(s, pi) {
@@ -984,7 +1010,7 @@ function turnOfPlayer(s) { return Math.ceil(s.turn / 2); }
 function expireEchoesAtEnd(s, pi) {
   for (const sl of s.players[pi].slots) {
     if (sl.echo && sl.echo.expireOnTurn <= s.turn) {
-      S.log(s, `${sl.echo.characterId} 的残影消散`);
+      S.log(s, `${sl.echo.characterName || sl.echo.baseName || sl.echo.characterId} 的残影消散`);
       sl.echo = null;
     }
   }
@@ -1191,6 +1217,10 @@ function missingSpellTarget(s, def) {
   return null;
 }
 
+function usesSpellboost(def) {
+  return /\bspellboost\b/.test(String(def?.effect || ''));
+}
+
 export function playCard(s, handIndex, opts = {}) {
   const chk = canPlay(s, handIndex);
   if (!chk.ok) return chk;
@@ -1200,7 +1230,7 @@ export function playCard(s, handIndex, opts = {}) {
   p.cardsPlayedThisTurn += 1;
   if (inst.def.type === '法术') {
     p.spellsPlayedThisTurn += 1;
-    for (const h of p.hand) h.spellboost += 1;
+    for (const h of p.hand) if (usesSpellboost(h.def)) h.spellboost += 1;
   }
   S.log(s, `打出 ${inst.def.name}（${chk.cost} PP）`);
   S.traceCard(s, { kind: 'play', player: me, uid: inst.uid,
@@ -1244,6 +1274,11 @@ export function playCard(s, handIndex, opts = {}) {
           d.characterId === u.characterId && d.formTier === 1)) || null;
         if (base) u.lowerForms = [base];
         placeUnit(p, u, plan.slot);
+      }
+      // 从残影换装属于一次新的部署：真实一阶已经离场，不继承其存活回合或攻击历史。
+      if (plan.mode.startsWith('echo-')) {
+        u.summonedTurn = s.turn;
+        u.attacksUsed = 0;
       }
       u.spellboost = inst.spellboost || 0;
       if (inst.atkMod) u.atk += inst.atkMod;

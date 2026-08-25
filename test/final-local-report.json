@@ -238,5 +238,105 @@
     "formReplacementRetreatEcho": "passed",
     "sameNameUidTargeting": "passed"
   },
-  "publication": "local only; not committed, pushed, or deployed"
+  "publication": "local only; not committed, pushed, or deployed",
+  "feedbackFixes": {
+    "detailArtwork": {
+      "cards": 55,
+      "minDimension": 456,
+      "format": "webp",
+      "source": "official detail-page avatar fields"
+    },
+    "distinctStigmas": [
+      "姬麟 · 黑",
+      "莎士比亚",
+      "水镜",
+      "贝多芬",
+      "叶采章",
+      "但丁",
+      "爱伦 · 坡",
+      "卡夫卡",
+      "列文虎克",
+      "狄更斯",
+      "凡尔纳",
+      "亨德尔",
+      "阿伏伽德罗",
+      "贞仪",
+      "塞尚"
+    ],
+    "honkaiTests": {
+      "passed": 16,
+      "failed": 0
+    },
+    "honkaiMirror": {
+      "games": 120,
+      "decks": [
+        {
+          "deck": "装甲轮转",
+          "winRate": 40
+        },
+        {
+          "deck": "律者跃迁",
+          "winRate": 50
+        },
+        {
+          "deck": "休伯利安支援",
+          "winRate": 60
+        }
+      ],
+      "crashes": 0,
+      "undecided": 0
+    },
+    "honkaiVsOldQuick": {
+      "games": 432,
+      "decks": [
+        {
+          "deck": "装甲轮转",
+          "winRate": 54.86
+        },
+        {
+          "deck": "律者跃迁",
+          "winRate": 52.08
+        },
+        {
+          "deck": "休伯利安支援",
+          "winRate": 48.61
+        }
+      ],
+      "crashes": 0,
+      "undecided": 0
+    },
+    "oldMatrix": {
+      "games": 1512,
+      "minWinRate": 40,
+      "maxWinRate": 62,
+      "crashes": 0,
+      "undecided": 0
+    },
+    "publication": "local only; feedback fixes not committed, pushed, or deployed"
+  },
+  "cardCatalog": {
+    "page": "cards.html",
+    "cards": 412,
+    "includesTokens": true,
+    "filters": [
+      "search",
+      "class",
+      "type",
+      "cost",
+      "quality"
+    ],
+    "sorts": [
+      "default",
+      "cost",
+      "name"
+    ],
+    "pageSize": 60,
+    "lazyImages": true,
+    "deckMembership": true,
+    "honkaiFormChain": true,
+    "desktopViewport": "passed",
+    "mobileViewport": "passed",
+    "urlRestore": "passed",
+    "publication": "local only"
+  }
 }
