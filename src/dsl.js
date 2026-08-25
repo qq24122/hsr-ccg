@@ -23,6 +23,10 @@ const TRIGGERS = new Set([
   'static',          // 静态关键词 / 光环
   'spell',           // 法术即时结算
   'onPlay',          // 入场曲
+  'onReplace',       // 崩坏：高阶形态替换低阶形态
+  'onRetreat',       // 崩坏：此角色被击破后以真实低阶形态复归
+  'onAllyRetreat',   // 崩坏：任一己方角色退阶复归
+  'onEcho',          // 崩坏：生成1阶残影
   'onDeath',         // 谢幕曲
   'onAttack',        // 攻击时
   'onEvolve',        // 进化时
@@ -92,6 +96,8 @@ const ACTIONS = new Set([
   'drawTag',    // 从牌库抽指定标签的卡
   'drawToken',  // 从牌库抽衍生/创造物卡
   'discard',    // 丢弃手牌中的卡进入墓场
+  'costDownTag', // 指定标签手牌费用 -N
+  'consumeHandTag', // 消耗手牌中指定标签卡，并按数量保存到计数器
 ]);
 
 /* 动态数值可用的指标（写别的会在结算时抛错）：

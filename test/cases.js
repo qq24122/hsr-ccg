@@ -774,5 +774,30 @@ export async function runAll() {
     eq(s.players[0].board.filter(u => u.name === '丰饶扑满').length, 1, '记录区为空时不能重复召还同一张');
   });
 
+  t('欢愉玩偶：可定向减费并被协同牌消耗兑现', () => {
+    const s = game(); turnTo(s, 9);
+    const toyDef = ALL_CARDS.byName['剧团玩偶'];
+    const a = S.makeCardInstance(toyDef), b = S.makeCardInstance(toyDef);
+    s.players[0].hand.push(a, b);
+    E.runActions(s, [{ op: 'costDownTag', args: ['剧团玩偶', '1'] }], { ownerIdx: 0, source: null });
+    eq(a.costMod, -1, '玩偶应被定向降费');
+    const src = { counters: {} };
+    E.runActions(s, [{ op: 'consumeHandTag', args: ['剧团玩偶', '2'] }], { ownerIdx: 0, source: src });
+    eq(src.counters['消耗手牌'], 2, '应记录消耗的玩偶数');
+    ok(!s.players[0].hand.some(h => h.def.name === '剧团玩偶'), '玩偶应从手牌消耗');
+  });
+  t('攻击日志：同名随从用uid区分攻击者与目标', () => {
+    const s = game(); turnTo(s, 7);
+    const first = board(s, 0, '毁灭扑满');
+    const second = board(s, 0, '毁灭扑满');
+    E.attack(s, second.uid, 'leader');
+    ok(s.log.some(x => x.includes(`毁灭扑满#${second.uid} 攻击主战者`)), '日志应记录实际攻击者uid');
+    ok(!s.log.some(x => x.includes(`毁灭扑满#${first.uid} 攻击主战者`)), '另一张同名随从不应被记录为攻击者');
+    const foe = board(s, 1, '丰饶扑满');
+    second.attacksUsed = 0;
+    E.attack(s, second.uid, foe.uid);
+    ok(s.log.some(x => x.includes(`毁灭扑满#${second.uid}`) && x.includes(`丰饶扑满#${foe.uid}`)), '交换日志应记录双方uid');
+  });
+
   return results;
 }

@@ -1,45 +1,45 @@
 id	name	class	type	quality	cost	atk	hp	countdown	token	tag	effect	note	decks	img
-N001	虚数织叶者	虚无	随从	铜	1	1	1		0		onDeath: summon(虚无残响,1); onAllyDeath: buff(self,1,0)	谢幕曲召唤虚无残响；每当己方随从离场，此随从+1/+0。	持续侵蚀	img/N001.webp
+N001	虚数织叶者	虚无	随从	铜	1	1	1		0		onDeath: summon(虚无残响,2); onAllyDeath: buff(self,1,1)	谢幕曲召唤2个虚无残响；己方随从离场时自身+1/+1。	持续侵蚀	img/N001.webp
 N002	匿影	虚无	法术	铜	1				0		spell: destroyAlly(allyOne), summon(虚无残响,2), dmg(enemyLeader,2)	破坏1个己方随从，召唤2个虚无残响并打脸2点。	引爆奥迹	img/N002.webp
 N003	渊环	虚无	法术	铜	1				0		spell: discard(1), draw(2)	丢弃1张手牌并抽2张，快速累积残响值。	缺陷植入	img/N003.webp
-N004	卢卡	虚无	随从	金	1	1	1		0		onDeath: summon(虚无残响,1); onAllyDeath: buff(self,1,0)	谢幕曲召唤虚无残响；每当己方随从离场，此随从+1/+0。	持续侵蚀	img/N004.webp
+N004	卢卡	虚无	随从	金	1	1	1		0		onDeath: summon(虚无残响,3), draw(2)	谢幕曲召唤3个虚无残响并抽2张。	持续侵蚀	img/N004.webp
 N005	幽邃	虚无	护符	铜	1			3	0		onAllyDeath: dmg(enemyLeader,1)	每当己方随从离场，给予敌方主战者1点伤害。	引爆奥迹	img/N005.webp
 N006	千冶•刃之炽	虚无	随从	铜	1	3	2		0		onDeath: draw(1)	谢幕曲：抽1张，增加残响值。	缺陷植入	img/N006.webp
-N007	佩拉	虚无	随从	金	2	1	1		0		onDeath: summon(虚无残响,1); onAllyDeath: buff(self,1,0)	谢幕曲召唤虚无残响；每当己方随从离场，此随从+1/+0。	持续侵蚀	img/N007.webp
-N008	桑博	虚无	随从	金	2	3	6		0		onPlay: destroyAlly(allyOne), buff(self,2,2)	入场破坏1个其他己方随从，此随从+2/+2。	引爆奥迹	img/N008.webp
-N009	决心如汗珠般闪耀	虚无	法术	银	2				0		spell: discard(1), draw(2)	丢弃1张手牌并抽2张，快速累积残响值。	缺陷植入	img/N009.webp
-N010	桂乃芬	虚无	随从	金	2	1	1		0		onDeath: summon(虚无残响,1); onAllyDeath: buff(self,1,0)	谢幕曲召唤虚无残响；每当己方随从离场，此随从+1/+0。	持续侵蚀	img/N010.webp
+N007	佩拉	虚无	随从	金	2	1	1		0		onDeath: summon(虚无残响,1); onAllyDeath: draw(1)	谢幕曲召唤虚无残响；己方随从离场时抽1。	持续侵蚀	img/N007.webp
+N008	桑博	虚无	随从	金	2	3	6		0		onPlay: destroyAlly(allyOne), buff(self,2,2), summon(虚无残响,1)	入场破坏1个其他己方随从，自身+2/+2并召唤虚无残响。	引爆奥迹	img/N008.webp
+N009	决心如汗珠般闪耀	虚无	法术	银	2				0		spell: discard(1), draw(3)	丢弃1张并抽3张。	缺陷植入	img/N009.webp
+N010	桂乃芬	虚无	随从	金	2	1	1		0		onDeath: summon(虚无残响,2), dmg(enemyLeader,1)	谢幕曲召唤2个虚无残响并打脸1点。	持续侵蚀	img/N010.webp
 N011	遮天蔽日的噬星蠹	虚无	随从	铜	2	6	6		0	虫群	onPlay: destroyAlly(allyOne), buff(self,2,2)	入场破坏1个其他己方随从，此随从+2/+2。	引爆奥迹	img/N011.webp
 N012	无望冽风的幻灭者	虚无	随从	铜	2	2	3		0		onDeath: draw(1)	谢幕曲：抽1张，增加残响值。	缺陷植入	img/N012.webp
-N013	深寒徘徊者	虚无	随从	铜	2	1	2		0		onDeath: summon(虚无残响,1); onAllyDeath: buff(self,1,0)	谢幕曲召唤虚无残响；每当己方随从离场，此随从+1/+0。	持续侵蚀	img/N013.webp
-N014	猎物的视线	虚无	法术	银	2				0		spell: destroyAlly(allyOne), summon(虚无残响,2), dmg(enemyLeader,2)	破坏1个己方随从，召唤2个虚无残响并打脸2点。	引爆奥迹	img/N014.webp
+N013	深寒徘徊者	虚无	随从	铜	2	1	2		0		onDeath: summon(虚无残响,2)	谢幕曲：召唤2个虚无残响。	持续侵蚀	img/N013.webp
+N014	猎物的视线	虚无	法术	银	2				0		spell: destroyAlly(allyOne), summon(虚无残响,3), dmg(enemyLeader,2)	破坏1个己方随从，召唤3个虚无残响，并打脸2点。	引爆奥迹	img/N014.webp
 N015	晚安与睡颜	虚无	护符	银	2			5	0		turnEnd: discard(1), draw(1)	回合结束丢弃1张并抽1张。	缺陷植入	img/N015.webp
-N016	瓦尔特	虚无	随从	金	3	1	2		0		onDeath: summon(虚无残响,1); onAllyDeath: buff(self,1,0)	谢幕曲召唤虚无残响；每当己方随从离场，此随从+1/+0。	持续侵蚀	img/N016.webp
+N016	瓦尔特	虚无	随从	金	3	1	2		0		onDeath: summon(虚无残响,1); onAllyDeath: dmg(enemyLeader,1)	谢幕曲召唤虚无残响；己方随从离场时打脸1点。	持续侵蚀	img/N016.webp
 N017	银狼	虚无	随从	虹	3	6	11		0		onPlay: destroyAlly(allyOne), buff(self,2,2)	入场破坏1个其他己方随从，此随从+2/+2。	引爆奥迹	img/N017.webp
-N018	假日浴场大冒险	虚无	护符	金	3				0		turnEnd: discard(1), draw(1)	回合结束丢弃1张并抽1张。	缺陷植入	img/N018.webp
+N018	假日浴场大冒险	虚无	护符	金	3				0		turnEnd: discard(1), draw(2)	回合结束时弃1抽2。	缺陷植入	img/N018.webp
 N019	新手任务开始前	虚无	法术	银	4				0		spell: summon(虚无残响,2)	召唤2个虚无残响。	持续侵蚀	img/N019.webp
 N020	赛飞儿	虚无	随从	金	3	8	6		0		onPlay: destroyAlly(allyOne), buff(self,2,2)	入场破坏1个其他己方随从，此随从+2/+2。	引爆奥迹	img/N020.webp
-N021	勿忘她的火焰	虚无	护符	银	3			3	0		turnEnd: discard(1), draw(1)	回合结束丢弃1张并抽1张。	缺陷植入	img/N021.webp
+N021	勿忘她的火焰	虚无	护符	银	3			3	0		turnEnd: discard(1), draw(1); onAllyDeath: dmg(enemyLeader,1)	回合结束弃1抽1；己方随从离场时打脸1点。	缺陷植入	img/N021.webp
 N022	火焚灾影	虚无	随从	铜	3	3	2		0		onDeath: summon(虚无残响,1); onAllyDeath: buff(self,1,0)	谢幕曲召唤虚无残响；每当己方随从离场，此随从+1/+0。	持续侵蚀	img/N022.webp
-N023	桑博·毒镖	虚无	随从	金	3	6	6		0		onPlay: destroyAlly(allyOne), buff(self,2,2)	入场破坏1个其他己方随从，此随从+2/+2。	引爆奥迹	img/N023.webp
+N023	桑博·毒镖	虚无	随从	金	3	6	6		0		onPlay: destroyAlly(allyOne), buff(self,3,3), draw(1)	入场破坏1个其他己方随从，自身+3/+3并抽1张。	引爆奥迹	img/N023.webp
 N024	椒丘	虚无	随从	虹	4	5	7		0		onPlay: necromancy(4); onPlay[ctr(残响调用)>=1]: buff(self,3,3), grant(self,storm)	残响调用4：自身+3/+3并获得疾驰。	缺陷植入	img/N024.webp
 N025	千冶•刃	虚无	随从	虹	4	3	2		0		onPlay: summon(虚无残响,2); onAllyDeath: buff(self,1,1)	入场召唤2个虚无残响；每当己方随从离场，此随从+1/+1。	持续侵蚀	img/N025.webp
 N027	大丽花	虚无	随从	虹	4	7	7		0		onPlay: destroyAlly(allyOne), dmg(enemyAll,3), summon(虚无残响,2)	入场破坏1个己方随从，敌方全体3点并召唤2个虚无残响。	引爆奥迹	img/N027.webp
-N028	无边曼舞	虚无	护符	金	4				0		turnEnd: discard(1), draw(1)	回合结束丢弃1张并抽1张。	缺陷植入	img/N028.webp
+N028	无边曼舞	虚无	护符	金	4				0		turnEnd: discard(1), draw(1); onAllyDeath: heal(selfLeader,1)	回合结束弃1抽1；己方随从离场时回复1点。	缺陷植入	img/N028.webp
 N029	黑天鹅	虚无	随从	虹	5	8	14		0		onPlay: summon(虚无残响,2); onAllyDeath: buff(self,1,1)	入场召唤2个虚无残响；每当己方随从离场，此随从+1/+1。	持续侵蚀	img/N029.webp
-N030	好戏开演	虚无	法术	金	3				0		spell: destroyAlly(allyOne), summon(虚无残响,2), dmg(enemyLeader,2)	破坏1个己方随从，召唤2个虚无残响并打脸2点。	引爆奥迹	img/N030.webp
-N031	海瑟音	虚无	随从	虹	5	3	2		0		onPlay: necromancy(4); onPlay[ctr(残响调用)>=1]: buff(self,3,3), grant(self,storm)	残响调用4：自身+3/+3并获得疾驰。	缺陷植入	img/N031.webp
+N030	好戏开演	虚无	法术	金	3				0		spell: destroyAlly(allyOne), summon(虚无残响,2), dmg(enemyAll,2)	破坏1个己方随从，召唤2个虚无残响，并对敌方全体随从造成2点。	引爆奥迹	img/N030.webp
+N031	海瑟音	虚无	随从	虹	5	3	2		0		onPlay: necromancy(4); onPlay[ctr(残响调用)>=1]: buff(self,3,3), grant(self,storm), draw(1)	残响调用4：自身+3/+3、获得疾驰并抽1张。	缺陷植入	img/N031.webp
 N032	忘归人	虚无	随从	虹	5	8	14		0		onPlay: summon(虚无残响,2); onAllyDeath: buff(self,1,1)	入场召唤2个虚无残响；每当己方随从离场，此随从+1/+1。	持续侵蚀	img/N032.webp
-N033	后会有期	虚无	护符	金	5			1	0		onAllyDeath: dmg(enemyLeader,1)	每当己方随从离场，给予敌方主战者1点伤害。	引爆奥迹	img/N033.webp
+N033	后会有期	虚无	护符	金	5			1	0		onAllyDeath: dmg(enemyLeader,1), heal(selfLeader,1)	己方随从离场时，打脸1点并回复1点。	引爆奥迹	img/N033.webp
 N035	「星核猎手」卡芙卡	虚无	随从	虹	5	14	14		0		onPlay: necromancy(4); onPlay[ctr(残响调用)>=1]: buff(self,3,3), grant(self,storm)	残响调用4：自身+3/+3并获得疾驰。	缺陷植入	img/N035.webp
 N036	冥魂渡者，死龙残躯，玻吕刻斯	虚无	随从	金	6	8	7		0		onPlay: summon(虚无残响,2); onAllyDeath: buff(self,1,1)	入场召唤2个虚无残响；每当己方随从离场，此随从+1/+1。	持续侵蚀	img/N036.webp
-N037	延长记号	虚无	法术	金	4				0		spell: destroyAlly(allyOne), summon(虚无残响,2), dmg(enemyLeader,2)	破坏1个己方随从，召唤2个虚无残响并打脸2点。	引爆奥迹	img/N037.webp
+N037	延长记号	虚无	法术	金	4				0		spell: destroyAlly(allyOne), reanimate(1), dmg(enemyLeader,3)	破坏1个己方随从，召还1个随从，并打脸3点。	引爆奥迹	img/N037.webp
 N038	孤注一掷的赌徒	虚无	随从	金	6	14	17		0		onPlay: necromancy(4); onPlay[ctr(残响调用)>=1]: buff(self,3,3), grant(self,storm)	残响调用4：自身+3/+3并获得疾驰。	缺陷植入	img/N038.webp
 N039	卡芙卡	虚无	随从	虹	7	7	10		0		onPlay: summon(虚无残响,2); onAllyDeath: buff(self,1,1)	入场召唤2个虚无残响；每当己方随从离场，此随从+1/+1。	持续侵蚀	img/N039.webp
 N040	黄泉	虚无	随从	虹	7	4	4		0		onPlay: destroyAlly(allyOne), dmg(enemyAll,3), summon(虚无残响,2)	入场破坏1个己方随从，敌方全体3点并召唤2个虚无残响。	引爆奥迹	img/N040.webp
 N041	反造物主，流溢之恨	虚无	随从	虹	6	17	11		0		onPlay: necromancy(4); onPlay[ctr(残响调用)>=1]: buff(self,3,3), grant(self,storm)	残响调用4：自身+3/+3并获得疾驰。	缺陷植入	img/N041.webp
 N042	万色返空主，归寂	虚无	随从	虹	8	8	12		0		onPlay: summon(虚无残响,2); onAllyDeath: buff(self,1,1)	入场召唤2个虚无残响；每当己方随从离场，此随从+1/+1。	持续侵蚀	img/N042.webp
-N043	灼尽炼狱的新骸	虚无	法术	虹	8				0		spell: destroyAlly(allyOne), summon(虚无残响,2), dmg(enemyLeader,2)	破坏1个己方随从，召唤2个虚无残响并打脸2点。	引爆奥迹	img/N043.webp
+N043	灼尽炼狱的新骸	虚无	法术	虹	8				0		spell: destroyAlly(allyOne), reanimate(2), dmg(enemyAll,4), dmg(enemyLeader,4)	破坏1个己方随从，召还2个随从，对敌方全体和主战者造成4点。	引爆奥迹	img/N043.webp
 N044	万色返空主·终寂	虚无	随从	虹	9	6	8		0		onPlay: necromancy(4); onPlay[ctr(残响调用)>=1]: buff(self,3,3), grant(self,storm)	残响调用4：自身+3/+3并获得疾驰。	缺陷植入	img/N044.webp
 T401	虚无残响	虚无	随从	衍生	1	1	1		1	亡灵	onDeath: draw(1)	【谢幕曲】：抽1张。		img/T401.webp
-N045	虚无扑满	虚无	随从	铜	1	1	2		0		onDeath: summon(虚无残响,1); onAllyDeath: buff(self,1,0)	谢幕曲召唤虚无残响；每当己方随从离场，此随从+1/+0。	持续侵蚀	img/N045.webp
+N045	虚无扑满	虚无	随从	铜	1	1	2		0		onDeath: summon(虚无残响,1), heal(selfLeader,1); onAllyDeath: buff(self,1,0)	谢幕曲召唤虚无残响并回复1点；己方随从离场时自身+1/+0。	持续侵蚀	img/N045.webp

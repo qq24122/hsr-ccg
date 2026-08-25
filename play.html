@@ -73,7 +73,13 @@
            min-height: calc(var(--uh) + 10px); padding: 4px; border-radius: 7px; background: #191c23;
            transition: background .15s; }
   .field.dropOk { background: #1d2a20; box-shadow: inset 0 0 0 2px #51cf6688; }
-  .slot-empty { width: var(--uw); height: var(--uh); border: 1px dashed #2a2d36; border-radius: 7px; }
+  .slot-empty { width: var(--uw); height: var(--uh); border: 1px dashed #2a2d36; border-radius: 7px; position:relative; }
+  .slot-empty.echo { border:2px solid #df75ff; background:radial-gradient(circle at 50% 42%,#ad5fe555,#35144766); box-shadow:0 0 14px #c560ff77 inset,0 0 10px #c560ff55; }
+  .slot-empty.echo::before { content:'残影'; position:absolute; inset:34% 0 auto; text-align:center; color:#f1c4ff; font-weight:800; text-shadow:0 0 8px #cb67ff; }
+  .slot-empty.echo::after { content:attr(data-character); position:absolute; left:4px; right:4px; bottom:8px; text-align:center; color:#c998dc; font-size:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .slot-empty.echo.placeable { cursor:pointer; border-color:#66f0a1; box-shadow:0 0 14px #51cf6688 inset; }
+  .form-tier { position:absolute; right:5px; top:5px; z-index:7; border-radius:10px; padding:1px 6px; color:#fff3bd; background:#3c256dcc; border:1px solid #d0a6ff; font:bold 10px/16px sans-serif; }
+  .form-stack { position:absolute; right:4px; bottom:35px; z-index:7; border-radius:9px; padding:1px 5px; color:#eebefa; background:#261236dd; font:bold 9px/14px sans-serif; }
   .slot-empty.placeable { border: 2px dashed #51cf66; background: #16251a; cursor: pointer;
                           animation: slotPulse 1.1s ease-in-out infinite; }
   @keyframes slotPulse { 0%,100% { box-shadow: inset 0 0 0 0 #51cf6600 } 50% { box-shadow: inset 0 0 0 3px #51cf6644 } }
@@ -641,7 +647,7 @@
 import { loadCards, CLASS_FILES, listDecks, buildDeckFor, deckPool } from './src/loader.js';
 import * as S from './src/state.js';
 import * as E from './src/engine.js';
-import { planTurn } from './src/ai.js';
+import { planTurn, applyMulligan } from './src/ai.js';
 import * as Stats from './src/stats.js';
 import * as Snd from './src/audio.js';
 
@@ -713,6 +719,9 @@ const GLOSS = [
   ['不能防御', '被随从攻击时不造成反击伤害。'],
   ['入场曲', '这张卡从手牌打出、进入战场时发动一次。由其他卡的效果直接生成到战场的不会发动。'],
   ['谢幕曲', '这个随从/护符离开战场（被消灭、倒数归零）时发动。'],
+  ['替换', '崩坏随从专属。同角色的高阶形态覆盖原格低阶形态，旧形态保存到下层；替换不触发旧形态的【谢幕曲】。'],
+  ['退阶', '崩坏角色被敌方击破后，若下方保存了真实低阶形态，就在原格以完整生命复归。回手、变形与己方牺牲不会触发退阶。'],
+  ['残影', '崩坏角色没有真实下层时被击破，会在原格留下1阶残影。残影不占场地容量，并在控制者下个回合结束时消失。'],
   ['倒数', '护符专用。你的回合开始时 -1，变成 0 时护符被破坏（会触发【谢幕曲】）。护符无法攻击，也不会被攻击。'],
   ['进化', '消耗 1 点 EP，使随从 +2/+2。进化当回合可以立刻攻击随从，但不能攻击主战者。先手方第 5 回合、后手方第 4 回合开始解禁。'],
   ['入魔', '毁灭专属状态。自己的主战者生命值≤10时进入入魔；主战者区域会始终显示当前生命值与10点阈值的进度。'],
@@ -757,6 +766,7 @@ function glossFor(def, unit) {
     a.op === 'grant' ? (KW_CN[a.args[1]] || '') : '')).join(' ');
   const trig = (def.clauses || []).map(c => ({
     onPlay: '入场曲', onDeath: '谢幕曲', countdown: '倒数', onEvolve: '进化',
+    onReplace: '替换', onRetreat: '退阶', onEcho: '残影',
   }[c.trigger] || '')).join(' ');
   const all = hay + ' ' + kwText + ' ' + trig;
   return GLOSS.filter(([k]) => all.includes(k));
@@ -877,7 +887,7 @@ function toast(btn, msg) {
 
 async function shareSite(btn) {
   const url = LINKS.site || (location.origin + location.pathname.replace(/[^/]*$/, ''));
-  const text = '崩坏：星穹铁道 同人集换式卡牌游戏 — 357 张卡、8 命途、24 套卡组，'
+  const text = '崩坏：星穹铁道 同人集换式卡牌游戏 — 412 张卡、9 命途、27 套卡组，'
     + '打开网页就能和 AI 对战。';
   // 手机上优先用系统分享面板；桌面浏览器基本没有，落到复制链接
   if (navigator.share) {
@@ -935,6 +945,7 @@ function startMatch() {
   s.__cardIndex = CARDS.byName;
   s.__tokenIndex = CARDS.byName;
   s.__cls = [`${P0[0]}·${P0[1]}`, `${P1[0]}·${P1[1]}`];
+  applyMulligan(s, 1 - ME);
   MATCH = { startAt: Date.now(), mull: 0, meCls: a, meDeck: da, foeCls: b, foeDeck: db,
     first: humanFirst };
   /* 点「开始对战」是一次确凿的用户手势，正好用来解锁音频。
@@ -1149,8 +1160,15 @@ function fieldHTML(p, isMe) {
     const u = p.board.find(x => x.slot.idx === i);
     if (u) cells.push(unitHTML(u, isMe));
     else {
-      const placeable = isMe && sel && sel.kind === 'place' ? ' placeable' : '';
-      cells.push(`<div class="slot-empty${placeable}" data-slot="${i}"></div>`);
+      const sl = p.slots[i], echo = sl.echo;
+      let placeable = isMe && sel && sel.kind === 'place';
+      if (placeable && echo) {
+        const inst = s.players[ME].hand[sel.hand];
+        placeable = !!inst && inst.def.characterId === echo.characterId;
+      }
+      cells.push(`<div class="slot-empty${placeable ? ' placeable' : ''}${echo ? ' echo' : ''}" data-slot="${i}"`
+        + (echo ? ` data-character="${esc(echo.characterId)}" title="${esc(echo.characterId)}的1阶残影：持续到下个己方回合结束"` : '')
+        + `></div>`);
     }
   }
   return cells.join('');
@@ -1198,6 +1216,8 @@ function unitHTML(u, isMe) {
     + ` ${u.keywords.has('ward') ? 'ward' : ''}`
     + ` ${ready ? 'ready' : ''} ${selected ? 'sel' : ''} ${tgt ? 'targetable' : ''}"`
     + ` style="${pathStyle(u.def)}" data-uid="${u.uid}" data-slot="${u.slot.idx}" data-side="${isMe ? 'me' : 'foe'}" title="${esc(u.def.note || '')}">`
+    + (u.formTier ? `<div class="form-tier">${u.formTier}阶</div>` : '')
+    + ((u.lowerForms || []).length ? `<div class="form-stack">下层 ${u.lowerForms.length}</div>` : '')
     + art(u.def)
     + `<div class="cost"><b>${u.def.cost}</b></div>`
     + (amulet && u.countdown != null ? `<div class="cd">${u.countdown}</div>` : '')
@@ -1225,6 +1245,7 @@ const PATH_COLORS = {
   '虚无':     ['#b98cff', '#5f2fa0'],
   '欢愉':     ['#ffb85c', '#9c5f1a'],
   '记忆':     ['#a4dcff', '#2f6b9e'],
+  '崩坏':     ['#e98aff', '#56237d'],
 };
 /* 命途符号（白色版，bilibili wiki 官方素材）：印在费用水晶底上。
  * 「存护丰饶」合并了存护与丰饶两命途，这里暂用存护(盾)符号——想要丰饶(花)符号的话换这行即可。 */
@@ -1237,6 +1258,7 @@ const PATH_ICONS = {
   '虚无':     'img/icon/nihility.png',
   '欢愉':     'img/icon/elation.png',
   '记忆':     'img/icon/remembrance.png',
+  '崩坏':     'img/icon/honkai.svg',
 };
 function pathStyle(def) {
   const [pc, pcd] = PATH_COLORS[def.class] || ['#6a7480', '#2a2f38'];
@@ -1244,10 +1266,16 @@ function pathStyle(def) {
   return `--pc:${pc};--pcd:${pcd};--pi:url('${pi}')`;
 }
 
+function formModeText(mode) {
+  return ({ replace: '相邻替换', 'cross-replace': '跨阶替换', 'echo-deploy': '残影再部署',
+    'echo-replace': '从残影相邻替换', 'echo-cross-replace': '从残影跨阶替换' })[mode] || '';
+}
+
 function cardHTML(inst, i, myTurn) {
   const d = inst.def;
   const cost = E.handCost(s, inst, ME);
   const chk = E.canPlay(s, i);
+  const mode = chk.ok && chk.plan ? formModeText(chk.plan.mode) : '';
   const ok = myTurn && chk.ok;
   const selected = sel && sel.kind === 'target' && sel.hand === i;
   const follower = d.type === '随从';
@@ -1256,7 +1284,7 @@ function cardHTML(inst, i, myTurn) {
     + art(d)
     + `<div class="cost ${cost < d.cost ? 'cut' : ''}"><b>${cost}</b></div>`
     + (inst.spellboost > 0 ? `<div class="boost">演算 ${inst.spellboost}</div>` : '')
-    + `<div class="cname">${esc(d.name)}</div>`
+    + `<div class="cname">${esc(d.name)}${mode ? ` · ${esc(mode)}` : ''}</div>`
     + `<div class="effect"><div class="ct">${esc(d.note || '')}</div></div>`
     + (d.tag ? `<div class="subtype">${esc(d.tag)}</div>` : '')
     + (follower
@@ -1450,6 +1478,9 @@ function detailAct(a) {
       sel = { kind: 'target', hand: spec.hand, need };
       return render();
     }
+    // 换装与残影回归的格位由引擎唯一确定，不要求玩家再点已有单位或残影。
+    const fp = E.formPlayPlan(s, inst, ME);
+    if (fp.ok && fp.mode !== 'normal') return doPlay(spec.hand, { slot: fp.slot });
     // 随从/护符（非法术）无需指定目标 → 进入「选位置」，点/拖空格放置
     if (inst.def.type !== '法术' && !need) {
       sel = { kind: 'place', hand: spec.hand };
@@ -1795,10 +1826,14 @@ function eventsSince(logLen) {
     else if ((m = /^复制出 (.+)$/.exec(body)))        out.push({ k: 'summon', name: m[1], mine });
     else if ((m = /^从残响值召还 (.+?)（/.exec(body)))   out.push({ k: 'summon', name: m[1], mine });
     else if ((m = /^(.+) 变身为 (.+)$/.exec(body)))    out.push({ k: 'summon', name: m[2], mine });
+    else if ((m = /^(.+?)#(\d+) 攻击主战者 (\d+)$/.exec(body)))
+      out.push({ k: 'atkFace', name: m[1], uid: +m[2], dmg: +m[3], mine });
+    else if ((m = /^(.+?)#(\d+)\((\d+)\) 交换 (.+?)#(\d+)\((\d+)\)$/.exec(body)))
+      out.push({ k: 'trade', a: m[1], aUid: +m[2], b: m[4], bUid: +m[5], mine });
     else if ((m = /^(.+?) 攻击主战者 (\d+)$/.exec(body)))
-      out.push({ k: 'atkFace', name: m[1], dmg: +m[2], mine });
+      out.push({ k: 'atkFace', name: m[1], uid: null, dmg: +m[2], mine });
     else if ((m = /^(.+?)\((\d+)\) 交换 (.+?)\((\d+)\)$/.exec(body)))
-      out.push({ k: 'trade', a: m[1], b: m[3], mine });
+      out.push({ k: 'trade', a: m[1], aUid: null, b: m[3], bUid: null, mine });
     else if (/的屏障吸收了/.test(body))               out.push({ k: 'barrier', body, mine });
     else if ((m = /^引爆 .*?，?(\d+) 点/.exec(body)))  out.push({ k: 'boom', dmg: +m[1], mine });
   }
@@ -1886,6 +1921,7 @@ window.__gameTest = {
   get state() { return s; },
   get me() { return ME; },
   render,
+  eventsSince,
 };
 
 /* 音效和动画共用同一份还原出来的事件，所以对手的操作、卡效触发的连锁召唤，
@@ -1947,12 +1983,16 @@ function playAnims(before) {
   const busyFor = shown ? 620 * shown + 460 : 0;
 
   // 攻击：攻击者朝目标冲一下（AI 的攻击也走这里）
+  // 新日志带唯一uid；旧回放没有uid时才回退按名字定位。
+  const unitEl = (uid, name, mine) => uid != null
+    ? document.querySelector(`.unit[data-uid="${uid}"]`)
+    : elByName(name, mine);
   for (const e of ev) {
     if (e.k === 'atkFace') {
-      const a = elByName(e.name, e.mine);
+      const a = unitEl(e.uid, e.name, e.mine);
       if (a) lungeEl(a, (e.mine ? $('foeLeader') : $('myLeader')).getBoundingClientRect());
     } else if (e.k === 'trade') {
-      const a = elByName(e.a, e.mine), b = elByName(e.b, !e.mine);
+      const a = unitEl(e.aUid, e.a, e.mine), b = unitEl(e.bUid, e.b, !e.mine);
       const bt = b ? b.getBoundingClientRect() : (before.dom.get(-1) || {}).rect;
       if (a && bt) lungeEl(a, bt);
     } else if (e.k === 'barrier') {

@@ -47,7 +47,8 @@ export function fireTrigger(s, trigger, ctx = {}) {
     if (!u.def) continue;
     if (ctx.ownerOnly != null && pi !== ctx.ownerOnly) continue;
     // 自身触发类时机只对来源单位生效
-    if ((trigger === 'onPlay' || trigger === 'onDeath' || trigger === 'onAttack'
+    if ((trigger === 'onPlay' || trigger === 'onReplace' || trigger === 'onRetreat'
+      || trigger === 'onDeath' || trigger === 'onAttack'
       || trigger === 'onEvolve' || trigger === 'onDamaged') && ctx.source !== u) continue;
     for (const c of clausesOf(u)) {
       if (c.trigger !== trigger) continue;
@@ -290,7 +291,7 @@ function runAction(s, a, ctx) {
     }
     case 'destroyAlly':
       for (const t of resolveTarget(s, A[0], ctx)) {
-        if (t.__leader == null && t !== ctx.source && S.ownerOf(s, t.uid) === me) killUnit(s, t);
+        if (t.__leader == null && t !== ctx.source && S.ownerOf(s, t.uid) === me) killUnit(s, t, 'sacrifice');
       }
       break;
     case 'countdownDown': {
@@ -298,7 +299,7 @@ function runAction(s, a, ctx) {
       for (const t of resolveTarget(s, A[0], ctx).slice()) {
         if (t.__leader != null || t.type !== '护符' || t.countdown == null) continue;
         t.countdown -= n;
-        if (t.countdown <= 0) killUnit(s, t);
+        if (t.countdown <= 0) killUnit(s, t, 'countdown', me);
       }
       break;
     }
@@ -341,7 +342,7 @@ function runAction(s, a, ctx) {
         if (t.__leader != null) continue;
         // 「不会受到消灭与破坏效果影响」只挡效果，致死伤害照样能杀
         if (t.keywords.has('undestroyable')) { S.log(s, `${t.name} 不受消灭/破坏影响`); continue; }
-        killUnit(s, t);
+        killUnit(s, t, 'effect', me);
       }
       break;
     /* 计数器分两种作用域，靠动作名区分：
@@ -417,7 +418,7 @@ function runAction(s, a, ctx) {
         // 官方【变身】：所受的伤害、附加效果、此回合是否有进行过攻击或启动均不继承；
         // 变身为随从时「从下一回合开始」才可攻击 → summonedTurn 重置为当前回合。
         // 变身不算离场，所以不触发谢幕曲（这里不走 killUnit 即可）。
-        t.def = def; t.name = def.name; t.type = def.type;
+        t.def = def; t.cardId = def.id; t.name = def.name; t.type = def.type;
         t.atk = def.atk | 0; t.hp = def.hp | 0; t.maxHp = def.hp | 0;
         t.keywords = new Set(); t.__clauses = null; t.counters = {};
         t.marks = new Set();                       // 清正面标记（军功/爵位/老主顾/织线）
@@ -428,6 +429,7 @@ function runAction(s, a, ctx) {
         t.summonedTurn = s.turn;
         t.transformedTurn = s.turn;
         t.countdown = def.countdown ?? null;
+        t.characterId = def.characterId || ''; t.formTier = def.formTier || 0; t.lowerForms = [];
         for (const c of clausesOf(t)) if (c.trigger === 'static') runActions(s, c.actions, { ownerIdx: me, source: t });
         S.log(s, `${was} 变身为 ${t.name}`);
       }
@@ -436,13 +438,16 @@ function runAction(s, a, ctx) {
     case 'bounce':
       for (const t of resolveTarget(s, A[0], ctx)) {
         if (t.__leader != null) continue;
-        const i = P.board.indexOf(t);
+        const owner = S.ownerOf(s, t.uid);
+        if (owner < 0) continue;
+        const side = s.players[owner], i = side.board.indexOf(t);
         if (i >= 0) {
           halfSlot(s, t);   // 回手也算离场，格子的负面效果减半残留
-          P.board.splice(i, 1);
+          side.board.splice(i, 1);
           const inst = S.makeCardInstance(t.def);
           // 回手后费用恢复原价——「回手 + 永久 0 费」是无限引擎，貘泽会无限标记
-          if (P.hand.length < RULES.HAND_LIMIT) P.hand.push(inst);
+          if (side.hand.length < RULES.HAND_LIMIT) side.hand.push(inst);
+          else S.addToGrave(side, t.def);
         }
       }
       break;
@@ -618,6 +623,22 @@ function runAction(s, a, ctx) {
     case 'costDown':    // 自己手牌全部费用 -N（不需要目标）
       for (const inst of P.hand) inst.costMod -= num(s, A[0], ctx);
       break;
+    case 'costDownTag': { // 指定标签的手牌费用 -N（玩偶兑现等）
+      const tag = A[0], n = num(s, A[1], ctx);
+      for (const inst of P.hand) if (S.hasTag({ def: inst.def }, tag)) inst.costMod -= n;
+      break;
+    }
+    case 'consumeHandTag': { // 消耗最多N张指定标签手牌，数量写入来源计数器
+      const tag = A[0], cap = A[1] ? num(s, A[1], ctx) : RULES.HAND_LIMIT;
+      let used = 0;
+      for (let i = P.hand.length - 1; i >= 0 && used < cap; i--) {
+        const inst = P.hand[i];
+        if (!S.hasTag({ def: inst.def }, tag)) continue;
+        P.hand.splice(i, 1); S.addToGrave(P, inst.def); used++;
+      }
+      if (ctx.source) { ctx.source.counters ||= {}; ctx.source.counters['消耗手牌'] = used; }
+      break;
+    }
     case 'custom': S.log(s, `[custom:${A[0]}] 未实现的特例效果`); break;
     default: S.log(s, `未实现动作 ${a.op}`);
   }
@@ -766,7 +787,7 @@ export function dealDamage(s, target, n, source, opts = {}) {
     target.keywords.delete('barrier');
     S.log(s, `${target.name} 的屏障吸收了 ${n} 点伤害`);
     // 官方必杀：「即使…因对手的能力导致造成的伤害变为0，依然会发动」→ 屏障挡不住必杀
-    if (bane) { target.hp = 0; killUnit(s, target); }
+    if (bane) { target.hp = 0; killUnit(s, target, opts.combat ? 'combat' : 'damage'); }
     return 0;
   }
 
@@ -779,7 +800,7 @@ export function dealDamage(s, target, n, source, opts = {}) {
     if (owner >= 0) fireTrigger(s, 'onEnemyDamaged', { ownerOnly: S.opp(owner), chosen: target });
   }
   if (bane) target.hp = 0;
-  if (target.hp <= 0) killUnit(s, target);
+  if (target.hp <= 0) killUnit(s, target, opts.combat ? 'combat' : 'damage');
   return Math.max(0, n);
 }
 
@@ -803,7 +824,7 @@ export function healTarget(s, target, n) {
   target.hp = Math.min(target.hp + n, target.maxHp);
 }
 
-export function killUnit(s, u) {
+export function killUnit(s, u, reason = 'destroyed', actorIdx = null) {
   /* 同一个单位只能死一次。
    *
    * 【谢幕曲】是在单位还留在场上时结算的（fireTrigger 靠它在场才找得到那条子句），
@@ -816,8 +837,51 @@ export function killUnit(s, u) {
   if (pi < 0) return;
   u.__dying = true;
   const wasMinion = u.type === '随从';
+  // 崩坏角色只会因伤害/交战，或明确来自对手的消灭效果而退阶。
+  // 回手、变形、倒数、己方牺牲以及己方主动破坏都绕过退阶与残影。
+  const enemyRemoved = reason === 'effect' && actorIdx != null && actorIdx !== pi;
+  const canRetreat = wasMinion && u.characterId
+    && (reason === 'damage' || reason === 'combat' || enemyRemoved);
   fireTrigger(s, 'onDeath', { source: u, ownerIdx: pi });   // 【谢幕曲】
-  removeUnit(s, u);
+
+  if (canRetreat && S.ownerOf(s, u.uid) === pi) {
+    const p = s.players[pi], slot = u.slot;
+    S.addToGrave(p, u.def);                  // 被击破的顶层形态正常进入墓场
+    if (u.lowerForms && u.lowerForms.length) {
+      const lower = u.lowerForms.pop();
+      const remaining = u.lowerForms.slice();
+      const from = u.name;
+      applyUnitForm(u, lower, s.turn, false);
+      u.lowerForms = remaining;
+      // 复归形态在下一次控制者回合可以攻击；若于自己回合被击破，则本回合不能立即攻击。
+      u.summonedTurn = s.turn;
+      for (const c of clausesOf(u)) {
+        if (c.trigger === 'static') runActions(s, c.actions, { ownerIdx: pi, source: u });
+      }
+      // 任一崩坏护符在场时，本敌方回合首次退阶会为复归形态提供屏障，避免一次回合连续击穿。
+      const protectedBySupport = p.board.some(x => x !== u && x.type === '护符' && x.def.class === '崩坏');
+      if (protectedBySupport && S.ctrOf(p, '崩坏退阶保护回合') !== s.turn) {
+        u.keywords.add('barrier');
+        p.counters['崩坏退阶保护回合'] = s.turn;
+        S.log(s, `${u.name} 受到支援保护并获得屏障`);
+      }
+      fireTrigger(s, 'onRetreat', { source: u, ownerIdx: pi });
+      fireTrigger(s, 'onAllyRetreat', { ownerOnly: pi, chosen: u });
+      S.log(s, `${from} 被击破，退阶为 ${u.name}`);
+      fireTrigger(s, 'onAllyDeath', { ownerOnly: pi, chosen: u });
+      fireTrigger(s, 'onEnemyDeath', { ownerOnly: S.opp(pi), chosen: u });
+      return;
+    }
+    p.board.splice(p.board.indexOf(u), 1);
+    slot.echo = {
+      characterId: u.characterId,
+      expireOnTurn: nextTurnForPlayer(s, pi),
+    };
+    fireTrigger(s, 'onEcho', { ownerOnly: pi, chosen: null });
+    S.log(s, `${u.name} 被击破，在${slot.idx + 1}号格留下1阶残影`);
+  } else {
+    removeUnit(s, u);
+  }
   // 「每当敌方随从被消灭」只数随从，护符离场不算
   if (wasMinion) {
     fireTrigger(s, 'onAllyDeath', { ownerOnly: pi, chosen: u });
@@ -825,11 +889,35 @@ export function killUnit(s, u) {
   }
 }
 
+function nextTurnForPlayer(s, pi) {
+  let turn = s.turn + 1;
+  let active = S.opp(s.active);
+  while (active !== pi) { turn += 1; active = S.opp(active); }
+  return turn;
+}
+
 function removeUnit(s, u) {
   for (const p of s.players) {
     const i = p.board.indexOf(u);
     if (i >= 0) { halfSlot(s, u); p.board.splice(i, 1); S.addToGrave(p, u.def); return; }
   }
+}
+
+function applyUnitForm(u, def, turn, preserveActions) {
+  const summonedTurn = preserveActions ? u.summonedTurn : turn;
+  const attacksUsed = preserveActions ? u.attacksUsed : 0;
+  const slot = u.slot;
+  u.cardId = def.id; u.def = def; u.name = def.name; u.type = def.type;
+  u.atk = def.atk | 0; u.hp = def.hp | 0; u.maxHp = def.hp | 0;
+  u.keywords = new Set(); u.counters = {}; u.spellboost = 0; u.marks = new Set();
+  u.atkPlusExpr = null; u.reduceExpr = null;
+  u.attacksUsed = attacksUsed; u.maxAttacks = 1; u.extraAttacks = 0;
+  u.evolved = false; u.summonedTurn = summonedTurn; u.transformedTurn = -99;
+  u.countdown = def.countdown ?? null; u.silenced = false; u.__clauses = null;
+  u.characterId = def.characterId || ''; u.formTier = def.formTier || 0;
+  u.slot = slot;
+  delete u.__dying;
+  return u;
 }
 
 /* 把单位放进某个场地格子。slotIdx 为空时自动找第一个空位。
@@ -841,6 +929,7 @@ export function placeUnit(p, u, slotIdx) {
     if (slotIdx == null) return false;
   }
   u.slot = p.slots[slotIdx];
+  if (u.slot.echo) u.slot.echo = null;
   p.board.push(u);
   p.board.sort((a, b) => a.slot.idx - b.slot.idx);
   return true;
@@ -892,10 +981,22 @@ export function startTurn(s) {
 /** 当前行动方经历的回合序号（各自独立计数，用于 PP 上限） */
 function turnOfPlayer(s) { return Math.ceil(s.turn / 2); }
 
+function expireEchoesAtEnd(s, pi) {
+  for (const sl of s.players[pi].slots) {
+    if (sl.echo && sl.echo.expireOnTurn <= s.turn) {
+      S.log(s, `${sl.echo.characterId} 的残影消散`);
+      sl.echo = null;
+    }
+  }
+}
+
 export function endTurn(s) {
-  fireTrigger(s, 'turnEnd', { ownerOnly: s.active });
-  settleDots(s, S.opp(s.active));   // 敌方单位在你回合结束时结算持续伤害
-  s.active = S.opp(s.active);
+  const ending = s.active;
+  fireTrigger(s, 'turnEnd', { ownerOnly: ending });
+  settleDots(s, S.opp(ending));   // 敌方单位在你回合结束时结算持续伤害
+  // 持续伤害可能在回合结束结算中制造残影；仍应保留到受害者的下个回合结束。
+  expireEchoesAtEnd(s, ending);
+  s.active = S.opp(ending);
   return s;
 }
 
@@ -978,8 +1079,53 @@ function handCostFor(s, inst, ownerIdx) {
   return Math.max(0, c);
 }
 
-export function handCost(s, inst, ownerIdx = s.active) {
+function baseHandCost(s, inst, ownerIdx) {
   return handCostFor(s, inst, ownerIdx);
+}
+
+/**
+ * 崩坏随从的实际出牌路径。场上已有同角色或其残影时，位置与费用由该锚点决定；
+ * 没有锚点时才是普通登场。返回值同时供引擎、界面和 AI 使用，避免三套判定分叉。
+ */
+export function formPlayPlan(s, inst, ownerIdx = s.active) {
+  const def = inst && inst.def;
+  const p = s.players[ownerIdx];
+  const fullCost = inst ? baseHandCost(s, inst, ownerIdx) : 0;
+  if (!def || def.type !== '随从' || !def.characterId) {
+    return { ok: true, mode: 'normal', cost: fullCost, slot: null };
+  }
+
+  const current = p.board.find(u => u.characterId === def.characterId);
+  const echoSlot = p.slots.find(sl => sl.echo && sl.echo.characterId === def.characterId);
+  if (current && echoSlot) {
+    return { ok: false, why: '同一角色的场上形态与残影不能同时存在' };
+  }
+  if (current) {
+    if ((def.formTier || 0) <= (current.formTier || 0)) {
+      return { ok: false, why: `场上已有${current.formTier}阶${current.name}，只能向更高阶替换` };
+    }
+    const gap = def.formTier - current.formTier;
+    const raw = gap === 1 ? def.replaceCost : def.crossTierCost;
+    if (raw == null) return { ok: false, why: '该形态没有对应的替换费用' };
+    const supportDown = 0;
+    return { ok: true, mode: gap === 1 ? 'replace' : 'cross-replace',
+      cost: Math.max(0, raw + (inst.costMod || 0) - supportDown), slot: current.slot.idx, current };
+  }
+  if (echoSlot) {
+    if (def.formTier === 1) {
+      return { ok: true, mode: 'echo-deploy', cost: fullCost, slot: echoSlot.idx, echo: echoSlot.echo };
+    }
+    const raw = def.formTier === 2 ? def.replaceCost : def.crossTierCost;
+    if (raw == null) return { ok: false, why: '该形态无法从1阶残影替换' };
+    const supportDown = 0;
+    return { ok: true, mode: def.formTier === 2 ? 'echo-replace' : 'echo-cross-replace',
+      cost: Math.max(0, raw + (inst.costMod || 0) - supportDown), slot: echoSlot.idx, echo: echoSlot.echo };
+  }
+  return { ok: true, mode: 'normal', cost: fullCost, slot: null };
+}
+
+export function handCost(s, inst, ownerIdx = s.active) {
+  return formPlayPlan(s, inst, ownerIdx).cost;
 }
 
 /**
@@ -995,7 +1141,7 @@ export function needsTarget(def, s = null, ownerIdx = null) {
       const pi = ownerIdx == null ? s.active : ownerIdx;
       if (!evalCond(c.cond, condCtx(s, pi, null, null))) continue;
     }
-    if (!['spell', 'onPlay'].includes(c.trigger)) continue;
+    if (!['spell', 'onPlay', 'onReplace'].includes(c.trigger)) continue;
     for (const a of c.actions) {
       const t = a.args[0];
       if (t === 'enemyAny') return 'enemyAny';
@@ -1010,9 +1156,14 @@ export function canPlay(s, handIndex) {
   const p = S.self(s);
   const inst = p.hand[handIndex];
   if (!inst) return { ok: false, why: '手牌索引无效' };
-  const cost = handCost(s, inst);
+  const plan = formPlayPlan(s, inst);
+  if (!plan.ok) return plan;
+  const cost = plan.cost;
   if (cost > p.pp) return { ok: false, why: `PP 不足（需 ${cost}，有 ${p.pp}）` };
-  if (inst.def.type !== '法术' && S.boardFull(p)) return { ok: false, why: '场地已满（上限 5）' };
+  // 换装与残影复归沿用原格，不增加场上单位，所以满场时仍可进行。
+  if (inst.def.type !== '法术' && plan.mode === 'normal' && S.boardFull(p)) {
+    return { ok: false, why: '场地已满（上限 5）' };
+  }
   // 官方【选择】：「拥有选择能力的法术，只能在可以选择全部指定数量的情况下使用。
   // 拥有选择能力入场曲的随从或护符，在无法选择全部指定数量的情况下也能使用。」
   // 所以只卡法术，随从/护符照常可打。
@@ -1020,7 +1171,7 @@ export function canPlay(s, handIndex) {
     const miss = missingSpellTarget(s, inst.def);
     if (miss) return { ok: false, why: `没有合法目标（需要${miss}）` };
   }
-  return { ok: true, cost };
+  return { ok: true, cost, plan };
 }
 
 /** 法术若引用 enemyOne/allyOne 而场上没有对应随从，返回缺失的目标描述，否则 null */
@@ -1065,23 +1216,70 @@ export function playCard(s, handIndex, opts = {}) {
     }
     S.addToGrave(p, inst.def);
   } else {
-    const u = S.makeUnit(inst.def, s.turn);
-    u.spellboost = inst.spellboost || 0;
-    // 在手牌里拿到的增益要带进场
-    if (inst.atkMod) u.atk += inst.atkMod;
-    if (inst.hpMod) { u.hp += inst.hpMod; u.maxHp += inst.hpMod; }
-    placeUnit(p, u, opts.slot);
-    for (const c of clausesOf(u)) {
-      if (c.trigger === 'static') runActions(s, c.actions, { ...ctx, source: u });
+    const plan = chk.plan;
+    const replacing = plan && plan.mode.includes('replace');
+    let u;
+    if (replacing) {
+      if (plan.current) {
+        const old = plan.current;
+        const preserved = {
+          uid: old.uid,
+          slot: old.slot,
+          lowerForms: old.lowerForms || [],
+          summonedTurn: old.summonedTurn,
+          attacksUsed: old.attacksUsed,
+        };
+        u = S.makeUnit(inst.def, s.turn);
+        u.uid = preserved.uid;
+        u.slot = preserved.slot;
+        u.lowerForms = [...preserved.lowerForms, old.def];
+        u.summonedTurn = preserved.summonedTurn;
+        u.attacksUsed = preserved.attacksUsed;
+        p.board[p.board.indexOf(old)] = u;
+        p.board.sort((a, b) => a.slot.idx - b.slot.idx);
+      } else {
+        // 残影视作该角色的1阶锚点；高阶在原格换装，并保存真实1阶用于被击破后的复归。
+        u = S.makeUnit(inst.def, s.turn);
+        const base = (s.__cardIndex && Object.values(s.__cardIndex).find(d =>
+          d.characterId === u.characterId && d.formTier === 1)) || null;
+        if (base) u.lowerForms = [base];
+        placeUnit(p, u, plan.slot);
+      }
+      u.spellboost = inst.spellboost || 0;
+      if (inst.atkMod) u.atk += inst.atkMod;
+      if (inst.hpMod) { u.hp += inst.hpMod; u.maxHp += inst.hpMod; }
+      for (const c of clausesOf(u)) {
+        if (c.trigger === 'static') runActions(s, c.actions, { ...ctx, source: u });
+      }
+      ctx.source = u;
+      for (const c of clausesOf(u)) {
+        if (c.trigger !== 'onReplace') continue;
+        if (!evalCond(c.cond, condCtx(s, me, u, opts.target))) continue;
+        runActions(s, c.actions, ctx);
+      }
+      const echo = plan.mode.startsWith('echo-');
+      const cross = plan.mode.includes('cross');
+      S.log(s, `${u.name} ${echo ? '从残影' : ''}完成${cross ? '跨阶' : '相邻'}换装`);
+    } else {
+      u = S.makeUnit(inst.def, s.turn);
+      u.spellboost = inst.spellboost || 0;
+      // 在手牌里拿到的增益要带进场
+      if (inst.atkMod) u.atk += inst.atkMod;
+      if (inst.hpMod) { u.hp += inst.hpMod; u.maxHp += inst.hpMod; }
+      const slot = plan && plan.slot != null ? plan.slot : opts.slot;
+      placeUnit(p, u, slot);
+      for (const c of clausesOf(u)) {
+        if (c.trigger === 'static') runActions(s, c.actions, { ...ctx, source: u });
+      }
+      ctx.source = u;
+      for (const c of clausesOf(u)) {
+        if (c.trigger !== 'onPlay') continue;
+        if (!evalCond(c.cond, condCtx(s, me, u, opts.target))) continue;
+        runActions(s, c.actions, ctx);
+      }
+      fireTrigger(s, 'onAllySummon', { ownerOnly: me, ownerIdx: me, extra: u });
+      fireTrigger(s, 'onEnemySummon', { ownerOnly: S.opp(me) });
     }
-    ctx.source = u;
-    for (const c of clausesOf(u)) {
-      if (c.trigger !== 'onPlay') continue;
-      if (!evalCond(c.cond, condCtx(s, me, u, opts.target))) continue;
-      runActions(s, c.actions, ctx);
-    }
-    fireTrigger(s, 'onAllySummon', { ownerOnly: me, ownerIdx: me, extra: u });
-    fireTrigger(s, 'onEnemySummon', { ownerOnly: S.opp(me) });
   }
   fireTrigger(s, 'onCard', { ownerOnly: me });
   if (inst.def.type === '法术') fireTrigger(s, 'onSpell', { ownerOnly: me });
@@ -1167,7 +1365,7 @@ export function attack(s, attackerUid, targetUid) {
     const atk = effAtk(s, a);
     const dealt = dealDamage(s, { __leader: S.opp(me) }, atk, a, { combat: true });
     drain(s, me, a, dealt);
-    S.log(s, `${a.name} 攻击主战者 ${dealt}`);
+    S.log(s, `${a.name}#${a.uid} 攻击主战者 ${dealt}`);
     fireTrigger(s, 'onAllyAttack', { ownerOnly: me });
     return { ok: true };
   }
@@ -1188,7 +1386,7 @@ export function attack(s, attackerUid, targetUid) {
   drain(s, me, a, dealt);
   // 官方【攻击】：攻击对手随从时会受到反击，受到与交战对手攻击力等量的伤害。
   if (hisAtk > 0) dealDamage(s, a, hisAtk, t, { combat: true });
-  S.log(s, `${a.name}(${myAtk}) 交换 ${t.name}(${hisAtk})`);
+  S.log(s, `${a.name}#${a.uid}(${myAtk}) 交换 ${t.name}#${t.uid}(${hisAtk})`);
   fireTrigger(s, 'onAllyAttack', { ownerOnly: me });
   return { ok: true };
 }

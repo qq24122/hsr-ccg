@@ -27,7 +27,8 @@ function cardLabel(inst) {
 
 function keyCard(inst) {
   const effect = String(inst?.def?.effect || '');
-  return /ppMaxUp|detonate|spellboost|stackSummon|reanimate|pctr\(|onCtr|costIf/.test(effect);
+  return /ppMaxUp|detonate|spellboost|stackSummon|reanimate|pctr\(|onCtr|costIf|onReplace|characterId/.test(effect)
+    || Number(inst?.def?.formTier || 0) > 1;
 }
 
 function keyHoldBonus(p, inst) {
@@ -35,6 +36,31 @@ function keyHoldBonus(p, inst) {
   const copies = p.hand.filter(h => h.def.id === inst.def.id).length;
   /* 只保护唯一启动件；满编复制品仍可正常出牌。 */
   return copies === 1 ? 1.4 : 0;
+}
+
+function matchingForms(p, characterId, aboveTier = 0) {
+  if (!characterId) return [];
+  return p.hand.filter(h => h.def.characterId === characterId
+    && Number(h.def.formTier || 0) > aboveTier);
+}
+
+/**
+ * 崩坏形态需要把「现在的身体」和「手里的后续形态」一起估值。
+ * 只看当前攻血会让 AI 把1阶当普通白板，也会把3阶在无锚点时当普通大随从直拍。
+ */
+function formSynergy(p) {
+  let v = 0;
+  for (const u of S.minionsOf(p)) {
+    if (!u.characterId) continue;
+    const next = matchingForms(p, u.characterId, u.formTier || 0);
+    if (next.length) v += 1.8 + Math.min(2, next.length - 1) * 0.5;
+  }
+  for (const sl of p.slots) {
+    if (!sl.echo) continue;
+    const ready = matchingForms(p, sl.echo.characterId, 0);
+    if (ready.length) v += 2.2 + Math.min(1, ready.length - 1) * 0.4;
+  }
+  return v;
 }
 
 function trace(s, event) {
@@ -66,11 +92,16 @@ function evaluate(s, me) {
       if (u.keywords.has('barrier')) w += 2;
       if (u.keywords.has('storm')) w += 1.5;
       if (u.keywords.has('drain')) w += 1;
+      // 下层形态不是完整随从，但意味着顶层被解后仍保留身体与角色锚点。
+      for (const d of (u.lowerForms || [])) w += 1.5 + ((d.atk || 0) * 0.45 + (d.hp || 0) * 0.35);
       v += sign * w;
     }
+    for (const sl of p.slots) if (sl.echo) v += sign * 2.2;
   };
   side(P, 1);
   side(F, -1);
+  v += formSynergy(P);
+  v -= formSynergy(F);
 
   v += P.hand.length * 1.4;
   v += P.ep * 1.5;
@@ -125,8 +156,10 @@ function evaluate(s, me) {
 function postHp(s, inst) {
   const p = S.self(s);
   let hp = p.hp;
+  const plan = E.formPlayPlan(s, inst);
+  const triggers = plan.ok && plan.mode.includes('replace') ? ['onReplace', 'static'] : ['onPlay', 'spell', 'static'];
   for (const cl of (inst.def.clauses || [])) {
-    if (!['onPlay', 'spell', 'static'].includes(cl.trigger)) continue;
+    if (!triggers.includes(cl.trigger)) continue;
     if (cl.cond && cl.cond.trim() === 'mara' && !S.isMara(p)) continue;   // 没入魔就不会触发
     for (const a of cl.actions) {
       if (a.op === 'dmg' && (a.args[0] === 'selfLeader' || a.args[0] === 'bothLeader')) {
@@ -212,6 +245,35 @@ function doAttacks(s, me) {
   }
 }
 
+function playBias(s, inst, plan) {
+  if (!inst?.def?.characterId || !plan?.ok) return 0;
+  const p = S.self(s), tier = Number(inst.def.formTier || 0);
+  if (plan.mode === 'replace') return 2.2 + tier * 0.35;
+  if (plan.mode === 'cross-replace') return 1.5 + tier * 0.25;
+  if (plan.mode === 'echo-replace') return 2.5;
+  if (plan.mode === 'echo-cross-replace') return 1.7;
+  if (plan.mode === 'echo-deploy') return 1.8;
+  if (plan.mode === 'normal' && tier > 1) {
+    // 无锚点直拍高阶会失去换装效果和真实下层；若手里已有同角色1阶，更应先建立锚点。
+    const hasBase = p.hand.some(h => h !== inst && h.def.characterId === inst.def.characterId
+      && Number(h.def.formTier || 0) === 1);
+    return hasBase ? -4.5 : -1.4 * (tier - 1);
+  }
+  if (plan.mode === 'normal' && tier === 1 && matchingForms(p, inst.def.characterId, 1).length) return 1.8;
+  return 0;
+}
+
+function formPairReserve(s, inst) {
+  const p = S.self(s), def = inst?.def;
+  if (!def?.characterId || Number(def.formTier || 0) <= 1) return 0;
+  const anchored = p.board.some(u => u.characterId === def.characterId)
+    || p.slots.some(sl => sl.echo?.characterId === def.characterId);
+  if (anchored) return 0;
+  const hasBase = p.hand.some(h => h !== inst && h.def.characterId === def.characterId
+    && Number(h.def.formTier || 0) === 1);
+  return hasBase ? 2.6 : 0.8;
+}
+
 /* ---------------- 出牌 ---------------- */
 
 /**
@@ -246,14 +308,17 @@ function doPlays(s, me) {
          * 舞！舞！舞！和 夜色流光溢彩 的出场率是 0%，突进/疾驰也被严重低估。
          * doEvolve 本来就是这么做的，这里统一。 */
         try { doAttacks(sim, me); } catch (e) { /* 试算里的异常不该影响真局 */ }
-        const gain = evaluate(sim, me) - base;
-        if (!best || gain > best.gain) best = { i, gain, opt };
+        const plan = E.formPlayPlan(s, inst);
+        const gain = evaluate(sim, me) - base + playBias(s, inst, plan) - formPairReserve(s, inst);
+        if (!best || gain > best.gain) best = { i, gain, opt, name: inst.def.name,
+          mode: plan.mode };
       }
     }
 
     // 记录候选与最终选择，供诊断区分「没有可行动作」和「评分选错」。
     trace(s, { kind: 'play-choice', round, legalCandidates: legal,
-      chosen: best ? best.name : null, gain: best ? +best.gain.toFixed(2) : null });
+      chosen: best ? best.name : null, mode: best ? best.mode : null,
+      gain: best ? +best.gain.toFixed(2) : null });
     // 允许极小的负收益（多数随从入场后场面分本来就涨，真正没用的牌会被这条挡掉）
     if (!best || best.gain < -0.5) return;
     if (!E.playCard(s, best.i, best.opt).ok) return;
@@ -305,7 +370,14 @@ function targetOptions(s, handIndex, me) {
 /** 随从/护符把目标选项扩展成每个空格；AI 试算后自然避开残留污染。 */
 function placementOptions(s, def, base) {
   if (def.type === '法术') return [base];
-  const p = S.self(s), used = new Set(p.board.map(u => u.slot.idx));
+  const p = S.self(s);
+  if (def.characterId) {
+    const current = p.board.find(u => u.characterId === def.characterId);
+    const echo = p.slots.find(sl => sl.echo && sl.echo.characterId === def.characterId);
+    if (current) return [{ ...base, slot: current.slot.idx }];
+    if (echo) return [{ ...base, slot: echo.idx }];
+  }
+  const used = new Set(p.board.map(u => u.slot.idx));
   const out = [];
   for (const sl of p.slots) if (!used.has(sl.idx)) out.push({ ...base, slot: sl.idx });
   return out.length ? out : [base];
@@ -368,6 +440,49 @@ export function takeTurn(s, me) {
     if (s.winner != null) return;
     step();
   }
+}
+
+function mulliganScore(inst) {
+  const d = inst.def, tier = Number(d.formTier || 0);
+  let s = E_COST(d.cost || 0);
+  if (d.characterId && tier === 1) s -= 3;
+  if (d.characterId && tier === 2) s += 1;
+  if (d.characterId && tier === 3) s += 4;
+  if (d.type === '法术' && /drawKind\(随从|draw\(/.test(d.effect || '')) s -= 1;
+  return s;
+}
+const E_COST = c => c;
+
+/** 起手重抽建议：返回应该换掉的手牌下标。对战页与未来自战起手共用。 */
+export function mulligan(s, me) {
+  const p = s.players[me];
+  const bases = new Set(p.hand.filter(h => h.def.characterId && h.def.formTier === 1)
+    .map(h => h.def.characterId));
+  return p.hand.map((h, i) => ({ h, i, score: mulliganScore(h) }))
+    .filter(x => {
+      const d = x.h.def, tier = Number(d.formTier || 0);
+      if (d.characterId && tier > 1) {
+        if (!bases.has(d.characterId)) return true;
+        // 已有同角色1阶时，2阶应保留；3阶只在起手同时已有完整1→2→3链时保留。
+        if (tier === 2) return false;
+        const hasMid = p.hand.some(h => h !== x.h && h.def.characterId === d.characterId
+          && Number(h.def.formTier || 0) === 2);
+        return !hasMid;
+      }
+      return x.score > 4;
+    }).map(x => x.i);
+}
+
+/** 按官方重抽顺序执行 AI 起手：先抽替补，再把换掉的卡洗回牌库。 */
+export function applyMulligan(s, me) {
+  const p = s.players[me], idx = mulligan(s, me).sort((a, b) => b - a);
+  if (!idx.length) return 0;
+  const set = idx.map(i => p.hand.splice(i, 1)[0]);
+  for (let i = 0; i < set.length; i++) S.drawCard(s, me);
+  for (const inst of set) p.deck.push(inst.def);
+  S.shuffle(p.deck, s.rng);
+  S.log(s, `AI开局重抽 ${set.length} 张`);
+  return set.length;
 }
 
 export { doAttacks, doPlays, doEvolve, evaluate };

@@ -9,7 +9,7 @@
 import { parseEffect } from './dsl.js';
 import { RULES, shuffle } from './state.js';
 
-const NUM_COLS = ['cost', 'atk', 'hp', 'countdown', 'token'];
+const NUM_COLS = ['cost', 'atk', 'hp', 'countdown', 'token', 'formTier', 'replaceCost', 'crossTierCost'];
 
 export function parseTSV(text) {
   const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim().length && !l.startsWith('#'));
@@ -30,7 +30,7 @@ export function parseTSV(text) {
   return { head, rows };
 }
 
-/* 8 个职业各一个文件，对应设计 Excel 的 8 个页签。
+/* 9 个职业各一个文件，对应设计 Excel 的 9 个页签。
  * 文件名用官方英文命途名（避免中文文件名在 URL 里的编码问题），class 列仍是中文。 */
 export const CLASS_FILES = [
   ['毁灭',     'cards-destruction.tsv'],
@@ -41,6 +41,7 @@ export const CLASS_FILES = [
   ['虚无',     'cards-nihility.tsv'],
   ['欢愉',     'cards-elation.tsv'],
   ['记忆',     'cards-remembrance.tsv'],
+  ['崩坏',     'cards-honkai.tsv'],
 ];
 
 /* 卡表目录锚定在本模块自身的位置上，而不是相对调用页面。
@@ -55,7 +56,7 @@ const DATA_DIR = new URL('../data/', import.meta.url).href;
 /**
  * 加载并校验卡表。任何一张卡的 DSL 写错都会在这里抛错并指名卡名，
  * 而不是在对局中静默变成一张无效果的牌。
- * 传单个文件名只读一个文件；传 'ALL' 则读全部 8 个职业文件并合并。
+ * 传单个文件名只读一个文件；传 'ALL' 则读全部 9 个职业文件并合并。
  */
 export async function loadCards(url = 'cards.tsv') {
   if (url === 'ALL') return loadAllClasses();
@@ -65,7 +66,7 @@ export async function loadCards(url = 'cards.tsv') {
   return buildIndex(parseTSV(await res.text()).rows, url);
 }
 
-/** 读全部 8 个职业文件；缺文件会明确报出是哪个职业，不会静默少卡 */
+/** 读全部 9 个职业文件；缺文件会明确报出是哪个职业，不会静默少卡 */
 export async function loadAllClasses(dir = DATA_DIR) {
   const rows = [], missing = [];
   for (const [cls, file] of CLASS_FILES) {
@@ -85,6 +86,22 @@ function buildIndex(rows, srcLabel) {
     if (!r.id || !r.name) { errors.push(`缺少 id 或 name: ${JSON.stringify(r)}`); continue; }
     if (!['随从', '法术', '护符'].includes(r.type)) errors.push(`[${r.name}] 类型非法: ${r.type}`);
     if (r.type === '随从' && (r.atk == null || r.hp == null)) errors.push(`[${r.name}] 随从缺少攻/血`);
+    if (r.class === '崩坏') {
+      const sourceOk = r.type === '随从' ? r.sourceType === '女武神'
+        : r.type === '法术' ? r.sourceType === '圣痕'
+        : ['人偶', '协同者'].includes(r.sourceType);
+      if (!sourceOk) errors.push(`[${r.name}] 崩坏卡牌来源类型不符合边界：${r.type}/${r.sourceType || '空'}`);
+      if (!r.sourceUrl) errors.push(`[${r.name}] 崩坏卡牌缺少官方来源URL`);
+    }
+    if (r.class === '崩坏' && r.type === '随从') {
+      if (!r.characterId) errors.push(`[${r.name}] 崩坏随从缺少 characterId`);
+      if (![1, 2, 3].includes(r.formTier)) errors.push(`[${r.name}] 崩坏随从 formTier 必须为1、2或3`);
+      if (r.formTier > 1 && r.replaceCost == null) errors.push(`[${r.name}] 高阶形态缺少 replaceCost`);
+      if (r.formTier === 3 && r.crossTierCost == null) errors.push(`[${r.name}] 3阶形态缺少 crossTierCost`);
+    }
+    if (r.class === '崩坏' && r.type !== '随从' && (r.characterId || r.formTier)) {
+      errors.push(`[${r.name}] 法术/护符不能声明女武神角色身份或形态阶级`);
+    }
     try { r.clauses = parseEffect(r.effect, r.name); }
     catch (e) { errors.push(e.message); }
   }
@@ -138,9 +155,9 @@ export const PRESET_IDS = {
   '巡猎｜连锁追击': 'H001 H004 H007 H010 H013 H016 H019 H022 H025 H028 H031 H034 H037 H040 H043',
   '巡猎｜饲饵猎杀': 'H002 H005 H008 H011 H014 H017 H020 H023 H026 H029 H032 H035 H038 H041',
   '巡猎｜绝命对峙': 'H003 H006 H009 H012 H015 H018 H021 H024 H027 H030 H033 H036 H039 H042',
-  '智识｜解读演算': 'E001 E004 E007 E010 E013 E016 E019 E022 E025 E028 E031 E034 E037 E040 E043',
-  '智识｜神君追击': 'E002 E005 E008 E011 E014 E017 E020 E023 E026 E029 E032 E035 E038 E041',
-  '智识｜弱点揭露': 'E003 E006 E009 E012 E015 E018 E021 E024 E027 E030 E033 E036 E039 E042',
+  '智识｜解读演算': 'E001*3 E005*2 E008*2 E012*2 E015*2 E018*2 E021*1 E024*2 E027*2 E030*2 E033*2 E036*2 E039*2 E042*2 E045*2 E004*1 E006*3 E009*3 E016*3',
+  '智识｜神君追击': 'E002 E006 E009 E013 E016 E019 E022 E025 E028 E031 E034 E037 E040 E043',
+  '智识｜弱点揭露': 'E004*1 E007*1 E011*1 E014*1 E017*2 E020*2 E023*1 E026*2 E029*2 E032*2 E035*2 E038*2 E041*2 E044*1 E045*2 E027*2 E012*2 E002*3 E006*3 E009*3 E016*3',
   '同谐｜军功爵位': 'A001 A004 A007 A010 A013 A016 A019 A022 A025 A028 A031 A034 A037 A040 A043',
   '同谐｜蓄能合鸣': 'A002 A005 A008 A011 A014 A017 A020 A023 A026 A029 A032 A035 A038 A041',
   '同谐｜额外行动': 'A003 A006 A009 A012 A015 A018 A021 A024 A027 A030 A033 A036 A039 A042',
@@ -156,26 +173,44 @@ export const PRESET_IDS = {
   '记忆｜忆灵编织': 'M001 M004 M007 M010 M013 M016 M019 M022 M025 M028 M031 M034 M037 M040 M043',
   '记忆｜迷因回响': 'M002 M005 M008 M011 M014 M017 M020 M023 M026 M029 M032 M035 M038 M041',
   '记忆｜新蕊献祭': 'M003 M006 M009 M012 M015 M018 M021 M024 M027 M030 M033 M036 M039 M042',
+  '崩坏｜装甲轮转': 'K001*3 K002*2 K003*1 K007*3 K008*2 K009*1 K047*2 K048*2 K050*2 K051*2 K052*2 K053*2 K016*2 K017*2 K019*2 K020*1 K022*2 K026*1 K031*1 K032*1 K034*1 K035*1 K037*1 K038*1',
+  '崩坏｜律者跃迁': 'K004*3 K005*2 K006*1 K013*3 K014*2 K015*1 K045*2 K046*2 K047*2 K048*2 K050*2 K051*2 K016*2 K018*2 K021*2 K023*1 K024*2 K027*1 K028*1 K029*1 K032*1 K038*1 K041*1 K042*1',
+  '崩坏｜休伯利安支援': 'K010*3 K011*2 K012*1 K043*3 K044*2 K049*1 K045*2 K046*2 K052*2 K053*2 K054*2 K055*2 K016*2 K019*2 K020*2 K022*2 K025*1 K031*1 K033*1 K035*1 K036*1 K038*1 K039*1 K040*1',
 };
 
 function fixedPreset(cards, cls, deckName) {
   const key = `${cls}｜${deckName}`;
   const src = PRESET_IDS[key];
   if (!src) return null;
-  const defs = src.split(' ').map(id =>
-    (cards.byId && cards.byId[id]) || cards.all.find(c => c.id === id)
-  ).filter(Boolean);
-  if (defs.length < 12) return null;
+  // 新职业可以用 ID*份数写出精确40张；旧职业继续使用旧的种类列表兼容格式。
+  const tokens = src.split(/\s+/).filter(Boolean);
+  const explicit = tokens.some(t => /\*\d+$/.test(t));
+  const defs = [];
+  for (const token of tokens) {
+    const m = /^(.*?)(?:\*(\d+))?$/.exec(token);
+    const id = m[1], n = explicit ? Number(m[2] || 1) : 1;
+    const d = (cards.byId && cards.byId[id]) || cards.all.find(c => c.id === id);
+    if (d) for (let i = 0; i < n; i++) defs.push(d);
+  }
+  if (explicit) {
+    if (defs.length !== RULES.DECK_SIZE) return null;
+    const counts = new Map();
+    for (const d of defs) counts.set(d.id, (counts.get(d.id) || 0) + 1);
+    if ([...counts.values()].some(n => n > RULES.MAX_COPIES)) return null;
+    return defs;
+  }
+  const kinds = defs;
+  if (kinds.length < 12) return null;
   const deck = [];
   // 前12张满编，其余各2张；按费用最高者优先削到40张。
-  defs.forEach((d, i) => { const n = i < 12 ? 3 : 2; for (let k = 0; k < n; k++) deck.push(d); });
+  kinds.forEach((d, i) => { const n = i < 12 ? 3 : 2; for (let k = 0; k < n; k++) deck.push(d); });
   while (deck.length > RULES.DECK_SIZE) {
     let at = 0;
     for (let i = 1; i < deck.length; i++) if ((deck[i].cost || 0) > (deck[at].cost || 0)) at = i;
     deck.splice(at, 1);
   }
   while (deck.length < RULES.DECK_SIZE) {
-    const d = defs[deck.length % Math.min(12, defs.length)];
+    const d = kinds[deck.length % Math.min(12, kinds.length)];
     if (deck.filter(x => x.id === d.id).length < MAX_COPIES) deck.push(d);
     else break;
   }
@@ -194,7 +229,6 @@ export function buildDeckFor(cards, cls, deckName, rng = Math.random, exclude = 
     if (kept.length === fixed.length) return fixed;
     const pool = deckPool(cards, cls, deckName).filter(c => c.name !== exclude);
     const candidates = pool
-      .filter(c => !kept.some(k => k.id === c.id))
       .sort((a, b) => Math.abs((a.cost || 0) - ((fixed.find(x => x.name === exclude)?.cost) || 0))
         - Math.abs((b.cost || 0) - ((fixed.find(x => x.name === exclude)?.cost) || 0)));
     let at = 0;

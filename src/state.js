@@ -89,6 +89,11 @@ export function makeUnit(def, turn) {
     transformedTurn: -99,           // 变身发生的回合；官方规定变身当回合不能攻击（疾驰也不例外）
     countdown: def.countdown ?? null,  // 护符倒数
     silenced: false,
+    // 崩坏【换装】：characterId 相同的不同装甲属于同一个角色。
+    // lowerForms 只保存真实打出过的下层卡定义；退阶时不会凭空生成缺少的中间阶。
+    characterId: def.characterId || '',
+    formTier: def.formTier || 0,
+    lowerForms: [],
   };
   return u;
 }
@@ -105,6 +110,9 @@ export function makeSlot(idx) {
     dots: 0,                        // 【持续伤害】层数
     aura: 0,                        // 【奥迹】层数（放大 dots 每层结算值）
     shocked: false,                 // 【触电】站此格的随从回合结束受 2 点
+    // 崩坏【残影】：不占场地容量，但锁定角色只能回到原格。
+    // expireOnTurn 是控制者下一个回合的全局 turn 编号；该回合结束时消失。
+    echo: null,
   };
 }
 
@@ -215,10 +223,12 @@ export function drawCard(s, pi) {
  * structuredClone 会在 rng 上直接失败，所以只能手写。
  * def 是不可变的卡定义，共享引用即可；log 不复制（试算不需要，且很占内存）。 */
 function cloneUnit(u) {
-  return { ...u, keywords: new Set(u.keywords), marks: new Set(u.marks), counters: { ...u.counters } };
+  return { ...u, keywords: new Set(u.keywords), marks: new Set(u.marks), counters: { ...u.counters },
+    lowerForms: (u.lowerForms || []).slice() };
 }
 function clonePlayer(p) {
-  const slots = p.slots.map(sl => ({ ...sl, marks: new Set(sl.marks), flaws: new Set(sl.flaws) }));
+  const slots = p.slots.map(sl => ({ ...sl, marks: new Set(sl.marks), flaws: new Set(sl.flaws),
+    echo: sl.echo ? { ...sl.echo } : null }));
   const board = p.board.map(u => {
     const nu = cloneUnit(u);
     if (nu.slot) nu.slot = slots[nu.slot.idx];   // 重新绑定到副本的格子

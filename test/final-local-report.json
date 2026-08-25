@@ -1,0 +1,242 @@
+{
+  "generatedOn": "2026-08-25",
+  "scope": "local deterministic AI self-play; not real-player data",
+  "coreTests": {
+    "passed": 67,
+    "failed": 0
+  },
+  "honkaiTests": {
+    "passed": 14,
+    "failed": 0
+  },
+  "cardQuality": {
+    "strictDominanceFindings": 0
+  },
+  "oldMatrix": {
+    "games": 1512,
+    "crashes": 0,
+    "undecided": 0,
+    "minWinRate": 40,
+    "maxWinRate": 62,
+    "decks": [
+      {
+        "deck": "虚无｜缺陷植入",
+        "winRate": 62,
+        "firstWinRate": 63,
+        "secondWinRate": 60
+      },
+      {
+        "deck": "欢愉｜剧团登场",
+        "winRate": 62,
+        "firstWinRate": 75,
+        "secondWinRate": 49
+      },
+      {
+        "deck": "存护丰饶｜孽物增殖",
+        "winRate": 58,
+        "firstWinRate": 52,
+        "secondWinRate": 63
+      },
+      {
+        "deck": "智识｜弱点揭露",
+        "winRate": 56,
+        "firstWinRate": 60,
+        "secondWinRate": 52
+      },
+      {
+        "deck": "记忆｜新蕊献祭",
+        "winRate": 56,
+        "firstWinRate": 60,
+        "secondWinRate": 51
+      },
+      {
+        "deck": "同谐｜蓄能合鸣",
+        "winRate": 55,
+        "firstWinRate": 57,
+        "secondWinRate": 52
+      },
+      {
+        "deck": "毁灭｜血仇变身",
+        "winRate": 54,
+        "firstWinRate": 60,
+        "secondWinRate": 48
+      },
+      {
+        "deck": "同谐｜额外行动",
+        "winRate": 53,
+        "firstWinRate": 65,
+        "secondWinRate": 41
+      },
+      {
+        "deck": "虚无｜引爆奥迹",
+        "winRate": 52,
+        "firstWinRate": 60,
+        "secondWinRate": 43
+      },
+      {
+        "deck": "智识｜神君追击",
+        "winRate": 51,
+        "firstWinRate": 60,
+        "secondWinRate": 41
+      },
+      {
+        "deck": "智识｜解读演算",
+        "winRate": 50,
+        "firstWinRate": 56,
+        "secondWinRate": 44
+      },
+      {
+        "deck": "同谐｜军功爵位",
+        "winRate": 50,
+        "firstWinRate": 62,
+        "secondWinRate": 38
+      },
+      {
+        "deck": "欢愉｜大吉大利",
+        "winRate": 50,
+        "firstWinRate": 54,
+        "secondWinRate": 46
+      },
+      {
+        "deck": "毁灭｜反击回响",
+        "winRate": 49,
+        "firstWinRate": 59,
+        "secondWinRate": 40
+      },
+      {
+        "deck": "欢愉｜笑点狂欢",
+        "winRate": 48,
+        "firstWinRate": 54,
+        "secondWinRate": 41
+      },
+      {
+        "deck": "记忆｜忆灵编织",
+        "winRate": 47,
+        "firstWinRate": 63,
+        "secondWinRate": 30
+      },
+      {
+        "deck": "记忆｜迷因回响",
+        "winRate": 47,
+        "firstWinRate": 57,
+        "secondWinRate": 37
+      },
+      {
+        "deck": "存护丰饶｜护盾壁垒",
+        "winRate": 45,
+        "firstWinRate": 40,
+        "secondWinRate": 51
+      },
+      {
+        "deck": "存护丰饶｜不死回响",
+        "winRate": 45,
+        "firstWinRate": 48,
+        "secondWinRate": 43
+      },
+      {
+        "deck": "巡猎｜绝命对峙",
+        "winRate": 45,
+        "firstWinRate": 56,
+        "secondWinRate": 35
+      },
+      {
+        "deck": "巡猎｜饲饵猎杀",
+        "winRate": 43,
+        "firstWinRate": 49,
+        "secondWinRate": 37
+      },
+      {
+        "deck": "虚无｜持续侵蚀",
+        "winRate": 43,
+        "firstWinRate": 44,
+        "secondWinRate": 41
+      },
+      {
+        "deck": "毁灭｜地狱变",
+        "winRate": 40,
+        "firstWinRate": 41,
+        "secondWinRate": 40
+      },
+      {
+        "deck": "巡猎｜连锁追击",
+        "winRate": 40,
+        "firstWinRate": 48,
+        "secondWinRate": 32
+      }
+    ]
+  },
+  "honkaiQuickMatrix": [
+    {
+      "crashes": 0,
+      "deck": "装甲轮转",
+      "losses": 65,
+      "total": 144,
+      "undecided": 0,
+      "wins": 79
+    },
+    {
+      "crashes": 0,
+      "deck": "律者跃迁",
+      "losses": 75,
+      "total": 144,
+      "undecided": 0,
+      "wins": 69
+    },
+    {
+      "crashes": 0,
+      "deck": "休伯利安支援",
+      "losses": 71,
+      "total": 144,
+      "undecided": 0,
+      "wins": 73
+    }
+  ],
+  "honkaiFinalMatrix": [
+    {
+      "deck": "装甲轮转",
+      "wins": 242,
+      "losses": 238,
+      "undecided": 0,
+      "crashes": 0,
+      "total": 480,
+      "winRate": 50.42,
+      "firstWinRate": 55.42,
+      "secondWinRate": 45.42,
+      "avgTurn": 12.26
+    },
+    {
+      "deck": "律者跃迁",
+      "wins": 228,
+      "losses": 252,
+      "undecided": 0,
+      "crashes": 0,
+      "total": 480,
+      "winRate": 47.5,
+      "firstWinRate": 51.67,
+      "secondWinRate": 43.33,
+      "avgTurn": 11.55
+    },
+    {
+      "deck": "休伯利安支援",
+      "wins": 240,
+      "losses": 240,
+      "undecided": 0,
+      "crashes": 0,
+      "total": 480,
+      "winRate": 50.0,
+      "firstWinRate": 54.17,
+      "secondWinRate": 45.83,
+      "avgTurn": 12.28
+    }
+  ],
+  "sourceAudit": {
+    "honkaiCards": 55,
+    "sourceRows": 55,
+    "issues": 0
+  },
+  "browserAcceptance": {
+    "formReplacementRetreatEcho": "passed",
+    "sameNameUidTargeting": "passed"
+  },
+  "publication": "local only; not committed, pushed, or deployed"
+}

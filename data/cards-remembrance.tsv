@@ -1,47 +1,47 @@
 id	name	class	type	quality	cost	atk	hp	countdown	token	tag	effect	note	decks	img
-M001	金血忆灵 · 犬形	记忆	随从	铜	1	1	3		0	忆质协同	onPlay: shuffleDeck(远古忆质,2), drawToken(1)	入场洗入2张远古忆质，并抽1张忆质。	忆灵编织	img/M001.webp
+M001	金血忆灵 · 犬形	记忆	随从	铜	1	1	4		0	忆质协同	onPlay: shuffleDeck(远古忆质,2), drawToken(2)	入场洗入2张远古忆质，并抽2张忆质。	忆灵编织	img/M001.webp
 M002	天谴猎手	记忆	随从	铜	1	2	1		0	复制	onPlay: addHand(忆灵替身,1); onDeath: addHand(忆灵替身,1)	入场与谢幕曲各获得1张忆灵替身。	迷因回响	img/M002.webp
-M003	寻爱金镖	记忆	随从	铜	1	1	1		0		onPlay[resonance]: buff(self,2,2), draw(1); onPlay[!resonance]: shuffleDeck(解析忆质,1)	共鸣时+2/+2并抽1；未共鸣时洗入1张忆质。	新蕊献祭	img/M003.webp
-M004	忆域迷因「视线无处不在」	记忆	随从	铜	1	1	1		0	忆质协同	onPlay: shuffleDeck(远古忆质,2), drawToken(1)	入场洗入2张远古忆质，并抽1张忆质。	忆灵编织	img/M004.webp
+M003	寻爱金镖	记忆	随从	铜	1	1	2		0		onPlay[resonance]: buff(self,2,2), draw(1); onPlay[!resonance]: shuffleDeck(解析忆质,1)	共鸣时+2/+2并抽1；未共鸣时洗入1张忆质。	新蕊献祭	img/M003.webp
+M004	忆域迷因「视线无处不在」	记忆	随从	铜	1	1	2		0	忆质协同	onPlay: shuffleDeck(远古忆质,1), drawToken(3)	入场洗入1张远古忆质，并抽3张忆质。	忆灵编织	img/M004.webp
 M005	焚影	记忆	法术	铜	1				0		spell: copy(allyOne)	复制1个己方随从到战场。	迷因回响	img/M005.webp
 M006	溯忆	记忆	法术	铜	1				0		spell: draw(1); spell[resonance]: draw(1)	抽1；结算后处于共鸣则再抽1。	新蕊献祭	img/M006.webp
 M007	致长夜的星光	记忆	法术	铜	2				0		spell: shuffleDeck(解析忆质,2), draw(1)	将2张解析忆质洗入牌库并抽1。	忆灵编织	img/M007.webp
 M008	金血忆灵 · 雉形	记忆	随从	铜	2	2	4		0	复制	onPlay: addHand(忆灵替身,1); onDeath: addHand(忆灵替身,1)	入场与谢幕曲各获得1张忆灵替身。	迷因回响	img/M008.webp
-M009	天谴斗士	记忆	随从	铜	2	1	3		0	天谴	onPlay[resonance]: buff(self,2,2), draw(1); onPlay[!resonance]: shuffleDeck(解析忆质,1)	共鸣时+2/+2并抽1；未共鸣时洗入1张忆质。	新蕊献祭	img/M009.webp
-M010	金血忆灵·犬形	记忆	随从	铜	2	1	5		0	忆质协同	onPlay: shuffleDeck(远古忆质,2), drawToken(1)	入场洗入2张远古忆质，并抽1张忆质。	忆灵编织	img/M010.webp
-M011	忆域迷因「何物藏于镜中」	记忆	随从	铜	3	2	2		0	复制	onPlay: addHand(忆灵替身,1); onDeath: addHand(忆灵替身,1)	入场与谢幕曲各获得1张忆灵替身。	迷因回响	img/M011.webp
-M012	忆域迷因「虚荣永无餍足」	记忆	随从	铜	2	2	1		0	忆域迷因	onPlay[resonance]: buff(self,2,2), draw(1); onPlay[!resonance]: shuffleDeck(解析忆质,1)	共鸣时+2/+2并抽1；未共鸣时洗入1张忆质。	新蕊献祭	img/M012.webp
+M009	天谴斗士	记忆	随从	铜	2	1	4		0	天谴	onPlay[resonance]: buff(self,2,2), draw(1); onPlay[!resonance]: shuffleDeck(解析忆质,1)	共鸣时+2/+2并抽1；未共鸣时洗入1张忆质。	新蕊献祭	img/M009.webp
+M010	金血忆灵·犬形	记忆	随从	铜	2	1	6		0	忆质协同	onPlay: shuffleDeck(远古忆质,2), drawToken(1)	入场洗入2张远古忆质，并抽1张忆质。	忆灵编织	img/M010.webp
+M011	忆域迷因「何物藏于镜中」	记忆	随从	铜	3	2	2		0	复制	onPlay: addHand(忆灵替身,1)	入场获得1张忆灵替身。	迷因回响	img/M011.webp
+M012	忆域迷因「虚荣永无餍足」	记忆	随从	铜	2	2	2		0	忆域迷因	onPlay[resonance]: buff(self,2,2), draw(1); onPlay[!resonance]: shuffleDeck(解析忆质,1)	共鸣时+2/+2并抽1；未共鸣时洗入1张忆质。	新蕊献祭	img/M012.webp
 M013	故事的下一页	记忆	护符	银	2			3	0		onAllySummon: refundPP(1)	每当己方忆质入场，回复1PP。	忆灵编织	img/M013.webp
-M014	天谴哲人	记忆	随从	铜	3	1	4		0	复制	onPlay: addHand(忆灵替身,1); onDeath: addHand(忆灵替身,1)	入场与谢幕曲各获得1张忆灵替身。	迷因回响	img/M014.webp
-M015	天才们的问候	记忆	法术	银	2				0		spell: draw(1); spell[resonance]: draw(1)	抽1；结算后处于共鸣则再抽1。	新蕊献祭	img/M015.webp
-M016	多流汗，少流泪	记忆	法术	银	2				0		spell: shuffleDeck(解析忆质,2), draw(1)	将2张解析忆质洗入牌库并抽1。	忆灵编织	img/M016.webp
-M017	长夜月	记忆	随从	虹	3	2	4		0	复制	onPlay: addHand(忆灵替身,1); onDeath: addHand(忆灵替身,1)	入场与谢幕曲各获得1张忆灵替身。	迷因回响	img/M017.webp
-M018	忆域迷因「我心支离破碎」	记忆	随从	铜	4	3	2		0	忆域迷因	static: ward; onEnterResonance: buff(self,2,2); onLeaveResonance: dmg(enemyLeader,2)	守护。进入共鸣时+2/+2；离开共鸣时打脸2点。	新蕊献祭	img/M018.webp
-M019	金血忆灵·翼蛇形	记忆	随从	银	3	1	4		0	忆质协同	onPlay: shuffleDeck(远古忆质,2), drawToken(1)	入场洗入2张远古忆质，并抽1张忆质。	忆灵编织	img/M019.webp
+M014	天谴哲人	记忆	随从	铜	3	1	4		0	复制	onDeath: addHand(忆灵替身,2)	谢幕曲：获得2张忆灵替身。	迷因回响	img/M014.webp
+M015	天才们的问候	记忆	法术	银	2				0		spell: draw(1); spell[resonance]: draw(2)	抽1；共鸣时改为额外抽2。	新蕊献祭	img/M015.webp
+M016	多流汗，少流泪	记忆	法术	银	2				0		spell: shuffleDeck(解析忆质,3), draw(1)	洗入3张解析忆质并抽1。	忆灵编织	img/M016.webp
+M017	长夜月	记忆	随从	虹	3	2	4		0	复制	onPlay: addHand(忆灵替身,1); onDeath: addHand(忆灵替身,1), draw(1)	入场获得1张忆灵替身；谢幕曲再获得1张并抽1。	迷因回响	img/M017.webp
+M018	忆域迷因「我心支离破碎」	记忆	随从	铜	4	3	3		0	忆域迷因	static: ward; onEnterResonance: buff(self,2,2); onLeaveResonance: dmg(enemyLeader,1), draw(1)	守护。进入共鸣时+2/+2；离开共鸣时打脸1点并抽1张。	新蕊献祭	img/M018.webp
+M019	金血忆灵·翼蛇形	记忆	随从	银	3	1	5		0	忆质协同	onPlay: shuffleDeck(远古忆质,2), drawToken(1)	入场洗入2张远古忆质，并抽1张忆质。	忆灵编织	img/M019.webp
 M020	飞向粉色的明天	记忆	护符	金	3			4	0		turnStart: addHand(忆灵替身,1)	每回合开始，将1张忆灵替身加入手牌。	迷因回响	img/M020.webp
-M021	开拓者·记忆	记忆	随从	虹	3	2	4		0		onPlay[resonance]: buff(self,2,2), draw(1); onPlay[!resonance]: shuffleDeck(解析忆质,1)	共鸣时+2/+2并抽1；未共鸣时洗入1张忆质。	新蕊献祭	img/M021.webp
-M022	天谴歌队	记忆	随从	铜	3	3	5		0	忆质协同	onPlay: shuffleDeck(远古忆质,2), drawToken(1)	入场洗入2张远古忆质，并抽1张忆质。	忆灵编织	img/M022.webp
-M023	颁赐者，千军首，天谴之矛	记忆	随从	铜	3	4	2		0	复制	onPlay: addHand(忆灵替身,1); onDeath: addHand(忆灵替身,1)	入场与谢幕曲各获得1张忆灵替身。	迷因回响	img/M023.webp
+M021	开拓者·记忆	记忆	随从	虹	3	2	5		0		onPlay[resonance]: buff(self,2,2), draw(1); onPlay[!resonance]: shuffleDeck(解析忆质,1)	共鸣时+2/+2并抽1；未共鸣时洗入1张忆质。	新蕊献祭	img/M021.webp
+M022	天谴歌队	记忆	随从	铜	3	3	6		0	忆质协同	onPlay: shuffleDeck(远古忆质,1), drawToken(2)	入场洗入1张远古忆质，并抽2张忆质。	忆灵编织	img/M022.webp
+M023	颁赐者，千军首，天谴之矛	记忆	随从	铜	3	4	2		0	复制	onPlay: addHand(忆灵替身,2)	入场获得2张忆灵替身。	迷因回响	img/M023.webp
 M024	花儿不会忘记	记忆	护符	金	3				0		onEnterResonance: draw(1); onLeaveResonance: dmg(enemyLeader,1)	进入共鸣时抽1；离开共鸣时打脸1点。	新蕊献祭	img/M024.webp
-M025	迷惘之渊的裁定者	记忆	随从	铜	3	3	4		0	忆质协同	onPlay: shuffleDeck(远古忆质,2), drawToken(1)	入场洗入2张远古忆质，并抽1张忆质。	忆灵编织	img/M025.webp
-M026	胜利只在朝夕间	记忆	法术	银	2				0		spell: copy(allyOne)	复制1个己方随从到战场。	迷因回响	img/M026.webp
-M027	忆域迷因「狂怒褪去之壳」	记忆	随从	银	4	4	3		0	忆域迷因	static: ward; onEnterResonance: buff(self,2,2); onLeaveResonance: dmg(enemyLeader,2)	守护。进入共鸣时+2/+2；离开共鸣时打脸2点。	新蕊献祭	img/M027.webp
-M028	遐蝶	记忆	随从	虹	4	4	5		0	忆质协同	onPlay: drawToken(2); onAllyDeath: draw(1)	入场抽2张忆质；己方随从离场时抽1。	忆灵编织	img/M028.webp
+M025	迷惘之渊的裁定者	记忆	随从	铜	3	3	5		0	忆质协同	onPlay: shuffleDeck(远古忆质,3), buff(self,1,1)	入场洗入3张远古忆质，并使自身+1/+1。	忆灵编织	img/M025.webp
+M026	胜利只在朝夕间	记忆	法术	银	2				0		spell: copy(allyOne), buff(allyAll,1,0)	复制1个己方随从，并使己方全体+1/+0。	迷因回响	img/M026.webp
+M027	忆域迷因「狂怒褪去之壳」	记忆	随从	银	4	4	4		0	忆域迷因	static: ward; onEnterResonance: buff(self,2,2); onLeaveResonance: dmg(enemyLeader,2)	守护。进入共鸣时+2/+2；离开共鸣时打脸2点。	新蕊献祭	img/M027.webp
+M028	遐蝶	记忆	随从	虹	4	4	6		0	忆质协同	onPlay: drawToken(2); onAllyDeath: draw(1)	入场抽2张忆质；己方随从离场时抽1。	忆灵编织	img/M028.webp
 M029	天谴先锋	记忆	随从	银	4	5	5		0	复制	onPlay: copy(allyOther), buff(allyAll,1,1)	入场复制1个其他己方随从，并使己方全体+1/+1。	迷因回响	img/M029.webp
-M030	风堇	记忆	随从	虹	4	2	5		0		static: ward; onEnterResonance: buff(self,2,2); onLeaveResonance: dmg(enemyLeader,2)	守护。进入共鸣时+2/+2；离开共鸣时打脸2点。	新蕊献祭	img/M030.webp
-M031	守护者之影	记忆	随从	银	5	4	7		0	忆质协同	onPlay: drawToken(2); onAllyDeath: draw(1)	入场抽2张忆质；己方随从离场时抽1。	忆灵编织	img/M031.webp
+M030	风堇	记忆	随从	虹	4	2	6		0		static: ward; onEnterResonance: buff(self,2,2); onLeaveResonance: dmg(enemyLeader,2)	守护。进入共鸣时+2/+2；离开共鸣时打脸2点。	新蕊献祭	img/M030.webp
+M031	守护者之影	记忆	随从	银	5	4	8		0	忆质协同	onPlay: drawToken(2); onAllyDeath: draw(1)	入场抽2张忆质；己方随从离场时抽1。	忆灵编织	img/M031.webp
 M032	阿格莱雅	记忆	随从	虹	5	4	5		0	复制	onPlay: copy(allyOther), buff(allyAll,1,1)	入场复制1个其他己方随从，并使己方全体+1/+1。	迷因回响	img/M032.webp
-M033	飓风大母	记忆	随从	银	5	4	5		0		static: ward; onEnterResonance: buff(self,2,2); onLeaveResonance: dmg(enemyLeader,2)	守护。进入共鸣时+2/+2；离开共鸣时打脸2点。	新蕊献祭	img/M033.webp
-M034	蚕食者之影	记忆	随从	银	5	7	4		0	忆质协同	onPlay: drawToken(2); onAllyDeath: draw(1)	入场抽2张忆质；己方随从离场时抽1。	忆灵编织	img/M034.webp
+M033	飓风大母	记忆	随从	银	5	4	6		0		static: ward; onEnterResonance: buff(self,2,2); onLeaveResonance: dmg(enemyLeader,2)	守护。进入共鸣时+2/+2；离开共鸣时打脸2点。	新蕊献祭	img/M033.webp
+M034	蚕食者之影	记忆	随从	银	5	7	5		0	忆质协同	onPlay: drawToken(2); onAllyDeath: draw(1)	入场抽2张忆质；己方随从离场时抽1。	忆灵编织	img/M034.webp
 M036	昔涟	记忆	随从	虹	6	3	5		0	复制	onPlay: copy(allyOther), buff(allyAll,1,1)	入场复制1个其他己方随从，并使己方全体+1/+1。	迷因回响	img/M036.webp
-M037	金血忆灵 · 裁定忘却之形	记忆	随从	金	7	7	7		0	金血忆灵	static: ward; onEnterResonance: buff(self,2,2); onLeaveResonance: dmg(enemyLeader,2)	守护。进入共鸣时+2/+2；离开共鸣时打脸2点。	新蕊献祭	img/M037.webp
-M038	忆域迷因「何物朝向死亡」	记忆	随从	虹	7	6	7		0	忆质协同	onPlay: drawToken(2); onAllyDeath: draw(1)	入场抽2张忆质；己方随从离场时抽1。	忆灵编织	img/M038.webp
-M039	知更鸟•晴歌	记忆	随从	虹	7	4	5		0	复制	onPlay: copy(allyOther), buff(allyAll,1,1)	入场复制1个其他己方随从，并使己方全体+1/+1。	迷因回响	img/M039.webp
-M040	「飞霄」之影	记忆	随从	虹	8	7	7		0		static: ward; onEnterResonance: buff(self,2,2); onLeaveResonance: dmg(enemyLeader,2)	守护。进入共鸣时+2/+2；离开共鸣时打脸2点。	新蕊献祭	img/M040.webp
-M041	碎星王虫·斯喀拉卡巴兹（拟造）	记忆	随从	虹	8	6	8		0	忆质协同	onPlay: drawToken(2); onAllyDeath: draw(1)	入场抽2张忆质；己方随从离场时抽1。	忆灵编织	img/M041.webp
+M037	金血忆灵 · 裁定忘却之形	记忆	随从	金	7	7	8		0	金血忆灵	static: ward; onEnterResonance: buff(self,2,2); onLeaveResonance: dmg(enemyLeader,2)	守护。进入共鸣时+2/+2；离开共鸣时打脸2点。	新蕊献祭	img/M037.webp
+M038	忆域迷因「何物朝向死亡」	记忆	随从	虹	7	6	8		0	忆质协同	onPlay: drawToken(2); onAllyDeath: draw(1)	入场抽2张忆质；己方随从离场时抽1。	忆灵编织	img/M038.webp
+M039	知更鸟•晴歌	记忆	随从	虹	7	4	5		0	复制	onPlay: copy(allyOther), buff(allyAll,2,1), grant(allyAll,rush)	入场复制其他己方随从，使己方全体+2/+1并获得突进。	迷因回响	img/M039.webp
+M040	「飞霄」之影	记忆	随从	虹	8	7	8		0		static: ward; onEnterResonance: buff(allyAll,2,2); onLeaveResonance: dmg(enemyLeader,4)	守护。进入共鸣时使己方全体+2/+2；离开共鸣时打脸4点。	新蕊献祭	img/M040.webp
+M041	碎星王虫·斯喀拉卡巴兹（拟造）	记忆	随从	虹	8	6	9		0	忆质协同	onPlay: drawToken(2); onAllyDeath: draw(1)	入场抽2张忆质；己方随从离场时抽1。	忆灵编织	img/M041.webp
 T601	解析忆质	记忆	随从	衍生	1	1	1		1	忆质	onDeath: draw(1)	忆质。【谢幕曲】：抽1张。		img/T601.webp
 T602	远古忆质	记忆	随从	衍生	1	3	1		1	忆质	static: rush	忆质。【突进】。		img/T602.webp
 T604	忆灵替身	记忆	随从	衍生	1	1	1		1	傀儡	static: rush	【突进】。记忆映像系的低费衍生物。		img/T604.webp
-M042	记忆扑满	记忆	随从	铜	1	1	1		0	复制	onPlay: addHand(忆灵替身,1); onDeath: addHand(忆灵替身,1)	入场与谢幕曲各获得1张忆灵替身。	迷因回响	img/M042.webp
-M043	「贼灵」巴特鲁斯	记忆	随从	铜	1	1	1		0		onPlay[resonance]: buff(self,2,2), draw(1); onPlay[!resonance]: shuffleDeck(解析忆质,1)	共鸣时+2/+2并抽1；未共鸣时洗入1张忆质。	新蕊献祭	img/M043.webp
-M044	蛮神，疯王，纷争的化身	记忆	随从	虹	8	7	6		0	忆质协同	onPlay: drawToken(2); onAllyDeath: draw(1)	入场抽2张忆质；己方随从离场时抽1。	忆灵编织	img/M044.webp
+M042	记忆扑满	记忆	随从	铜	1	1	1		0	复制	onPlay: addHand(忆灵替身,1); onDeath: draw(1)	入场获得忆灵替身；谢幕曲抽1张。	迷因回响	img/M042.webp
+M043	「贼灵」巴特鲁斯	记忆	随从	铜	1	1	2		0		onPlay[resonance]: buff(self,1,1), draw(1); onPlay[!resonance]: shuffleDeck(解析忆质,1)	共鸣时+1/+1并抽1；未共鸣时洗入1张忆质。	新蕊献祭	img/M043.webp
+M044	蛮神，疯王，纷争的化身	记忆	随从	虹	8	7	7		0	忆质协同	onPlay: drawToken(2); onAllyDeath: draw(1)	入场抽2张忆质；己方随从离场时抽1。	忆灵编织	img/M044.webp

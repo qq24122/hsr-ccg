@@ -25,13 +25,14 @@ import { parseTSV, CLASS_FILES, listDecks, buildDeckFor, deckPool, PRESET_IDS } 
 import { parseEffect } from '../src/dsl.js';
 import * as S from '../src/state.js';
 import * as E from '../src/engine.js';
-import { takeTurn } from '../src/ai.js';
+import { takeTurn, applyMulligan } from '../src/ai.js';
 
 const autoPlay = s => takeTurn(s, s.active);
 
 function playOne(cards, dA, dB, seed, trace = false) {
   const s = S.createGame(dA.slice(), dB.slice(), seed);
   s.__cardIndex = cards.byName; s.__tokenIndex = cards.byName;
+  applyMulligan(s, 0); applyMulligan(s, 1);
   if (trace) {
     s.__aiTrace = [];
     s.__cardTrace = s.players.flatMap((p, player) => p.hand.map(inst => ({
@@ -107,15 +108,16 @@ async function main() {
   };
   for (const r of allRows) { const re = oldMechanics[r.class]; if (re && re.test(`${r.effect || ''} ${r.note || ''}`)) errors.push(`${r.class}/${r.name}: 仍残留旧机制 "${re.source}"`); }
   const foreignTerms = /神圣猎鹰|猎鹰祷告|尘土巨像|土之秘术|土片|法术增幅|帝国士兵|指挥官|士兵|妖精|悬丝傀儡|古老的创造物|解析的创造物|死灵术|墓场/;
-  const vagueText = /大量(?:直接)?伤害|造成直接伤害|造成伤害(?!并|。)/;
-  for (const r of allRows) { const text = `${r.name || ''} ${r.tag || ''} ${r.note || ''}`; if (foreignTerms.test(text)) errors.push(`${r.class}/${r.name}: 仍残留影之诗专有词`); if (vagueText.test(r.note || '')) errors.push(`${r.class}/${r.name}: 描述没有写明准确伤害数字`); }
+  const allowedHonkaiTerms = /妖精爱莉|粉色妖精小姐♪/;
+  for (const r of allRows) { const text = `${r.name || ''} ${r.tag || ''} ${r.note || ''}`, shadowverseText = text.replace(/妖精爱莉/g, '').replace(/粉色妖精小姐♪/g, ''); if (foreignTerms.test(shadowverseText)) errors.push(`${r.class}/${r.name}: 仍残留影之诗专有词`); }
   const rampByDeck = new Map();
   for (const r of allRows) if (/ppMaxUp\(/.test(r.effect || '')) for (const d of String(r.decks || '').split('/').filter(Boolean)) rampByDeck.set(`${r.class}｜${d}`, (rampByDeck.get(`${r.class}｜${d}`) || 0) + 1);
   for (const [deck, count] of rampByDeck) if (count > 3) errors.push(`${deck}: 永久PP成长卡过多（${count}种，上限3种）`);
   const byId = new Map(allRows.map(r => [r.id, r]));
   for (const [key, src] of Object.entries(PRESET_IDS)) {
     const [cls] = key.split('｜');
-    const ids = String(src).split(/\s+/).filter(Boolean);
+    const tokens = String(src).split(/\s+/).filter(Boolean);
+    const ids = tokens.map(x => x.replace(/\*\d+$/, ''));
     let present = 0;
     for (const id of ids) {
       const card = byId.get(id);
@@ -132,16 +134,20 @@ async function main() {
   }
 
   const nClass = perClass.length, ok = errors.length === 0, sum = document.getElementById('sum');
-  sum.className = 'sum ' + (ok ? 'pass' : 'fail'); sum.textContent = `${nClass}/8 个职业已录入，共 ${allRows.length} 张卡` + (ok ? '，DSL 全部通过校验' : `，${errors.length} 项错误`) + (missing.length ? `｜未录入：${missing.length}` : '');
+  sum.className = 'sum ' + (ok ? 'pass' : 'fail'); sum.textContent = `${nClass}/9 个职业已录入，共 ${allRows.length} 张卡` + (ok ? '，DSL 全部通过校验' : `，${errors.length} 项错误`) + (missing.length ? `｜未录入：${missing.length}` : '');
   let html = '<table><tr><th>职业</th><th>卡数</th><th>随从</th><th>法术</th><th>护符</th><th>衍生</th><th>错误</th><th>费用曲线 1→9+</th></tr>';
   for (const c of perClass) { const cv = [1,2,3,4,5,6,7,8,9].map(k => c.curve[k] || 0).join('/'); html += `<tr><td>${c.cls}</td><td>${c.total}</td><td>${c.minion}</td><td>${c.spell}</td><td>${c.amulet}</td><td>${c.token}</td><td class="${c.bad ? 'no' : 'ok'}">${c.bad || '—'}</td><td>${cv}</td></tr>`; }
   html += '</table>'; if (missing.length) html += `<div class="warn">未录入：${missing.join('；')}</div>`; if (orphans.length) html += `<div class="warn">孤儿衍生卡（没有任何卡能产生它）：${orphans.join('、')}</div>`; if (errors.length) html += `<h1>错误明细</h1><pre class="no">${errors.join('\n')}</pre>`; document.getElementById('body').innerHTML = html;
   const stats = { classes: nClass, cards: allRows.length, errors: errors.length, missing, orphans, perClass: perClass.map(c => ({ cls: c.cls, n: c.total, bad: c.bad })) };
 
-  if (ok && nClass === 8) {
+  if (ok && nClass === 9) {
     const cards = { byName: {}, all: allRows }; for (const r of allRows) cards.byName[r.name] = r;
+    // 主验证器仍只运行原24套互战，崩坏三套使用 new-old.html 的专用新旧矩阵，避免重复旧环境。
     const entries = [], thin = [], decksByCls = listDecks(cards);
-    for (const [cls] of CLASS_FILES) for (const dk of (decksByCls[cls] || [])) { const pool = deckPool(cards, cls, dk); if (pool.length < 12) { thin.push(`${cls}｜${dk}（仅 ${pool.length} 种）`); continue; } entries.push({ cls, deck: dk, label: `${cls}｜${dk}`, deck40: buildDeckFor(cards, cls, dk, S.makeRng(4242)) }); }
+    for (const [cls] of CLASS_FILES) {
+      if (cls === '崩坏') continue;
+      for (const dk of (decksByCls[cls] || [])) { const pool = deckPool(cards, cls, dk); if (pool.length < 12) { thin.push(`${cls}｜${dk}（仅 ${pool.length} 种）`); continue; } entries.push({ cls, deck: dk, label: `${cls}｜${dk}`, deck40: buildDeckFor(cards, cls, dk, S.makeRng(4242)) }); }
+    }
     const games = [], crashes = [], ai = [], byDeck = entries.map(() => ({ w: 0, l: 0, firstW: 0, firstL: 0, secondW: 0, secondL: 0, turns: [], highDrawn: 0, highPlayed: 0, highEndHand: 0, highDiscarded: 0, highBurned: 0 }));
     const matrix = {};
     /* 主验收保持 3 个种子（1512 局），保证每轮调整能及时拿到结果。

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>崩坏对原命途专项对战</title>
+<style>
+body{font:14px/1.6 sans-serif;background:#191b22;color:#ddd;margin:24px}
+button{padding:8px 12px;background:#8d4dcc;color:#fff;border:0;border-radius:5px;cursor:pointer}
+button:disabled{opacity:.55}pre{white-space:pre-wrap;background:#232631;padding:12px;border-radius:6px}.ok{color:#8ce99a}.bad{color:#ff8787}
+</style>
+</head>
+<body>
+<h1>崩坏 × 原八命途</h1>
+<p>仅运行3套崩坏预设对24套原命途预设；不运行原命途互战，也不运行崩坏互战。</p>
+<button id="run">开始432局快速矩阵</button><div id="status"></div><pre id="out"></pre>
+<script type="module">
+import { loadCards, buildDeckFor, listDecks } from '../src/loader.js?v=roles-2';
+import * as S from '../src/state.js';
+import * as E from '../src/engine.js';
+import * as AI from '../src/ai.js?v=honkai-ai-4';
+const $ = id => document.getElementById(id); let cards;
+function one(d0, d1, seed) {
+  const s = S.createGame(d0, d1, seed); s.__cardIndex = cards.byName; s.__tokenIndex = cards.byName;
+  AI.applyMulligan(s, 0); AI.applyMulligan(s, 1);
+  let g = 0;
+  try {
+    while (s.winner == null && g < 80) {
+      E.startTurn(s); if (s.winner != null) break;
+      AI.takeTurn(s, s.active); if (s.winner != null) break;
+      E.endTurn(s); g++;
+    }
+    return { winner: s.winner, turn: s.turn, crash: null };
+  } catch (e) { return { winner: null, turn: s.turn, crash: e.message }; }
+}
+$('run').onclick = async () => {
+  $('run').disabled = true; $('status').textContent = '加载卡表…';
+  try {
+    cards = await loadCards('ALL'); const names = listDecks(cards); const old = [];
+    for (const cls of ['毁灭','存护丰饶','巡猎','智识','同谐','虚无','欢愉','记忆']) {
+      for (const dk of names[cls] || []) old.push({ cls, dk, deck: buildDeckFor(cards, cls, dk, S.makeRng(1)) });
+    }
+    const rows = [];
+    for (const dk of names['崩坏'] || []) {
+      $('status').textContent = `正在运行 ${dk}…`;
+      await new Promise(resolve => setTimeout(resolve, 0));
+      const nd = buildDeckFor(cards, '崩坏', dk, S.makeRng(1)); let wins = 0, losses = 0, undecided = 0, crashes = 0;
+      let opponentIdx = 0;
+      for (const od of old) {
+        const oi = opponentIdx++;
+        for (const first of [0, 1]) for (let seed = 1; seed <= 3; seed++) {
+        const gameSeed = 710000 + oi * 10000 + first * 1000 + seed * 97;
+        const r = first === 0 ? one(nd, od.deck, gameSeed) : one(od.deck, nd, gameSeed);
+        if (r.crash) crashes++;
+        else if (r.winner == null) undecided++;
+        else if (r.winner === (first === 0 ? 0 : 1)) wins++;
+        else losses++;
+        }
+      }
+      rows.push({ deck: dk, wins, losses, undecided, crashes, total: wins + losses + undecided + crashes });
+    }
+    window.__newOldMatrix = rows;
+    $('out').textContent = JSON.stringify(rows, null, 2); $('status').textContent = '完成';
+  } catch (e) { $('status').textContent = '失败：' + e.message; }
+  $('run').disabled = false;
+};
+const q = new URLSearchParams(location.search);
+if (q.get('auto') === '1') $('run').click();
+</script>
+</body>
+</html>

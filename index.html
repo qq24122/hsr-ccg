@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="崩铁CCG">
 <meta name="theme-color" content="#14161c">
 <title>崩坏：星穹铁道 CCG — 集换式卡牌对战</title>
-<meta name="description" content="以《崩坏：星穹铁道》为题材的集换式卡牌游戏，玩法框架取自《影之诗》初代。357 张卡、8 个职业、24 套卡组，可与 AI 对战。">
+<meta name="description" content="以《崩坏：星穹铁道》为题材的集换式卡牌游戏，玩法框架取自《影之诗》初代。412 张卡、9 个职业、27 套卡组，可与 AI 对战。">
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; font: 14px/1.7 "Microsoft YaHei", sans-serif; background: #14161c; color: #dde;
@@ -59,19 +59,18 @@
   </div>
 
   <div class="stats">
-    <div class="stat"><b>357</b><span>张卡牌</span></div>
-    <div class="stat"><b>8</b><span>个命途职业</span></div>
-    <div class="stat"><b>24</b><span>套预设卡组</span></div>
+    <div class="stat"><b>412</b><span>张卡牌</span></div>
+    <div class="stat"><b>9</b><span>个命途职业</span></div>
+    <div class="stat"><b>27</b><span>套预设卡组</span></div>
     <div class="stat"><b>持续测试</b><span>卡组平衡状态</span></div>
   </div>
 
-  <h2>八个命途</h2>
+  <h2>九个命途</h2>
   <div class="cls">
-    <b>毁灭</b><b>存护·丰饶</b><b>巡猎</b><b>智识</b><b>同谐</b><b>虚无</b><b>欢愉</b><b>记忆</b>
+    <b>毁灭</b><b>存护·丰饶</b><b>巡猎</b><b>智识</b><b>同谐</b><b>虚无</b><b>欢愉</b><b>记忆</b><b>崩坏</b>
   </div>
   <div class="sub" style="margin:8px 0 0;font-size:12px">
-    每个命途 3 套卡组：入魔/自伤/进化，能量成长/觉醒/疾驰，演算层数/模块解析/直伤，
-    领航者/横铺/中速，铺场/引爆/残响值，连击/剧团玩偶/快攻，屏障/倒数/疾驰，以及忆质/复制/共鸣。
+    原八命途各有3套预设；崩坏命途使用女武神换装、退阶与残影机制，三套牌分别强调装甲轮转、律者跃迁和休伯利安支援。
   </div>
 
   <h2>规则速览</h2>
@@ -120,6 +119,7 @@
       <a href="test/index.html">规则引擎单元测试</a>　·
       <a href="test/validate.html">全卡库校验与 1512 局自对弈</a>　·
       <a href="test/diag.html">24 套卡组平衡诊断</a>　·
+      <a href="test/final-matrix.html">崩坏 1440 局最终矩阵</a>　·
       <a href="test/art-preview.html">全部卡面预览</a>
     </div>
   </div>
@@ -189,7 +189,7 @@ function toast(btn, msg) {
 $('shareBtn').onclick = async e => {
   const btn = e.currentTarget;
   const url = LINKS.site || location.href;
-  const text = '崩坏：星穹铁道 同人集换式卡牌游戏 — 357 张卡、8 命途、24 套卡组，'
+  const text = '崩坏：星穹铁道 同人集换式卡牌游戏 — 412 张卡、9 命途、27 套卡组，'
     + '打开网页就能和 AI 对战。';
   // 手机上优先调系统分享面板；桌面浏览器基本不支持，落到复制链接
   if (navigator.share) {
